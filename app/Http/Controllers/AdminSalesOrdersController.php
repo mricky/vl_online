@@ -5,12 +5,12 @@
 	use DB;
 	use CRUDBooster;
 
-	class AdminCustomersController extends \crocodicstudio\crudbooster\controllers\CBController {
+	class AdminSalesOrdersController extends \crocodicstudio\crudbooster\controllers\CBController {
 
 	    public function cbInit() {
 
 			# START CONFIGURATION DO NOT REMOVE THIS LINE
-			$this->title_field = "name";
+			$this->title_field = "id";
 			$this->limit = "20";
 			$this->orderby = "id,desc";
 			$this->global_privilege = false;
@@ -25,38 +25,63 @@
 			$this->button_filter = true;
 			$this->button_import = false;
 			$this->button_export = false;
-			$this->table = "customers";
+			$this->table = "sales_orders";
 			# END CONFIGURATION DO NOT REMOVE THIS LINE
 
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
-			$this->col[] = ["label"=>"Kode","name"=>"code"];
-			$this->col[] = ["label"=>"Nama","name"=>"name"];
-			$this->col[] = ["label"=>"Alamat","name"=>"address"];
-			$this->col[] = ["label"=>"Telp/Hp","name"=>"phone"];
-			$this->col[] = ["label"=>"Facebook","name"=>"facebook"];
-			$this->col[] = ["label"=>"Instagram","name"=>"instagram"];
-			$this->col[] = ["label"=>"Description","name"=>"description"];
+			$this->col[] = ["label"=>"Pelanggan","name"=>"customer_id","join"=>"customers,name"];
+			$this->col[] = ["label"=>"No Order","name"=>"order_number"];
+			$this->col[] = ["label"=>"Tgl Order","name"=>"order_date"];
+			$this->col[] = ["label"=>"Expedisi","name"=>"expedition_id","join"=>"expeditions,name"];
+			$this->col[] = ["label"=>"Subtotal","name"=>"subtotal"];
+			$this->col[] = ["label"=>"Discount","name"=>"discount"];
+			$this->col[] = ["label"=>"Biaya Expedisi","name"=>"expedition_cost"];
+			$this->col[] = ["label"=>"Total","name"=>"total"];
 			# END COLUMNS DO NOT REMOVE THIS LINE
 
 			# START FORM DO NOT REMOVE THIS LINE
 			$this->form = [];
-			$this->form[] = ['label'=>'Name','name'=>'name','type'=>'text','validation'=>'required|string|min:3|max:70','width'=>'col-sm-10','placeholder'=>'You can only enter the letter only'];
-			$this->form[] = ['label'=>'Alamat','name'=>'address','type'=>'multitext','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
-			$this->form[] = ['label'=>'Phone','name'=>'phone','type'=>'number','validation'=>'required|numeric','width'=>'col-sm-10','placeholder'=>'You can only enter the number only'];
-			$this->form[] = ['label'=>'Facebook','name'=>'facebook','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-10'];
-			$this->form[] = ['label'=>'Instagram','name'=>'instagram','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-10'];
-			$this->form[] = ['label'=>'Keterangan','name'=>'description','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-10'];
+			$this->form[] = ['label'=>'Pelanggan','name'=>'customer_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'customers,name'];
+			$this->form[] = ['label'=>'Tgl Order','name'=>'order_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-5'];
+			$this->form[] = ['label'=>'Keterangan','name'=>'description','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
+			$this->form[] = ['label'=>'Expedisi','name'=>'expedition_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
+		
+			$columns = [];
+			//$columns[] = ['label'=>'Product','name'=>'product_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'products,name'];
+			$columns[] = ['label'=>'Product','name'=>'product_id','type'=>'datamodal'
+							,'validation'=>'required|min:1|max:255'
+							,'width'=>'col-sm-2'
+							,'datamodal_table'=>'view_product_items'
+							,'datamodal_columns'=>'name,qty,product_price,lot_number'
+							,'datamodal_size'=>'large','datamodal_columns_alias'=>'Name, Qty,Harga, Lot Number'
+							,'datamodal_select_to'=>'product_price:price,qty:qty'];
+			
+			//$columns[] = ['label'=>'Product Lot','name'=>'product_item_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'product_items,lot_number','parent_select'=>'product_id','datatable_where'=>'lot_number is not null'];
+			$columns[] = ["label"=>"Qty","name"=>"qty",'type'=>'number'];
+			$columns[] = ["label"=>"Harga","name"=>"price",'type'=>'number'];
+			
+			$this->form[] = ['label'=>'Orders Detail','name'=>'sales_order_details','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'sales_order_details','foreign_key'=>'sales_order_id'];
+			$this->form[] = ['label'=>'Subtotal','name'=>'subtotal','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
+			$this->form[] = ['label'=>'Discount','name'=>'discount','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
+			$this->form[] = ['label'=>'Expedition Cost','name'=>'expedition_cost','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
+			$this->form[] = ['label'=>'Total','name'=>'total','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
+	    	$this->form[] = ['label'=>'Pelanggan Terima Barang','name'=>'customer_receive_date','type'=>'date','validation'=>'nullable|date','width'=>'col-sm-5'];
+			$this->form[] = ['label'=>'Bukti Terima','name'=>'customer_receive_image','type'=>'upload','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
 			# END FORM DO NOT REMOVE THIS LINE
 
 			# OLD START FORM
 			//$this->form = [];
-			//$this->form[] = ['label'=>'Name','name'=>'name','type'=>'text','validation'=>'required|string|min:3|max:70','width'=>'col-sm-10','placeholder'=>'You can only enter the letter only'];
-			//$this->form[] = ['label'=>'Alamat','name'=>'address','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
-			//$this->form[] = ['label'=>'Phone','name'=>'phone','type'=>'number','validation'=>'required|numeric','width'=>'col-sm-10','placeholder'=>'You can only enter the number only'];
-			//$this->form[] = ['label'=>'Facebook','name'=>'facebook','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-10'];
-			//$this->form[] = ['label'=>'Instagram','name'=>'instagram','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-10'];
-			//$this->form[] = ['label'=>'Keterangan','name'=>'description','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-10'];
+			//$this->form[] = ['label'=>'Pelanggan','name'=>'customer_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'customers,name'];
+			//$this->form[] = ['label'=>'Tgl Order','name'=>'order_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-10'];
+			//$this->form[] = ['label'=>'Expedisi','name'=>'expedition_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
+			//$this->form[] = ['label'=>'Subtotal','name'=>'subtotal','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'expeditions,name'];
+			//$this->form[] = ['label'=>'Discount','name'=>'discount','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
+			//$this->form[] = ['label'=>'Expedition Cost','name'=>'expedition_cost','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
+			//$this->form[] = ['label'=>'Total','name'=>'total','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
+			//$this->form[] = ['label'=>'Pelanggan Terima Barang','name'=>'customer_receive_date','type'=>'date','validation'=>'nullable|date','width'=>'col-sm-10'];
+			//$this->form[] = ['label'=>'Bukti Terima','name'=>'customer_receive_image','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
+			//$this->form[] = ['label'=>'Description','name'=>'description','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-10'];
 			# OLD END FORM
 
 			/* 
@@ -267,11 +292,6 @@
 	    public function hook_before_add(&$postdata) {        
 	        //Your code here
 
-			$sq = DB::table('customers')->max('id');
-			$code = strtoupper(substr($postdata['name'],0,3));
-			$no = $sq+1;
-			$postdata['code'] = $code.'-'.$no;
-			$postdata['created_by'] = CRUDBooster::myId();
 	    }
 
 	    /* 

@@ -5,12 +5,12 @@
 	use DB;
 	use CRUDBooster;
 
-	class AdminCustomersController extends \crocodicstudio\crudbooster\controllers\CBController {
+	class AdminGoodsReceiptDetailsController extends \crocodicstudio\crudbooster\controllers\CBController {
 
 	    public function cbInit() {
 
 			# START CONFIGURATION DO NOT REMOVE THIS LINE
-			$this->title_field = "name";
+			$this->title_field = "id";
 			$this->limit = "20";
 			$this->orderby = "id,desc";
 			$this->global_privilege = false;
@@ -25,38 +25,35 @@
 			$this->button_filter = true;
 			$this->button_import = false;
 			$this->button_export = false;
-			$this->table = "customers";
+			$this->table = "goods_receipt_details";
 			# END CONFIGURATION DO NOT REMOVE THIS LINE
 
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
-			$this->col[] = ["label"=>"Kode","name"=>"code"];
-			$this->col[] = ["label"=>"Nama","name"=>"name"];
-			$this->col[] = ["label"=>"Alamat","name"=>"address"];
-			$this->col[] = ["label"=>"Telp/Hp","name"=>"phone"];
-			$this->col[] = ["label"=>"Facebook","name"=>"facebook"];
-			$this->col[] = ["label"=>"Instagram","name"=>"instagram"];
-			$this->col[] = ["label"=>"Description","name"=>"description"];
+			$this->col[] = ["label"=>"Supplier","name"=>"vendor_id","join"=>"vendors,name"];
+			$this->col[] = ["label"=>"Produk","name"=>"product_id","join"=>"products,name"];
+			$this->col[] = ["label"=>"Lot Number","name"=>"lot_number"];
+			$this->col[] = ["label"=>"Barang Masuk","name"=>"qty_in"];
+			$this->col[] = ["label"=>"Titip Supplier","name"=>"is_store_vendor_location"];
 			# END COLUMNS DO NOT REMOVE THIS LINE
 
 			# START FORM DO NOT REMOVE THIS LINE
 			$this->form = [];
-			$this->form[] = ['label'=>'Name','name'=>'name','type'=>'text','validation'=>'required|string|min:3|max:70','width'=>'col-sm-10','placeholder'=>'You can only enter the letter only'];
-			$this->form[] = ['label'=>'Alamat','name'=>'address','type'=>'multitext','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
-			$this->form[] = ['label'=>'Phone','name'=>'phone','type'=>'number','validation'=>'required|numeric','width'=>'col-sm-10','placeholder'=>'You can only enter the number only'];
-			$this->form[] = ['label'=>'Facebook','name'=>'facebook','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-10'];
-			$this->form[] = ['label'=>'Instagram','name'=>'instagram','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-10'];
-			$this->form[] = ['label'=>'Keterangan','name'=>'description','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-10'];
+			$this->form[] = ['label'=>'Supplier','name'=>'vendor_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'vendors,name'];
+			$this->form[] = ['label'=>'Produk','name'=>'product_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'products,name'];
+			$this->form[] = ['label'=>'Lot Number','name'=>'lot_number','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
+			$this->form[] = ['label'=>'Barang Masuk','name'=>'qty_in','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
+			$this->form[] = ['label'=>'TItipan','name'=>'is_store_vendor_location','type'=>'radio','validation'=>'required|integer','width'=>'col-sm-10','dataenum'=>'Array'];
 			# END FORM DO NOT REMOVE THIS LINE
 
 			# OLD START FORM
 			//$this->form = [];
-			//$this->form[] = ['label'=>'Name','name'=>'name','type'=>'text','validation'=>'required|string|min:3|max:70','width'=>'col-sm-10','placeholder'=>'You can only enter the letter only'];
-			//$this->form[] = ['label'=>'Alamat','name'=>'address','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
-			//$this->form[] = ['label'=>'Phone','name'=>'phone','type'=>'number','validation'=>'required|numeric','width'=>'col-sm-10','placeholder'=>'You can only enter the number only'];
-			//$this->form[] = ['label'=>'Facebook','name'=>'facebook','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-10'];
-			//$this->form[] = ['label'=>'Instagram','name'=>'instagram','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-10'];
-			//$this->form[] = ['label'=>'Keterangan','name'=>'description','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-10'];
+			//$this->form[] = ["label"=>"Vendor Id","name"=>"vendor_id","type"=>"select2","required"=>TRUE,"validation"=>"required|integer|min:0","datatable"=>"vendor,id"];
+			//$this->form[] = ["label"=>"Product Id","name"=>"product_id","type"=>"select2","required"=>TRUE,"validation"=>"required|integer|min:0","datatable"=>"product,id"];
+			//$this->form[] = ["label"=>"Lot Number","name"=>"lot_number","type"=>"text","required"=>TRUE,"validation"=>"required|min:1|max:255"];
+			//$this->form[] = ["label"=>"Qty In","name"=>"qty_in","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
+			//$this->form[] = ["label"=>"Is Store Vendor Location","name"=>"is_store_vendor_location","type"=>"radio","required"=>TRUE,"validation"=>"required|integer","dataenum"=>"Array"];
+			//$this->form[] = ["label"=>"Created By","name"=>"created_by","type"=>"text","required"=>TRUE,"validation"=>"required|min:1|max:255"];
 			# OLD END FORM
 
 			/* 
@@ -267,11 +264,6 @@
 	    public function hook_before_add(&$postdata) {        
 	        //Your code here
 
-			$sq = DB::table('customers')->max('id');
-			$code = strtoupper(substr($postdata['name'],0,3));
-			$no = $sq+1;
-			$postdata['code'] = $code.'-'.$no;
-			$postdata['created_by'] = CRUDBooster::myId();
 	    }
 
 	    /* 

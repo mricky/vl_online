@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateVendors extends Migration
+class CreateGoodsReceiptTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,16 +13,15 @@ class CreateVendors extends Migration
      */
     public function up()
     {
-        Schema::create('vendors', function (Blueprint $table) {
+        Schema::create('goods_receipt', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('code')->nullable();
-            $table->string('name')->nullable();
-            $table->string('address')->nullable();
-            $table->string('phone')->nullable();
-            $table->string('facebook')->nullable();
-            $table->string('instagram')->nullable();
+            $table->string('code')->index();
+            $table->integer('vendor_id');
+            $table->string('purchase_order_id');
+            $table->string('po_vendor')->nullable();
+            $table->date('receipt_date');
             $table->string('description')->nullable();
-            $table->string('created_by')->nullable();
+            $table->string('created_by');
             $table->timestamps();
         });
     }
@@ -34,6 +33,6 @@ class CreateVendors extends Migration
      */
     public function down()
     {
-        Schema::drop('vendors');
+        Schema::dropIfExists('goods_receipt');
     }
 }

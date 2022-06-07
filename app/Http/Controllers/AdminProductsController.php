@@ -5,7 +5,7 @@
 	use DB;
 	use CRUDBooster;
 
-	class AdminCustomersController extends \crocodicstudio\crudbooster\controllers\CBController {
+	class AdminProductsController extends \crocodicstudio\crudbooster\controllers\CBController {
 
 	    public function cbInit() {
 
@@ -25,38 +25,46 @@
 			$this->button_filter = true;
 			$this->button_import = false;
 			$this->button_export = false;
-			$this->table = "customers";
+			$this->table = "products";
 			# END CONFIGURATION DO NOT REMOVE THIS LINE
 
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
-			$this->col[] = ["label"=>"Kode","name"=>"code"];
+			$this->col[] = ["label"=>"Track Lot No","name"=>"is_track_lot_number","callback_php"=>'($row->is_track_lot_number==1)?"<span class=\"label label-success\">YES</span>":"<span class=\"label label-danger\">NO</span>"'];
+			$this->col[] = ["label"=>"SKU","name"=>"code"];
 			$this->col[] = ["label"=>"Nama","name"=>"name"];
-			$this->col[] = ["label"=>"Alamat","name"=>"address"];
-			$this->col[] = ["label"=>"Telp/Hp","name"=>"phone"];
-			$this->col[] = ["label"=>"Facebook","name"=>"facebook"];
-			$this->col[] = ["label"=>"Instagram","name"=>"instagram"];
-			$this->col[] = ["label"=>"Description","name"=>"description"];
+			$this->col[] = ["label"=>"Kategori","name"=>"category_id","join"=>"product_categories,name"];
+			$this->col[] = ["label"=>"Brand","name"=>"brand_id","join"=>"product_brands,name"];
+			$this->col[] = ["label"=>"Biaya","name"=>"product_cost"];
+			$this->col[] = ["label"=>"Harga","name"=>"product_price"];
 			# END COLUMNS DO NOT REMOVE THIS LINE
 
 			# START FORM DO NOT REMOVE THIS LINE
 			$this->form = [];
-			$this->form[] = ['label'=>'Name','name'=>'name','type'=>'text','validation'=>'required|string|min:3|max:70','width'=>'col-sm-10','placeholder'=>'You can only enter the letter only'];
-			$this->form[] = ['label'=>'Alamat','name'=>'address','type'=>'multitext','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
-			$this->form[] = ['label'=>'Phone','name'=>'phone','type'=>'number','validation'=>'required|numeric','width'=>'col-sm-10','placeholder'=>'You can only enter the number only'];
-			$this->form[] = ['label'=>'Facebook','name'=>'facebook','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-10'];
-			$this->form[] = ['label'=>'Instagram','name'=>'instagram','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-10'];
-			$this->form[] = ['label'=>'Keterangan','name'=>'description','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-10'];
+			$this->form[] = ['label'=>'Nama','name'=>'name','type'=>'text','validation'=>'required|string|min:3|max:70','width'=>'col-sm-10'];
+			$this->form[] = ['label'=>'Kategori','name'=>'category_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'product_categories,name'];
+			$this->form[] = ['label'=>'Brand','name'=>'brand_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'product_brands,name'];
+			$this->form[] = ['label'=>'Biaya','name'=>'product_cost','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
+			$this->form[] = ['label'=>'Harga','name'=>'product_price','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
+			//$this->form[] = ['label'=>'Jumlah','name'=>'qty_onhand','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
+			//$this->form[] = ['label'=>'Jumlah Alokasi','name'=>'qty_allocated','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
+			//$this->form[] = ['label'=>'Jumlah Terkirim','name'=>'qty_shipped','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
+			$this->form[] = ['label'=>'Keterangan','name'=>'description','type'=>'textarea','validation'=>'nullable|string|min:3|max:5000','width'=>'col-sm-10'];
+			$this->form[] = ['label'=>'Track Lot No','name'=>'is_track_lot_number','type'=>'radio','dataenum'=>'0|No;1|Yes','width'=>'col-sm-10'];
 			# END FORM DO NOT REMOVE THIS LINE
 
 			# OLD START FORM
 			//$this->form = [];
-			//$this->form[] = ['label'=>'Name','name'=>'name','type'=>'text','validation'=>'required|string|min:3|max:70','width'=>'col-sm-10','placeholder'=>'You can only enter the letter only'];
-			//$this->form[] = ['label'=>'Alamat','name'=>'address','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
-			//$this->form[] = ['label'=>'Phone','name'=>'phone','type'=>'number','validation'=>'required|numeric','width'=>'col-sm-10','placeholder'=>'You can only enter the number only'];
-			//$this->form[] = ['label'=>'Facebook','name'=>'facebook','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-10'];
-			//$this->form[] = ['label'=>'Instagram','name'=>'instagram','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-10'];
-			//$this->form[] = ['label'=>'Keterangan','name'=>'description','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-10'];
+			//$this->form[] = ['label'=>'Nama','name'=>'name','type'=>'text','validation'=>'required|string|min:3|max:70','width'=>'col-sm-10'];
+			//$this->form[] = ['label'=>'Supplier','name'=>'vendor_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'vendors,name'];
+			//$this->form[] = ['label'=>'Kategori','name'=>'category_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'vendors,name'];
+			//$this->form[] = ['label'=>'Brand','name'=>'brand_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'product_categories,name'];
+			//$this->form[] = ['label'=>'Biaya','name'=>'product_cost','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
+			//$this->form[] = ['label'=>'Harga','name'=>'product_price','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
+			//$this->form[] = ['label'=>'Jumlah','name'=>'qty_onhand','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
+			//$this->form[] = ['label'=>'Jumlah Alokasi','name'=>'qty_allocated','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
+			//$this->form[] = ['label'=>'Jumlah Terkirim','name'=>'qty_shipped','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
+			//$this->form[] = ['label'=>'Keterangan','name'=>'description','type'=>'textarea','validation'=>'nullable|string|min:5|max:5000','width'=>'col-sm-10'];
 			# OLD END FORM
 
 			/* 
@@ -71,7 +79,8 @@
 			| @parent_columns = Sparate with comma, e.g : name,created_at
 	        | 
 	        */
-	        $this->sub_module = array();
+			$this->sub_module[] = ['label'=>'Photo','path'=>'product_photos','parent_columns'=>'code,name','foreign_key'=>'product_id','button_color'=>'success','button_icon'=>'fa fa-image'] ;
+		
 
 
 	        /* 
@@ -266,12 +275,18 @@
 	    */
 	    public function hook_before_add(&$postdata) {        
 	        //Your code here
+			$sq = DB::table('products')->max('id');
+			
+			$category = DB::table('product_categories')->where('id',$postdata['category_id'])->first()->name;
+			$brand = DB::table('product_brands')->where('id',$postdata['brand_id'])->first()->name;
 
-			$sq = DB::table('customers')->max('id');
-			$code = strtoupper(substr($postdata['name'],0,3));
+			$categoryCode = strtoupper(substr($category,0,3));
+			$brandCode = strtoupper(substr($brand,0,3));
 			$no = $sq+1;
-			$postdata['code'] = $code.'-'.$no;
+			$postdata['code'] = $categoryCode.'-'.$brandCode.'-'.$no;
+			
 			$postdata['created_by'] = CRUDBooster::myId();
+
 	    }
 
 	    /* 
@@ -283,7 +298,12 @@
 	    */
 	    public function hook_after_add($id) {        
 	        //Your code here
-
+			// $product = DB::table('products')->where('id',$id)->first();
+			// $payload = [
+			// 	'product_id' => $product->id,
+			// 	'code' -> $product->code,
+			// ]
+			// $product_item DB::table('item_products')=
 	    }
 
 	    /* 

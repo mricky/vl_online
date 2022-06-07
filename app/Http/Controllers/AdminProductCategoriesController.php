@@ -30,6 +30,7 @@
 
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
+			$this->col[] = ["label"=>"Kode","name"=>"code"];
 			$this->col[] = ["label"=>"Nama","name"=>"name"];
 			# END COLUMNS DO NOT REMOVE THIS LINE
 
@@ -250,6 +251,11 @@
 	    */
 	    public function hook_before_add(&$postdata) {        
 	        //Your code here
+			$sq = DB::table('product_categories')->max('id');
+			$code = strtoupper(substr($postdata['name'],0,3));
+			$no = $sq+1;
+			$postdata['code'] = $code.'-'.$no;
+			$postdata['created_by'] = CRUDBooster::myId();
 
 	    }
 

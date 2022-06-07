@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "722ef725e63520ee922a894c9f8cd1ec",
+    "content-hash": "25a0908bf3f0481ba1ddef3253a538fc",
     "packages": [
         {
             "name": "barryvdh/laravel-dompdf",
@@ -74,21 +74,22 @@
         },
         {
             "name": "crocodicstudio/crudbooster",
-            "version": "v5.4.22",
+            "version": "v5.4.17",
             "source": {
                 "type": "git",
                 "url": "https://github.com/crocodic-studio/crudbooster.git",
-                "reference": "7c345f1530b59787322005b5f3b6558686d27a0c"
+                "reference": "55787afe829a8b92fb07e146e76e81187bdba05b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/crocodic-studio/crudbooster/zipball/7c345f1530b59787322005b5f3b6558686d27a0c",
-                "reference": "7c345f1530b59787322005b5f3b6558686d27a0c",
+                "url": "https://api.github.com/repos/crocodic-studio/crudbooster/zipball/55787afe829a8b92fb07e146e76e81187bdba05b",
+                "reference": "55787afe829a8b92fb07e146e76e81187bdba05b",
                 "shasum": ""
             },
             "require": {
                 "barryvdh/laravel-dompdf": "0.8.*",
                 "doctrine/dbal": "~2.3",
+                "imanghafoori/laravel-heyman": "2.*",
                 "imanghafoori/laravel-widgetize": "1.8.*",
                 "intervention/imagecache": "2.3.3",
                 "maatwebsite/excel": "~2.1.0",
@@ -125,7 +126,7 @@
                 "issues": "https://github.com/crocodic-studio/crudbooster/issues",
                 "source": "https://github.com/crocodic-studio/crudbooster/tree/5.4.0"
             },
-            "time": "2019-09-02T03:45:08+00:00"
+            "time": "2018-09-06T05:22:00+00:00"
         },
         {
             "name": "dnoegel/php-xdg-base-dir",
@@ -1101,6 +1102,142 @@
                 }
             ],
             "time": "2022-03-20T21:55:58+00:00"
+        },
+        {
+            "name": "imanghafoori/laravel-heyman",
+            "version": "v2.2.54",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/imanghafoori1/laravel-heyman.git",
+                "reference": "c74129fbd9343ffe40da55d034b26d82e796bc53"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/imanghafoori1/laravel-heyman/zipball/c74129fbd9343ffe40da55d034b26d82e796bc53",
+                "reference": "c74129fbd9343ffe40da55d034b26d82e796bc53",
+                "shasum": ""
+            },
+            "require": {
+                "imanghafoori/laravel-terminator": "*",
+                "laravel/framework": "~5.1|6.*|7.*|8.*|9.*",
+                "php": ">=7.1"
+            },
+            "require-dev": {
+                "barryvdh/laravel-debugbar": "^2.3",
+                "imanghafoori/laravel-makesure": "^1.0",
+                "mockery/mockery": "^0.9.9",
+                "orchestra/database": "@dev",
+                "orchestra/testbench": "~3.0"
+            },
+            "suggest": {
+                "imanghafoori/eloquent-relativity": "Decouple your eloquent models from each other.",
+                "imanghafoori/laravel-anypass": " Allows you login with any password in local environment.",
+                "imanghafoori/laravel-decorator": "Allows you to easily apply the decorator pattern in a laravel app.",
+                "imanghafoori/laravel-masterpass": "You can easily set a master password without code change.",
+                "imanghafoori/laravel-terminator": "Gives you opportunity to refactor your controllers.",
+                "imanghafoori/laravel-widgetize": "Gives you a better structure and caching opportunity for your web pages."
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Imanghafoori\\HeyMan\\HeyManServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "files": [
+                    "src/helpers.php"
+                ],
+                "psr-4": {
+                    "Imanghafoori\\HeyMan\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Iman Ghafoori",
+                    "email": "imanghafoori1@gmail.com"
+                }
+            ],
+            "description": "A package to help you write expressive defensive code in a functional manner",
+            "homepage": "https://github.com/imanghafoori1/laravel-HeyMan",
+            "keywords": [
+                "eloquent-validation",
+                "laravel",
+                "laravel-acl",
+                "laravel-authorization",
+                "laravel-permission",
+                "laravel-roles",
+                "laravel-validation",
+                "laravel5",
+                "laravel5-package",
+                "php"
+            ],
+            "support": {
+                "issues": "https://github.com/imanghafoori1/laravel-heyman/issues",
+                "source": "https://github.com/imanghafoori1/laravel-heyman/tree/v2.2.54"
+            },
+            "time": "2022-02-10T08:48:01+00:00"
+        },
+        {
+            "name": "imanghafoori/laravel-terminator",
+            "version": "v1.3.6",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/imanghafoori1/laravel-terminator.git",
+                "reference": "98067b39df088ccc1c49b8917a8a0549c5b0b6b8"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/imanghafoori1/laravel-terminator/zipball/98067b39df088ccc1c49b8917a8a0549c5b0b6b8",
+                "reference": "98067b39df088ccc1c49b8917a8a0549c5b0b6b8",
+                "shasum": ""
+            },
+            "require": {
+                "laravel/framework": "5.*|6.*|7.*|8.*|9.*|10.*",
+                "php": ">=7.1.3|8.*"
+            },
+            "require-dev": {
+                "imanghafoori/laravel-makesure": "^1.0",
+                "mockery/mockery": "^1.0",
+                "orchestra/testbench": "~6.0"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/helpers.php"
+                ],
+                "psr-4": {
+                    "ImanGhafoori\\Terminator\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Iman Ghafoori",
+                    "email": "Imanghafoori1@gmail.com"
+                }
+            ],
+            "description": "A minimal yet powerful package to give you opportunity to refactor your controllers.",
+            "homepage": "https://github.com/imanghafoori1/laravel-terminator",
+            "keywords": [
+                "laravel",
+                "laravel5",
+                "laravel5-package",
+                "php"
+            ],
+            "support": {
+                "issues": "https://github.com/imanghafoori1/laravel-terminator/issues",
+                "source": "https://github.com/imanghafoori1/laravel-terminator/tree/v1.3.6"
+            },
+            "time": "2022-03-09T21:06:09+00:00"
         },
         {
             "name": "imanghafoori/laravel-widgetize",

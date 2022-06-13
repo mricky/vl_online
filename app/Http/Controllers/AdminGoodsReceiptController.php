@@ -55,9 +55,9 @@
 			$this->form[] = ['label'=>'PO','name'=>'purchase_order_id','type'=>'datamodal'
 						,'validation'=>'required|min:1|max:255'
 						,'width'=>'col-sm-5'
-						,'datamodal_table'=>'purchase_orders'
-						,'datamodal_columns'=>'order_number'
-						,'datamodal_size'=>'large','datamodal_columns_alias'=>'Order No'
+						,'datamodal_table'=>'view_orders'
+						,'datamodal_columns'=>'vendor_name,order_number,order_date,description'
+						,'datamodal_size'=>'large','datamodal_columns_alias'=>'Supplier,Order No,Tgl Order, Keterangan'
 						,'datamodal_select_to'=>'id:purchase_order_id'
 						,'datamodal_where' => ''];
 
@@ -185,7 +185,7 @@
 	        | $this->script_js = "function() { ... }";
 	        |
 	        */
-	        $this->script_js = NULL;
+	        $this->script_js = "";
 
 
             /*
@@ -386,5 +386,14 @@
 
 		public function getPrint($id){
 			dd($this->form());
+		}
+
+		public function getFormStok(){
+			if(!CRUDBooster::isView()) CRUDBooster::redirect(CRUDBooster::adminPath(),trans('crudbooster.denied_access'));
+			//Create your own query 
+			$data = [];
+			$data['Neraca'] ='Laporan Stok';
+	
+			$this->cbView('reports.stok',$data);
 		}
 	}

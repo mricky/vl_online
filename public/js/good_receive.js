@@ -1,12 +1,11 @@
+
 $('#purchase_order_id').change(function(){
-  
-    var selectedVal = $('#purchase_order_id option:selected').val();
+    let id = $('#purchase_order_id .input-id').val();
     
-    if($.isNumeric(selectedVal))
+    if($.isNumeric(id))
     {
-         getItemLineProductPO(selectedVal);
+         getItemLineProductPO(id);
     } 
-      
 });
 
 const getItemLineProductPO = (id) => {

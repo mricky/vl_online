@@ -4,19 +4,13 @@
 	use Request;
 	use DB;
 	use CRUDBooster;
-    use App\Repositories\PurchaseOrderRepository;
-	class AdminPurchaseOrdersController extends \crocodicstudio\crudbooster\controllers\CBController {
 
-		private $purchaseOrder;
+	class AdminCoaClassController extends \crocodicstudio\crudbooster\controllers\CBController {
 
-		public function __construct(PurchaseOrderRepository $purchaseOrder) 
-        {
-       		 $this->purchaseOrder = $purchaseOrder;
-        }
 	    public function cbInit() {
 
 			# START CONFIGURATION DO NOT REMOVE THIS LINE
-			$this->title_field = "id";
+			$this->title_field = "name";
 			$this->limit = "20";
 			$this->orderby = "id,desc";
 			$this->global_privilege = false;
@@ -25,70 +19,29 @@
 			$this->button_action_style = "button_icon";
 			$this->button_add = true;
 			$this->button_edit = true;
-			$this->button_delete = false;
+			$this->button_delete = true;
 			$this->button_detail = true;
 			$this->button_show = true;
 			$this->button_filter = true;
 			$this->button_import = false;
 			$this->button_export = false;
-			$this->table = "purchase_orders";
+			$this->table = "coa_class";
 			# END CONFIGURATION DO NOT REMOVE THIS LINE
 
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
-			$this->col[] = ["label"=>"Supplier","name"=>"vendor_id","join"=>"vendors,name"];
-			$this->col[] = ["label"=>"No Order","name"=>"order_number"];
-			$this->col[] = ["label"=>"Tgl Order","name"=>"order_date"];
-			//$this->col[] = ["label"=>"Tg Pengiriman","name"=>"delivery_date"];
-			$this->col[] = ["label"=>"Subtotal","name"=>"subtotal","callback_php"=>'number_format($row->subtotal)'];
-			$this->col[] = ["label"=>"Discount","name"=>"discount","callback_php"=>'number_format($row->discount)'];
-			//$this->col[] = ["label"=>"Total","name"=>"total","callback_php"=>'number_format($row->total)'];
-			$this->col[] = ["label"=>"Total Bayar","name"=>"total_amount","callback_php"=>'number_format($row->total_amount)'];
-			$this->col[] = ["label"=>"Total Hutang","name"=>"amount_due","callback_php"=>'number_format($row->amount_due)'];
+			$this->col[] = ["label"=>"Nama","name"=>"name"];
 			# END COLUMNS DO NOT REMOVE THIS LINE
 
 			# START FORM DO NOT REMOVE THIS LINE
 			$this->form = [];
-			$this->form[] = ['label'=>'Supplier','name'=>'vendor_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'vendors,name'];
-			$this->form[] = ['label'=>'Tgl Order','name'=>'order_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-5'];
-			//$this->form[] = ['label'=>'Tgl Kirim','name'=>'delivery_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-10'];
-			$this->form[] = ['label'=>'Keterangan','name'=>'description','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-5'];
-	
-			$columns = [];
-			$columns[] = ['label'=>'Product','name'=>'product_id','type'=>'datamodal'
-						,'validation'=>'required|min:1|max:255'
-						,'width'=>'col-sm-2'
-						,'datamodal_table'=>'view_list_products'
-						,'datamodal_columns'=>'code,name,category_name,brand_name,qty_onhand'
-						,'datamodal_size'=>'large','datamodal_columns_alias'=>'SKU,Nama,Kategori,Brand, Qty'
-						,'datamodal_select_to'=>'product_price:price,qty:qty'];
-			$columns[] = ["label"=>"Qty","name"=>"qty",'type'=>'number'];
-			$columns[] = ["label"=>"Harga","name"=>"price",'type'=>'number'];
-			$columns[] = ["label"=>"Subtotal","name"=>"subtotal",'type'=>'number',"readonly"=>true,'formula'=>"[qty] * [price]"];
-			$columns[] = ["label"=>"DP","name"=>"downpayment",'type'=>'number'];
-			$columns[] = ["label"=>"Pelunasan","name"=>"paid_off",'type'=>'number'];
-			$columns[] = ["label"=>"Sisa","name"=>"total",'type'=>'number',"readonly"=>true,'formula'=>"[qty] * [price] - [downpayment] - [paid_off]"];
-			//$this->form[] = ['label'=>'Orders Detail','name'=>'tr_order_detail','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'tr_order_detail','foreign_key'=>'order_id'];
-			//$this->form[] = ['label'=>'Orders Detail','name'=>'purchase_order_details','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'or','foreign_key'=>'purchase_order_id'];
-			$this->form[] = ['label'=>'Orders Detail','name'=>'purchase_order_details','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'purchase_order_details','foreign_key'=>'purchase_order_id'];
-			$this->form[] = ['label'=>'Subtotal','name'=>'subtotal','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-5',"readonly"=>true];
-			$this->form[] = ['label'=>'Discount','name'=>'discount','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-5',"readonly"=>true];
-			$this->form[] = ['label'=>'Total Order','name'=>'total','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-5',"readonly"=>true];
-			$this->form[] = ['label'=>'Total Bayar','name'=>'total_amount','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-5',"readonly"=>true];
-			$this->form[] = ['label'=>'Total Hutang','name'=>'amount_due','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-5',"readonly"=>true];
+			$this->form[] = ['label'=>'Nama','name'=>'name','type'=>'text','validation'=>'required|string|min:3|max:70','width'=>'col-sm-10','placeholder'=>'You can only enter the letter only'];
 			# END FORM DO NOT REMOVE THIS LINE
 
 			# OLD START FORM
 			//$this->form = [];
-			//$this->form[] = ["label"=>"Vendor Id","name"=>"vendor_id","type"=>"select2","required"=>TRUE,"validation"=>"required|integer|min:0","datatable"=>"vendor,id"];
-			//$this->form[] = ["label"=>"Order Number","name"=>"order_number","type"=>"text","required"=>TRUE,"validation"=>"required|min:1|max:255"];
-			//$this->form[] = ["label"=>"Order Date","name"=>"order_date","type"=>"date","required"=>TRUE,"validation"=>"required|date"];
-			//$this->form[] = ["label"=>"Delivery Date","name"=>"delivery_date","type"=>"date","required"=>TRUE,"validation"=>"required|date"];
-			//$this->form[] = ["label"=>"Order Status Id","name"=>"order_status_id","type"=>"select2","required"=>TRUE,"validation"=>"required|integer|min:0","datatable"=>"order_status,id"];
-			//$this->form[] = ["label"=>"Subtotal","name"=>"subtotal","type"=>"money","required"=>TRUE,"validation"=>"required|integer|min:0"];
-			//$this->form[] = ["label"=>"Discount","name"=>"discount","type"=>"money","required"=>TRUE,"validation"=>"required|integer|min:0"];
-			//$this->form[] = ["label"=>"Total","name"=>"total","type"=>"money","required"=>TRUE,"validation"=>"required|integer|min:0"];
-			//$this->form[] = ["label"=>"Description","name"=>"description","type"=>"text","required"=>TRUE,"validation"=>"required|min:1|max:255"];
+			//$this->form[] = ["label"=>"Code","name"=>"code","type"=>"text","required"=>TRUE,"validation"=>"required|min:1|max:255"];
+			//$this->form[] = ["label"=>"Name","name"=>"name","type"=>"text","required"=>TRUE,"validation"=>"required|string|min:3|max:70","placeholder"=>"You can only enter the letter only"];
 			//$this->form[] = ["label"=>"Created By","name"=>"created_by","type"=>"text","required"=>TRUE,"validation"=>"required|min:1|max:255"];
 			# OLD END FORM
 
@@ -118,7 +71,7 @@
 	        | @showIf 	   = If condition when action show. Use field alias. e.g : [id] == 1
 	        | 
 	        */
-	        $this->addaction[] = ['label'=>'Print PO','icon'=>'fa fa-print','color'=>'primary','url'=>CRUDBooster::mainpath('print').'/[id]','title'=>'Cetak','target'=>'_blank'];
+	        $this->addaction = array();
 
 
 	        /* 
@@ -177,13 +130,7 @@
 	        | @label, @count, @icon, @color 
 	        |
 	        */
-		
-	        //$this->index_statistic = array();
-			$this->index_statistic[] = ['label'=>'Total Order','count'=>$this->purchaseOrder->getTotalOrder(),'icon'=>'fa fa-file-text','color'=>'warning'];
-			$this->index_statistic[] = ['label'=>'Total Order (Rp)','count'=>number_format($this->purchaseOrder->getTotalOrderRp()),'icon'=>'fa fa-file-text','color'=>'danger'];
-			$this->index_statistic[] = ['label'=>'Total Hutang (Rp)','count'=>number_format($this->purchaseOrder->getTotalHutangRp()),'icon'=>'fa fa-file-text','color'=>'success'];
-			//$this->index_statistic[] = ['label'=>'POD','count'=>0,'icon'=>'fa fa-check','color'=>'success'];
-
+	        $this->index_statistic = array();
 
 
 
@@ -195,84 +142,8 @@
 	        | $this->script_js = "function() { ... }";
 	        |
 	        */
-			//$this->script_js;
-	        // $this->script_js = "
-			// 	let qty = $('#ordersdetailqty');
-			// 	let price = $('#ordersdetailprice');
-			// 	let subtotal = $('#ordersdetailsubtotal');
-			// 	let downpayment = $('#ordersdetaildownpayment');
-			// 	let paidOff = $('#ordersdetailpaid_off');
-			// 	let total = $('#ordersdetailtotal');
-		
+	        $this->script_js = NULL;
 
-			// 	qty.val(0);
-			// 	price.val(0);
-			// 	subtotal.val(0);
-			// 	downpayment.val(0);
-			// 	paidOff.val(0);
-			// 	total.val(0);
-
-			// 	let sub = 0;
-			// 	price.change(function() {
-				
-			// 		sub = parseInt(qty.val()) * parseInt($(this).val());
-			// 		subtotal.val(sub);
-			// 		total.val(sub);
-			// 	});
-
-				
-			// ";
-			$this->script_js = "
-				$(function(){
-					setInterval(function(){
-							var subTotal = 0;
-							var total = 0;
-							var dp = 0;
-							var paid_off = 0;
-							var discount = 0;
-							var totalAmount = 0;
-
-							$('#table-ordersdetail tbody .subtotal').each(function(){
-								var sub = parseInt($(this).text());
-								subTotal += sub;
-								
-							});
-
-							$('#table-ordersdetail tbody .downpayment').each(function(){
-								var sub = parseInt($(this).text());
-								dp += sub;
-								
-							});
-
-							$('#table-ordersdetail tbody .paid_off').each(function(){
-								var sub = parseInt($(this).text());
-								paid_off += sub;
-								console.log(paid_off)
-							});
-
-							$('#table-ordersdetail tbody .total').each(function(){
-								var sub = parseInt($(this).text());
-								total += sub;
-							
-							});
-
-							totalAmount = parseInt(dp) + parseInt(paid_off);
-							//alert(totalAmount);
-							//console.log('test test');
-							
-							$('#total_amount').val(totalAmount);
-							$('#subtotal').val(subTotal);
-							$('#total').val(subTotal);
-							$('#amount_due').val(total);
-
-					},500);
-			    });
-
-				// $('#discount').change(function(){
-				// 	//$('#total').val( parseInt($('#subtotal').val()) - parseInt($(this).val()));
-				// 	console.log('test');
-				// });
-			";
 
             /*
 	        | ---------------------------------------------------------------------- 
@@ -306,7 +177,7 @@
 	        | $this->load_js[] = asset("myfile.js");
 	        |
 	        */
-			$this->load_js[] = asset("js/purchase.js");
+	        $this->load_js = array();
 	        
 	        
 	        
@@ -381,17 +252,9 @@
 	    */
 	    public function hook_before_add(&$postdata) {        
 	        //Your code here
-			$code = 'PO-';
-			$supplier = DB::table('vendors')->where('id',$postdata['vendor_id'])->first()->code;
-		    $sq = DB::table('purchase_orders')->max('id'); 
-			$year = substr(date("y"),-2);
-			$month = date("m");
-			$no = str_pad($sq+1,4,"0",STR_PAD_LEFT);
-			$postdata['order_number'] = $code.$supplier.$year.$month.$no;
-			$postdata['order_status_id'] = 1;
-			$postdata['created_by'] = CRUDBooster::myId();
 
-		}
+	    }
+
 	    /* 
 	    | ---------------------------------------------------------------------- 
 	    | Hook for execute command after add public static function called 
@@ -454,35 +317,8 @@
 	    }
 
 
-		public function getPrint($id){
-			if(!CRUDBooster::isRead() && $this->global_privilege==FALSE || $this->button_add==FALSE) {    
-				CRUDBooster::redirect(CRUDBooster::adminPath(),trans("crudbooster.denied_access"));
-			  }
 
-			$data = [];
-			$data['page_title'] = 'Sales Order';
-
-			$data['purchase_order'] = $this->purchaseOrder->getPurchaseOrder($id);
-		
-			$data['po_detail'] =  $this->purchaseOrder->getDetailPurchaseOrder($id);
-			//
-			$data['print'] = (object)[
-				'print_at' => date('Y-m-d H:i:s'),
-				'print_by' => CRUDBooster::me()
-			];
-			//dd($data);
-			$this->cbView('prints.purchase_order',$data);
-
-		}
-
-		public function getFormPurchase(){
-			if(!CRUDBooster::isView()) CRUDBooster::redirect(CRUDBooster::adminPath(),trans('crudbooster.denied_access'));
-			//Create your own query 
-			$data = [];
-			$data['Neraca'] ='Laporan Pembelian';
-	
-			$this->cbView('reports.purchase',$data);
-		}
+	    //By the way, you can still create your own method in here... :) 
 
 
 	}

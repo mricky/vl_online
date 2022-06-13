@@ -44,28 +44,28 @@
 			$this->form = [];
 			$this->form[] = ['label'=>'Pelanggan','name'=>'customer_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'customers,name'];
 			$this->form[] = ['label'=>'Tgl Order','name'=>'order_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-5'];
+			$this->form[] = ['label'=>'Expedisi','name'=>'expedition_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'expeditions,name'];
 			$this->form[] = ['label'=>'Keterangan','name'=>'description','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
-			$this->form[] = ['label'=>'Expedisi','name'=>'expedition_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
-		
 			$columns = [];
 			//$columns[] = ['label'=>'Product','name'=>'product_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'products,name'];
 			$columns[] = ['label'=>'Product','name'=>'product_id','type'=>'datamodal'
 							,'validation'=>'required|min:1|max:255'
 							,'width'=>'col-sm-2'
-							,'datamodal_table'=>'view_product_items'
-							,'datamodal_columns'=>'name,qty,product_price,lot_number'
-							,'datamodal_size'=>'large','datamodal_columns_alias'=>'Name, Qty,Harga, Lot Number'
-							,'datamodal_select_to'=>'product_price:price,qty:qty'];
-			
+							,'datamodal_table'=>'view_list_product_sales'
+							,'datamodal_columns'=>'name,category_name,brand_name,product_price,qty_onhand,lot_number'
+							,'datamodal_size'=>'large','datamodal_columns_alias'=>'Name, Kategori, Brand, Harga, Stok, Lot Number'
+							,'datamodal_select_to'=>'product_price:price,lot_number:lot_number'];
+			// sample more than 1
 			//$columns[] = ['label'=>'Product Lot','name'=>'product_item_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'product_items,lot_number','parent_select'=>'product_id','datatable_where'=>'lot_number is not null'];
+			$columns[] = ["label"=>"Harga","name"=>"price",'type'=>'number','readonly'=>true];
 			$columns[] = ["label"=>"Qty","name"=>"qty",'type'=>'number'];
-			$columns[] = ["label"=>"Harga","name"=>"price",'type'=>'number'];
-			
+			$columns[] = ["label"=>"Total","name"=>"total",'type'=>'number','readonly'=>true,"callback_php"=>'number_format($row->total)','formula'=>"parseInt([qty]) * parseInt([price])"];
+			$columns[] = ["label"=>"Lot Number","name"=>"lot_number",'type'=>'text','readonly'=>true];
 			$this->form[] = ['label'=>'Orders Detail','name'=>'sales_order_details','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'sales_order_details','foreign_key'=>'sales_order_id'];
-			$this->form[] = ['label'=>'Subtotal','name'=>'subtotal','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
-			$this->form[] = ['label'=>'Discount','name'=>'discount','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
-			$this->form[] = ['label'=>'Expedition Cost','name'=>'expedition_cost','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
-			$this->form[] = ['label'=>'Total','name'=>'total','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
+			$this->form[] = ['label'=>'Subtotal','name'=>'subtotal','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5','readonly'=>true];
+			$this->form[] = ['label'=>'Discount (-)','name'=>'discount','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
+			$this->form[] = ['label'=>'Expedition Cost (+)','name'=>'expedition_cost','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
+			$this->form[] = ['label'=>'Total','name'=>'total','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-5','readonly'=>true];
 	    	$this->form[] = ['label'=>'Pelanggan Terima Barang','name'=>'customer_receive_date','type'=>'date','validation'=>'nullable|date','width'=>'col-sm-5'];
 			$this->form[] = ['label'=>'Bukti Terima','name'=>'customer_receive_image','type'=>'upload','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
 			# END FORM DO NOT REMOVE THIS LINE
@@ -181,7 +181,21 @@
 	        | $this->script_js = "function() { ... }";
 	        |
 	        */
-	        $this->script_js = NULL;
+	        $this->script_js = "
+				$(function(){
+					setInterval(function(){
+							var subTotal = 0;
+							$('#table-ordersdetail tbody .total').each(function(){
+								var sub = parseInt($(this).text());
+								subTotal += sub;
+								
+							});
+							//console.log(subTotal);
+							$('#subtotal').val(subTotal);
+					},500);
+				});
+			
+			";
 
 
             /*
@@ -216,7 +230,7 @@
 	        | $this->load_js[] = asset("myfile.js");
 	        |
 	        */
-	        $this->load_js = array();
+			$this->load_js[] = asset("js/sales.js");
 	        
 	        
 	        
@@ -355,9 +369,14 @@
 
 	    }
 
-
-
-	    //By the way, you can still create your own method in here... :) 
+		public function getFormSales(){
+			if(!CRUDBooster::isView()) CRUDBooster::redirect(CRUDBooster::adminPath(),trans('crudbooster.denied_access'));
+			//Create your own query 
+			$data = [];
+			$data['Neraca'] ='Laporan Penjualan';
+	
+			$this->cbView('reports.sales',$data);
+		}
 
 
 	}

@@ -362,10 +362,10 @@
 				CRUDBooster::redirect(CRUDBooster::adminPath(),trans("crudbooster.denied_access"));
 			}
 
-			$data['tgl_data']=date('d-M-Y',strtotime($_POST['tgl_awal']) )." s/d ". date('d-M-Y',strtotime($_POST['tgl_ahir']));
+			$data['tgl_data']=date('d-M-Y',strtotime($_POST['tgl_awal']) )." s/d ". date('d-M-Y',strtotime($_POST['tgl_akhir']));
 			$data['neraca'] = DB::table('table_neraca')->where('report_type','N')->orderBy('position','asc')->get();
 			
-			//$this->journalTransaction->generateNeraca($_POST);
+			$this->journalTransaction->generateNeracaRugiLaba($_POST,'N');
 
 			$this->cbView('prints.neraca',$data);
 

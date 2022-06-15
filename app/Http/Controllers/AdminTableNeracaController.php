@@ -363,9 +363,19 @@
 			}
 
 			$data['tgl_data']=date('d-M-Y',strtotime($_POST['tgl_awal']) )." s/d ". date('d-M-Y',strtotime($_POST['tgl_akhir']));
-			$data['neraca'] = DB::table('table_neraca')->where('report_type','N')->orderBy('position','asc')->get();
 			
-			$this->journalTransaction->generateNeracaRugiLaba($_POST,'N');
+			$data['neraca'] = DB::table('table_neraca')->where([
+				['report_type','=','N'],
+				['column_position','=','LEFT'],
+			])->orderBy('id','asc')->get();
+
+			$data['neraca_right'] = DB::table('table_neraca')->where([
+				['report_type','=','N'],
+				['column_position','=','RIGH'],
+			])->orderBy('id','asc')->get();
+			
+			
+			//$this->journalTransaction->generateNeracaRugiLaba($_POST,'N');
 
 			$this->cbView('prints.neraca',$data);
 

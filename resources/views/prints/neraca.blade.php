@@ -1,51 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Neraca</title>
+    <!-- Bootstrap CSS -->
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+      integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk"
+      crossorigin="anonymous"
+    />
+    <style>
+        @media print {
+            footer {
+                position: fixed;
+                bottom: 0;
+                display: inline-block;
+                width: 100%;
+            }
+            hr {
+                border-style: solid !important;
+                border-color: black !important;
+                height: 1px;
+                border: 1;
+            }
+            @page {
+                size: landscape;
+            }
+        }
+        .vl {
+            border-left: 1px solid black;
+            height: 500px;
+        }
+        .mytable{
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body onload="print()">
+    <section>
+        <div class="container">
+            <div class="row no-gutters">
+                <div class="col-12 text-center">
+                    <p style="font-size: 18px; margin: 0; padding: 0;">PROJECT PAUL</p>
+                    <h3>Balance Sheet Standard (T)</h3>
+                    <p style="font-size: 18px;">
+                        As of {{$tgl_data}}
+                    </p>
+                    <hr>
+                </div>
+            </div>
+            
+            <div class="row no-gutters">
+                <!-- <div class="col-12"><hr></div> -->
+                <div class="col-5">
+                    <table class="mytable">
+                        <tbody>
+                          @foreach ($neraca as $item)
+                            <tr>
+                                <td width="400" class="{{ ($item->padding_left  == '25px' || $item->padding_left  == NULL)? 'font-weight-bold':'' }}" style="padding-left: {{ $item->padding_left }};">{{ $item->account_label }}</td>
+                                <td class="{{ ($item->padding_left  == '25px' || $item->padding_left  == NULL)? 'font-weight-bold text-right':'text-right' }}" style="{{ ($item->padding_left  == '25px' || $item->padding_left  == NULL)? 'text-decoration: underline':'' }}">{{ number_format($item->debit,2, ',', '.') }}</td>
+                            </tr>
+                          @endforeach  
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-1"></div>
+                <div class="col-1">
+                    <div class="vl"></div>
+                </div>
+                <div class="col-5">
+                    <table class="mytable">
+                        <tbody>
+                            @foreach ($neraca_right as $item)
+                                <tr>
+                                    <td width="400" class="{{ ($item->padding_left  == '25px' || $item->padding_left  == NULL)? 'font-weight-bold':'' }}" class="font-weight-bold" style="padding-left: {{ $item->padding_left }};">{{ $item->account_label }}</td>
+                                    <td class="{{ ($item->padding_left  == '25px' || $item->padding_left  == NULL)? 'font-weight-bold text-right':'text-right' }}" style="{{ ($item->padding_left  == '25px' || $item->padding_left  == NULL)? 'text-decoration: underline':'' }}">{{ number_format($item->debit,2, ',', '.') }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
 
-<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-
-<style>
-table {
-  font-family: arial, sans-serif;
- border-collapse: collapse; 
- width:100%; 
- page-break-inside:auto 
-}
-
-td, th {
-  border: 1px solid #dddddd;
-  text-align: left;
-  padding: 2px;
-}
-tr    { page-break-inside:avoid; page-break-after:auto }
-    thead { display:table-header-group }
-    tfoot { display:table-footer-group }
-
-
-
-</style>
-<div class="panel panel-default"  >
-
-<div style="padding-top: 5px;
-  padding-right: 20px;
-  padding-bottom: 30px;
-  padding-left: 20px;" >                                                                                                                                
-  <div class="page-break">
-  <table style="border:none;width:100%;!!important">
-    <!-- <tr>
-    <td  style="border:none;padding:0px"><img width="15%" 
-    src="{{URL::asset('/img/hacaca-logo.png')}}"  alt="Logo" /></td>
-    </tr> -->
-  <tr>
-    <td  style="border:none; background-color:transparent ;padding:1px"> <h6>{{$office->alamat_kantor}}<br/>{{$office->kota}},{{$office->provinsi}},{{$office->kode_pos}}  <br>{{$office->no_telp}} - {{$office->email}} </h6> </td>
-  </tr>
-  </table>
-
-  <br/>
-<table table-border="1" style="align:center;">
-<tr>
-<td style="border:none;"> <h4 style="text-align: center;"><strong>Neraca</h4>
-<h6 style="text-align: center;"><strong>Periode Tanggal : {{$tgl_data}}&nbsp;</strong></h6></td>
-</tr>
-</table>
-</br>
-
-<p style="font-size:8px">Laporan ini dicetak menggunakan Aplikasi/Komputer dan tidak membutuhkan tandatangan basah</p>
-
+    <footer>
+        <hr>
+        <div class="row">
+            <div class="col-12">
+                <table class="table table-borderless">
+                    <tr>
+                        <td>
+                            {{ date('d F Y H:i:s') }} <br>
+                            Printed by: Administrator
+                        </td>
+                        <td class="text-right">Page 1 of 1</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

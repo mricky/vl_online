@@ -354,7 +354,7 @@
 			$data = [];
 			$data['Neraca'] ='Laporan Laba Rugi';
 	
-			$this->cbView('reports.lostprofit',$data);
+			$this->cbView('forms.lostprofit',$data);
 		}
 
 		public function postCetakneraca(){
@@ -363,12 +363,32 @@
 			}
 
 			$data['tgl_data']=date('d-M-Y',strtotime($_POST['tgl_awal']) )." s/d ". date('d-M-Y',strtotime($_POST['tgl_akhir']));
-			$data['neraca'] = DB::table('table_neraca')->where('report_type','N')->orderBy('position','asc')->get();
 			
-			$this->journalTransaction->generateNeracaRugiLaba($_POST,'N');
+			$data['neraca'] = DB::table('table_neraca')->where([
+				['report_type','=','N'],
+				['column_position','=','LEFT'],
+			])->orderBy('id','asc')->get();
+
+			$data['neraca_right'] = DB::table('table_neraca')->where([
+				['report_type','=','N'],
+				['column_position','=','RIGH'],
+			])->orderBy('id','asc')->get();
+			
+			
+			//$this->journalTransaction->generateNeracaRugiLaba($_POST,'N');
 
 			$this->cbView('prints.neraca',$data);
+		}
 
+		public function postCetaklaba()
+		{
+			$data['tgl_data']=date('d-M-Y',strtotime($_POST['tgl_awal']) )." s/d ". date('d-M-Y',strtotime($_POST['tgl_akhir']));
+			$data['neraca'] = DB::table('table_neraca')->where([
+				['report_type','=','L'],
+				['column_position','=','LEFT'],
+			])->orderBy('id','asc')->get();
+
+			$this->cbView('prints.lostprofit',$data);
 		}
 
 	}

@@ -11,7 +11,7 @@
         <strong><i class="fa fa-gears"></i> Laporan Neraca</strong>
     </div> 
     <div class="panel-body" style="padding:10px 0px 0px 0px">
-        <form class="form-horizontal" method="post" id="form" enctype="multipart/form-data" action="{{CRUDBooster::mainpath('cetakneraca')}}" target="_blank">
+        <form class="form-horizontal" method="post" id="form" enctype="multipart/form-data" action="{{CRUDBooster::mainpath('cetaklaba')}}" target="_blank">
             <input name="_token" value=" {{ csrf_token() }}" type="hidden">    
                 <div class='form-group header-group-0 ' id='form-group-equipment_no' style="">
                     <label class='control-label col-sm-2'>
@@ -35,11 +35,11 @@
                     <div class="input-group ">
                             <span class="input-group-addon open-datetimepicker"><a><i class='fa fa-calendar '></i></a></span>
                             <input type='text' title="Tgl Perolehan" readonly
-                                   class='form-control notfocus input_date' name="tgl_ahir" id="tgl_ahir"
+                                   class='form-control notfocus input_date' name="tgl_akhir" id="tgl_akhir"
                                    />
                         </div>
                     </div>
-                </div
+                </div>
 
 
 

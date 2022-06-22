@@ -5,13 +5,16 @@
 	use DB;
 	use CRUDBooster;
     use App\Repositories\PurchaseOrderRepository;
+	use App\Repositories\JournalTransactionRepository;
 	class AdminPurchaseOrdersController extends \crocodicstudio\crudbooster\controllers\CBController {
 
 		private $purchaseOrder;
+		private $journalTransaction;
 
-		public function __construct(PurchaseOrderRepository $purchaseOrder) 
+		public function __construct(PurchaseOrderRepository $purchaseOrder,JournalTransactionRepository $journalTransaction) 
         {
        		 $this->purchaseOrder = $purchaseOrder;
+			 $this->journalTransaction = $journalTransaction;
         }
 	    public function cbInit() {
 
@@ -25,7 +28,7 @@
 			$this->button_action_style = "button_icon";
 			$this->button_add = true;
 			$this->button_edit = true;
-			$this->button_delete = false;
+			$this->button_delete = true;
 			$this->button_detail = true;
 			$this->button_show = true;
 			$this->button_filter = true;
@@ -401,6 +404,17 @@
 	    */
 	    public function hook_after_add($id) {        
 	        //Your code here
+			$purchase = DB::table('purchase_orders')->where('id',$id)->first();
+
+			$data = [
+				'id' => $purchase->id,
+				'order_number' => $purchase->order_number,
+				'order_date' => $purchase->order_date,
+				'total_amount' => $purchase->total_amount,
+				'module' => 'purchase',
+			];
+		
+			$this->journalTransaction->purchaseJournalEntry((object)$data);
 
 	    }
 
@@ -414,7 +428,16 @@
 	    */
 	    public function hook_before_edit(&$postdata,$id) {        
 	        //Your code here
-
+			$purchase = DB::table('purchase_orders')->where('id',$id)->first();
+		
+			$data = [
+				'id' => $purchase->id,
+				'order_number' => $purchase->order_number,
+				'total_amount' => $postdata['total_amount'],
+				'module' => 'purchase',
+			];
+		
+			$this->journalTransaction->updatePurchaseJournalEntry((object)$data);
 	    }
 
 	    /* 
@@ -438,7 +461,15 @@
 	    */
 	    public function hook_before_delete($id) {
 	        //Your code here
+			$purchase = DB::table('purchase_orders')->where('id',$id)->first();
 
+			$data = [
+				'id' => $purchase->id,
+				'order_number' => $purchase->order_number,
+				'total_amount' => $purchase->total_amount,
+				'module' => 'purchase',
+			];
+			$this->journalTransaction->deletePurchaseJournalEntry((object)$data);
 	    }
 
 	    /* 

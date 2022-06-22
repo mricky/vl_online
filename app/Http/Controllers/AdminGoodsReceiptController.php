@@ -5,14 +5,16 @@
 	use DB;
 	use CRUDBooster;
     use App\Repositories\ProductRepository;
+	use App\Repositories\JournalTransactionRepository;
 
 	class AdminGoodsReceiptController extends \crocodicstudio\crudbooster\controllers\CBController {
 
 	    private $productRepository;
 
-		public function __construct(ProductRepository $productRepository) 
+		public function __construct(ProductRepository $productRepository,JournalTransactionRepository $journalTransaction) 
         {
        		 $this->productRepository = $productRepository;
+			 $this->journalTransaction = $journalTransaction;
         }
 
 
@@ -318,6 +320,18 @@
 	    public function hook_after_add($id) {        
 	        //Your code here
 
+			$receive = DB::table('goods_receipt')->where('id',$id)->first();
+			$purchase =  DB::table('purchase_orders')->where('id',$receive->purchase_order_id)->first();
+			$data = [
+				'id' => $receive->id,
+				'order_number' => $receive->code,
+				'order_date' => $receive->receipt_date,
+				'total_amount' => $purchase->total_amount,
+				'module' => 'receive',
+			];
+			
+			$this->journalTransaction->purchaseJournalEntry((object)$data);
+
 	    }
 
 	    /* 
@@ -354,7 +368,16 @@
 	    */
 	    public function hook_before_delete($id) {
 	        //Your code here
-
+			$receive = DB::table('goods_receipt')->where('id',$id)->first();
+			$purchase =  DB::table('purchase_orders')->where('id',$receive->purchase_order_id)->first();
+			$data = [
+				'id' => $receive->id,
+				'order_number' => $receive->code,
+				'total_amount' => $purchase->total_amount,
+				'module' => 'receive',
+			];
+			
+			$this->journalTransaction->deletePurchaseJournalEntry((object)$data);
 	    }
 
 	    /* 

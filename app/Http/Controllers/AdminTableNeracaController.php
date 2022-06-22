@@ -375,7 +375,7 @@
 			])->orderBy('id','asc')->get();
 			
 			
-			//$this->journalTransaction->generateNeracaRugiLaba($_POST,'N');
+			$this->journalTransaction->generateNeracaRugiLaba($_POST,'N');
 
 			$this->cbView('prints.neraca',$data);
 		}

@@ -30,30 +30,37 @@
 
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
-			$this->col[] = ["label"=>"Jenis Transaksi","name"=>"transaction_type_id","join"=>"transaction_types,name"];
 			$this->col[] = ["label"=>"Tgl Transaksi","name"=>"transaction_date"];
 			$this->col[] = ["label"=>"No Transaksi","name"=>"transaction_number"];
-			$this->col[] = ["label"=>"Ref No","name"=>"ref_no"];
-			$this->col[] = ["label"=>"Akun","name"=>"account_id","join"=>"chart_of_accounts,account"];
-			$this->col[] = ["label"=>"D / K","name"=>"d_k"];
-			$this->col[] = ["label"=>"Akun","name"=>"account_reverse_id","join"=>"chart_of_accounts,account"];
-			$this->col[] = ["label"=>"Nominal","name"=>"total"];
+			$this->col[] = ["label"=>"Ref No","name"=>"ref_no"];			
+			$this->col[] = ["label"=>"Debit","name"=>"total_debit"];
+			$this->col[] = ["label"=>"Kredit","name"=>"total_credit"];
 			$this->col[] = ["label"=>"Memo","name"=>"memo"];
 			# END COLUMNS DO NOT REMOVE THIS LINE
 
 			# START FORM DO NOT REMOVE THIS LINE
 			$this->form = [];
-			$this->form[] = ['label'=>'Jenis Transaksi','name'=>'transaction_type_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'transaction_types,name'];
+			$this->form[] = ['label'=>'Tgl Transaksi','name'=>'transaction_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-5'];
 			$this->form[] = ['label'=>'Ref No','name'=>'ref_no','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
-			$this->form[] = [
-				'label'=>'Akun','name'=>'account_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'chart_of_accounts,account,id','datatable_format' => 'code,\' - \',account'
-			];
-			$this->form[] = ['label'=>'D / K','name'=>'d_k','type'=>'radio','validation'=>'required|min:1|max:255','width'=>'col-sm-10','dataenum'=>'D;K'];
-			$this->form[] = [
-				'label'=>'Akun','name'=>'account_reverse_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'chart_of_accounts,account,id','datatable_format' => 'code,\' - \',account'
-			];
-			$this->form[] = ['label'=>'Total','name'=>'total','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
-			$this->form[] = ['label'=>'Memo','name'=>'memo','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-5'];
+			// $this->form[] = [
+			// 	'label'=>'Akun','name'=>'account_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'chart_of_accounts,account,id','datatable_format' => 'code,\' - \',account'
+			// ];
+			// $this->form[] = [
+			// 	'label'=>'Akun','name'=>'account_reverse_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'chart_of_accounts,account,id','datatable_format' => 'code,\' - \',account'
+			// ];
+			$columns = [];
+
+			$columns[] = ['label'=>'Akun','name'=>'account_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'chart_of_accounts,account,id'];
+			$columns[] = ["label"=>"Debit","name"=>"debit",'type'=>'number'];
+			$columns[] = ["label"=>"Kredit","name"=>"credit",'type'=>'number'];
+			
+			$this->form[] = ['label'=>'Detail Jurnal','name'=>'journal_details','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'journal_details','foreign_key'=>'journal_id'];
+			
+			
+			$this->form[] = ['label'=>'Total Debit','name'=>'total_debit','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
+			$this->form[] = ['label'=>'Total Kredit','name'=>'total_credit','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
+		
+			$this->form[] = ['label'=>'Memo','name'=>'memo','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
 			# END FORM DO NOT REMOVE THIS LINE
 
 			# OLD START FORM
@@ -168,7 +175,29 @@
 	        | $this->script_js = "function() { ... }";
 	        |
 	        */
-	        $this->script_js = NULL;
+	        $this->script_js =  "
+			$(function(){
+				setInterval(function(){
+						var totalDebit = 0;
+						var totalKredit = 0;
+					
+						$('#table-detailjurnal tbody .debit').each(function(){
+							var debit = parseInt($(this).text());
+							totalDebit += debit;
+							
+						});
+
+						$('#table-detailjurnal tbody .credit').each(function(){
+							var kredit = parseInt($(this).text());
+							totalKredit += kredit;
+							
+						});
+
+						$('#total_debit').val(totalDebit);
+						$('#total_credit').val(totalKredit);
+				},500);
+			});
+		";
 
 
             /*
@@ -256,7 +285,7 @@
 	    */
 	    public function hook_query_index(&$query) {
 	        //Your code here
-	            
+			$query->where('is_manual', 1);
 	    }
 
 	    /*
@@ -278,8 +307,11 @@
 	    */
 	    public function hook_before_add(&$postdata) {        
 	        //Your code here
-			$transactionTypeCode = DB::table('transaction_types')->where('id',$postdata['transaction_type_id'])->first()->code;
-			
+
+			if($postdata['total_debit'] != $postdata['total_credit']){
+				CRUDBooster::redirect(CRUDBooster::mainpath('add'),"Total Debit Kredit tidak balance","warning");
+			}
+
 		    $sq = DB::table('journal_transactions')->max('id'); 
 		
 			$year = substr(date("y"),-2);
@@ -287,7 +319,8 @@
 			$no = str_pad($sq+1,4,"0",STR_PAD_LEFT);
 			$postdata['entry_no'] = $no;
 			$postdata['transaction_date'] = now();
-			$postdata['transaction_number'] = $transactionTypeCode.$year.$month.$no;
+			$postdata['transaction_number'] = 'GL-'.$year.$month.'-'.$no;
+			$postdata['is_manual'] = 1;
 			$postdata['created_by'] = CRUDBooster::myId();
 	    }
 
@@ -303,24 +336,24 @@
 			$journal_transaction = DB::table('journal_transactions')->where('id',$id)->first(); 
 			$data = [];
 
-			if($journal_transaction->d_k == 'D'){
-				$data['d_k'] = 'K';
-			} else {
-				$data['d_k'] = 'D';
-			}
-			$data['transaction_type_id'] = $journal_transaction->transaction_type_id;
-			$data['transaction_date'] = $journal_transaction->transaction_date;
-			$data['transaction_number'] = $journal_transaction->transaction_number;
-			$data['entry_no'] = $journal_transaction->entry_no;
-			$data['ref_no'] = $journal_transaction->ref_no;
-			$data['account_id'] = $journal_transaction->account_reverse_id;
-			$data['account_reverse_id'] = $journal_transaction->account_id;
-			$data['total'] = $journal_transaction->total;
-			$data['memo'] = $journal_transaction->memo;
-			$data['created_by'] = CRUDBooster::myId();
+			// if($journal_transaction->d_k == 'D'){
+			// 	$data['d_k'] = 'K';
+			// } else {
+			// 	$data['d_k'] = 'D';
+			// }
+			// $data['transaction_type_id'] = $journal_transaction->transaction_type_id;
+			// $data['transaction_date'] = $journal_transaction->transaction_date;
+			// $data['transaction_number'] = $journal_transaction->transaction_number;
+			// $data['entry_no'] = $journal_transaction->entry_no;
+			// $data['ref_no'] = $journal_transaction->ref_no;
+			// $data['account_id'] = $journal_transaction->account_reverse_id;
+			// $data['account_reverse_id'] = $journal_transaction->account_id;
+			// $data['total'] = $journal_transaction->total;
+			// $data['memo'] = $journal_transaction->memo;
+			// $data['created_by'] = CRUDBooster::myId();
 
-			DB::table('journal_transactions')->insert($data);
-			DB::commit();
+			// DB::table('journal_transactions')->insert($data);
+			// DB::commit();
 	    }
 
 	    /* 
@@ -369,7 +402,7 @@
 	    */
 	    public function hook_after_delete($id) {
 	        //Your code here
-
+			DB::table('journal_details')->where('journal_id',$id)->delete();
 	    }
 
 

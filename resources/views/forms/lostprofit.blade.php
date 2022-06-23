@@ -8,7 +8,7 @@
 
 <div class="panel panel-default">
     <div class="panel-heading">
-        <strong><i class="fa fa-gears"></i> Laporan Neraca</strong>
+        <strong><i class="fa fa-gears"></i> Laporan Laba Rugi</strong>
     </div> 
     <div class="panel-body" style="padding:10px 0px 0px 0px">
         <form class="form-horizontal" method="post" id="form" enctype="multipart/form-data" action="{{CRUDBooster::mainpath('cetaklaba')}}" target="_blank">

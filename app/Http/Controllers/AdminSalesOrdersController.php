@@ -414,7 +414,7 @@
 			$data = [];
 			$data['Neraca'] ='Laporan Penjualan';
 	
-			$this->cbView('reports.sales',$data);
+			$this->cbView('forms.sales',$data);
 		}
 
 		public function getDelivery($id){
@@ -429,5 +429,18 @@
 
 		public function postKirim(){
 			die('here');
+		}
+
+		public function postCetakpenjualan()
+		{
+			$data['tgl_data']=date('d-M-Y',strtotime($_POST['tgl_awal']) )." s/d ". date('d-M-Y',strtotime($_POST['tgl_akhir']));
+
+			$data['sales'] = DB::table('sales_orders as t1')
+									->select('t1.*','t2.name', 't3.name as expedition')
+									->leftJoin('customers as t2','t1.customer_id','=','t2.id')
+									->leftJoin('expeditions as t3','t1.expedition_id','=','t3.id')
+									->get();
+
+			$this->cbView('prints.sales',$data);
 		}
 	}

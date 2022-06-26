@@ -512,7 +512,19 @@
 			$data = [];
 			$data['Neraca'] ='Laporan Pembelian';
 	
-			$this->cbView('reports.purchase',$data);
+			$this->cbView('forms.purchase',$data);
+		}
+
+		public function postCetakpembelian()
+		{
+			$data['tgl_data']=date('d-M-Y',strtotime($_POST['tgl_awal']) )." s/d ". date('d-M-Y',strtotime($_POST['tgl_akhir']));
+
+			$data['purchase_orders'] = DB::table('purchase_orders as t1')
+													->select('t1.*','t2.name')
+													->leftJoin('vendors as t2','t1.vendor_id','=','t2.id')
+													->get();
+
+			$this->cbView('prints.purchase',$data);
 		}
 
 

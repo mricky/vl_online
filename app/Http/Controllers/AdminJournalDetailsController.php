@@ -4,23 +4,11 @@
 	use Request;
 	use DB;
 	use CRUDBooster;
-    use App\Repositories\ProductRepository;
-	use App\Repositories\JournalTransactionRepository;
 
-	class AdminGoodsReceiptController extends \crocodicstudio\crudbooster\controllers\CBController {
-
-	    private $productRepository;
-
-		public function __construct(ProductRepository $productRepository,JournalTransactionRepository $journalTransaction) 
-        {
-       		 $this->productRepository = $productRepository;
-			 $this->journalTransaction = $journalTransaction;
-        }
-
-
+	class AdminJournalDetailsController extends \crocodicstudio\crudbooster\controllers\CBController {
 
 	    public function cbInit() {
-		
+
 			# START CONFIGURATION DO NOT REMOVE THIS LINE
 			$this->title_field = "id";
 			$this->limit = "20";
@@ -29,64 +17,41 @@
 			$this->button_table_action = true;
 			$this->button_bulk_action = true;
 			$this->button_action_style = "button_icon";
-			$this->button_add = true;
-			$this->button_edit = true;
-			$this->button_delete = true;
+			$this->button_add = false;
+			$this->button_edit = false;
+			$this->button_delete = false;
 			$this->button_detail = true;
-			$this->button_show = true;
+			$this->button_show = false;
 			$this->button_filter = true;
 			$this->button_import = false;
-			$this->button_export = false;
-			$this->table = "goods_receipt";
+			$this->button_export = true;
+			$this->table = "journal_details";
 			# END CONFIGURATION DO NOT REMOVE THIS LINE
 
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
-			$this->col[] = ["label"=>"Kode","name"=>"code"];
-			$this->col[] = ["label"=>"No PO","name"=>"purchase_order_id","join"=>"purchase_orders,order_number"];
-			$this->col[] = ["label"=>"Supplier","name"=>"vendor_id","join"=>"vendors,name"];
-			$this->col[] = ["label"=>"Tgl Penerimaan","name"=>"receipt_date"];
-			//$this->col[] = ["label"=>"No PO Supplier","name"=>"po_vendor"];
-			$this->col[] = ["label"=>"Keterangan","name"=>"description"];
+			$this->col[] = ["label"=>"Ref","name"=>"journal_id","join"=>"journal_transactions,ref_no"];
+			$this->col[] = ["label"=>"Akun","name"=>"account_id","join"=>"chart_of_accounts,account"];
+			$this->col[] = ["label"=>"Debit","name"=>"debit","callback_php"=>'number_format($row->debit)'];
+			$this->col[] = ["label"=>"Kredit","name"=>"credit","callback_php"=>'number_format($row->credit)'];
 			# END COLUMNS DO NOT REMOVE THIS LINE
 
 			# START FORM DO NOT REMOVE THIS LINE
 			$this->form = [];
-			$this->form[] = ['label'=>'Supplier','name'=>'vendor_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'vendors,name'];
-			$this->form[] = ['label'=>'Tgl Penerimaan','name'=>'receipt_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-5'];
-			$this->form[] = ['label'=>'PO','name'=>'purchase_order_id','type'=>'datamodal'
-						,'validation'=>'required|min:1|max:255'
-						,'width'=>'col-sm-5'
-						,'datamodal_table'=>'view_orders'
-						,'datamodal_columns'=>'vendor_name,order_number,order_date,description'
-						,'datamodal_size'=>'large','datamodal_columns_alias'=>'Supplier,Order No,Tgl Order, Keterangan'
-						,'datamodal_select_to'=>'id:purchase_order_id'
-						,'datamodal_where' => ''];
-
-		
-			//$this->form[] = ['label'=>'PO','name'=>'purchase_order_id','type'=>'select','width'=>'col-sm-4','datatable'=>'purchase_orders,order_number,vendor_id,description','datatable_format'=>'order_number,\' - \',description','parent_select'=>'vendor_id'];
-			
-			$columns = [];
-			$columns[] = ['label'=>'Product','name'=>'product_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'products,name'];
-			$columns[] = ["label"=>"Barang Masuk","name"=>"qty_in",'type'=>'number'];
-			$columns[] = ["label"=>"Harga","name"=>"price",'type'=>'number'];
-			$columns[] = ["label"=>"Simpan di Supplier","name"=>"is_store_vendor_location",'type'=>'radio','dataenum'=>'0|No;1|Yes','width'=>'col-sm-5'];
-			$columns[] = ["label"=>"Lot No","name"=>"lot_number",'type'=>'text','readonly'=>true];
-
-			$this->form[] = ['label'=>'Detail Penerimaan','name'=>'good_receipt_details','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'goods_receipt_details','foreign_key'=>'good_receipt_id'];
-		
-			$this->form[] = ['label'=>'Description','name'=>'description','type'=>'text','validation'=>'nullable','width'=>'col-sm-10'];
+			$this->form[] = ['label'=>'Journal Id','name'=>'journal_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'journal,id'];
+			$this->form[] = ['label'=>'Account Id','name'=>'account_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'account,id'];
+			$this->form[] = ['label'=>'Debit','name'=>'debit','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
+			$this->form[] = ['label'=>'Credit','name'=>'credit','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
+			$this->form[] = ['label'=>'Is Manual','name'=>'is_manual','type'=>'radio','validation'=>'required|integer','width'=>'col-sm-10','dataenum'=>'Array'];
 			# END FORM DO NOT REMOVE THIS LINE
 
 			# OLD START FORM
 			//$this->form = [];
-			//$this->form[] = ["label"=>"Code","name"=>"code","type"=>"text","required"=>TRUE,"validation"=>"required|min:1|max:255"];
-			//$this->form[] = ["label"=>"Vendor Id","name"=>"vendor_id","type"=>"select2","required"=>TRUE,"validation"=>"required|integer|min:0","datatable"=>"vendor,id"];
-			//$this->form[] = ["label"=>"Purchase Order Id","name"=>"purchase_order_id","type"=>"select2","required"=>TRUE,"validation"=>"required|min:1|max:255","datatable"=>"purchase_order,id"];
-			//$this->form[] = ["label"=>"Po Vendor","name"=>"po_vendor","type"=>"text","required"=>TRUE,"validation"=>"required|min:1|max:255"];
-			//$this->form[] = ["label"=>"Delivery Date","name"=>"delivery_date","type"=>"date","required"=>TRUE,"validation"=>"required|date"];
-			//$this->form[] = ["label"=>"Description","name"=>"description","type"=>"text","required"=>TRUE,"validation"=>"required|min:1|max:255"];
-			//$this->form[] = ["label"=>"Created By","name"=>"created_by","type"=>"text","required"=>TRUE,"validation"=>"required|min:1|max:255"];
+			//$this->form[] = ["label"=>"Journal Id","name"=>"journal_id","type"=>"select2","required"=>TRUE,"validation"=>"required|integer|min:0","datatable"=>"journal,id"];
+			//$this->form[] = ["label"=>"Account Id","name"=>"account_id","type"=>"select2","required"=>TRUE,"validation"=>"required|integer|min:0","datatable"=>"account,id"];
+			//$this->form[] = ["label"=>"Debit","name"=>"debit","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
+			//$this->form[] = ["label"=>"Credit","name"=>"credit","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
+			//$this->form[] = ["label"=>"Is Manual","name"=>"is_manual","type"=>"radio","required"=>TRUE,"validation"=>"required|integer","dataenum"=>"Array"];
 			# OLD END FORM
 
 			/* 
@@ -115,8 +80,7 @@
 	        | @showIf 	   = If condition when action show. Use field alias. e.g : [id] == 1
 	        | 
 	        */
-	        $this->addaction[] = ['label'=>'Print PO','icon'=>'fa fa-print','color'=>'primary','url'=>CRUDBooster::mainpath('print').'/[id]','title'=>'Cetak','target'=>'_blank'];
-
+	        $this->addaction = array();
 
 
 	        /* 
@@ -187,7 +151,7 @@
 	        | $this->script_js = "function() { ... }";
 	        |
 	        */
-	        $this->script_js = "";
+	        $this->script_js = NULL;
 
 
             /*
@@ -222,7 +186,7 @@
 	        | $this->load_js[] = asset("myfile.js");
 	        |
 	        */
-			$this->load_js[] = asset("js/good_receive.js");
+	        $this->load_js = array();
 	        
 	        
 	        
@@ -262,7 +226,7 @@
 	    */
 	    public function actionButtonSelected($id_selected,$button_name) {
 	        //Your code here
-			
+	            
 	    }
 
 
@@ -275,7 +239,7 @@
 	    */
 	    public function hook_query_index(&$query) {
 	        //Your code here
-	
+	            
 	    }
 
 	    /*
@@ -297,17 +261,7 @@
 	    */
 	    public function hook_before_add(&$postdata) {        
 	        //Your code here
-			
-			$code = 'GR-';
-			$supplier = DB::table('vendors')->where('id',$postdata['vendor_id'])->first()->code;
-		    $po = DB::table('purchase_orders')->where('id',$postdata['purchase_order_id'])->first();
-			$sq = DB::table('goods_receipt')->max('id'); 
-			$year = substr(date("y"),-2);
-			$month = date("m");
-			$no = str_pad($sq+1,4,"0",STR_PAD_LEFT);
-			$postdata['code'] = $code.$supplier.$year.$month.$no;
-			$postdata['vendor_id'] = $po->vendor_id;
-			$postdata['created_by'] = CRUDBooster::myId();
+
 	    }
 
 	    /* 
@@ -319,18 +273,6 @@
 	    */
 	    public function hook_after_add($id) {        
 	        //Your code here
-
-			$receive = DB::table('goods_receipt')->where('id',$id)->first();
-			$purchase =  DB::table('purchase_orders')->where('id',$receive->purchase_order_id)->first();
-			$data = [
-				'id' => $receive->id,
-				'order_number' => $receive->code,
-				'order_date' => $receive->receipt_date,
-				'total_amount' => $purchase->total_amount,
-				'module' => 'receive',
-			];
-			
-			$this->journalTransaction->purchaseJournalEntry((object)$data,0);
 
 	    }
 
@@ -368,16 +310,7 @@
 	    */
 	    public function hook_before_delete($id) {
 	        //Your code here
-			$receive = DB::table('goods_receipt')->where('id',$id)->first();
-			$purchase =  DB::table('purchase_orders')->where('id',$receive->purchase_order_id)->first();
-			$data = [
-				'id' => $receive->id,
-				'order_number' => $receive->code,
-				'total_amount' => $purchase->total_amount,
-				'module' => 'receive',
-			];
-			
-			$this->journalTransaction->deletePurchaseJournalEntry((object)$data);
+
 	    }
 
 	    /* 
@@ -395,35 +328,6 @@
 
 
 	    //By the way, you can still create your own method in here... :) 
-		public function searchItemLinePO($poId)
-		{
-			
-			
-			$data = $this->productRepository->getItemLinePO($poId);
-
-			
-			return response()->json($data);
 
 
-		}
-
-		public function getPrint($id){
-			dd($this->form());
-		}
-
-		public function getFormStok(){
-			if(!CRUDBooster::isView()) CRUDBooster::redirect(CRUDBooster::adminPath(),trans('crudbooster.denied_access'));
-			//Create your own query 
-			$data = [];
-			$data['Neraca'] ='Laporan Stok';
-	
-			$this->cbView('forms.stok',$data);
-		}
-
-		public function postCetakstok()
-		{
-			$data['products'] = DB::table('products')->get();
-
-			$this->cbView('prints.stok',$data);
-		}
 	}

@@ -5,10 +5,14 @@
 	use DB;
 	use CRUDBooster;
 	use App\Repositories\JournalTransactionRepository;
+	use App\Repositories\SalesOrderRepository;
 	class AdminSalesOrdersController extends \crocodicstudio\crudbooster\controllers\CBController {
 
-		public function __construct(JournalTransactionRepository $journalTransaction) 
+		private $journalTransaction;
+		private $salesOrder;
+		public function __construct(SalesOrderRepository $salesOrder,JournalTransactionRepository $journalTransaction) 
         {
+			 $this->salesOrder = $salesOrder;
 			 $this->journalTransaction = $journalTransaction;
         }
 
@@ -39,10 +43,14 @@
 			$this->col[] = ["label"=>"No Order","name"=>"order_number"];
 			$this->col[] = ["label"=>"Tgl Order","name"=>"order_date"];
 			$this->col[] = ["label"=>"Expedisi","name"=>"expedition_id","join"=>"expeditions,name"];
-			$this->col[] = ["label"=>"Subtotal","name"=>"subtotal"];
-			$this->col[] = ["label"=>"Discount","name"=>"discount"];
-			$this->col[] = ["label"=>"Biaya Expedisi","name"=>"expedition_cost"];
-			$this->col[] = ["label"=>"Total","name"=>"total"];
+			$this->col[] = ["label"=>"Subtotal","name"=>"subtotal","callback_php"=>'number_format($row->subtotal)'];
+			$this->col[] = ["label"=>"Discount","name"=>"discount","callback_php"=>'number_format($row->discount)'];
+			$this->col[] = ["label"=>"Biaya Expedisi","name"=>"expedition_cost","callback_php"=>'number_format($row->expedition_cost)'];
+			$this->col[] = ["label"=>"Total","name"=>"total","callback_php"=>'number_format($row->total)'];
+			$this->col[] = ["label"=>"Bayar","name"=>"total_amount","callback_php"=>'number_format($row->total_amount)'];
+			$this->col[] = ["label"=>"Sisa","name"=>"amount_due","callback_php"=>'number_format($row->amount_due)'];
+			$this->col[] = ["label"=>"Notes","name"=>"notes"];
+			$this->col[] = ["label"=>"Status","name"=>"delivery_order","callback_php"=>'($row->delivery_order==0)?"<span class=\"label label-default\">PROSES</span>":"<span class=\"label label-danger\">DELIVERY</span>"'];
 			# END COLUMNS DO NOT REMOVE THIS LINE
 
 			# START FORM DO NOT REMOVE THIS LINE
@@ -69,8 +77,10 @@
 			$this->form[] = ['label'=>'Orders Detail','name'=>'sales_order_details','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'sales_order_details','foreign_key'=>'sales_order_id'];
 			$this->form[] = ['label'=>'Subtotal','name'=>'subtotal','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5','readonly'=>true];
 			$this->form[] = ['label'=>'Discount (-)','name'=>'discount','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
-			$this->form[] = ['label'=>'Expedition Cost (+)','name'=>'expedition_cost','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
-			$this->form[] = ['label'=>'Total','name'=>'total','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-5','readonly'=>true];
+			$this->form[] = ['label'=>'Expedition Cost (+)','name'=>'expedition_cost','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
+			$this->form[] = ['label'=>'Total','name'=>'total','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5','readonly'=>true];
+			$this->form[] = ['label'=>'Total Bayar','name'=>'total_amount','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5','value'=>0];
+			$this->form[] = ['label'=>'Sisa','name'=>'amount_due','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-5','readonly'=>true];
 	    	$this->form[] = ['label'=>'Pelanggan Terima Barang','name'=>'customer_receive_date','type'=>'date','validation'=>'nullable|date','width'=>'col-sm-5'];
 			$this->form[] = ['label'=>'Bukti Terima','name'=>'customer_receive_image','type'=>'upload','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
 			# END FORM DO NOT REMOVE THIS LINE
@@ -115,8 +125,21 @@
 	        | @showIf 	   = If condition when action show. Use field alias. e.g : [id] == 1
 	        | 
 	        */
-			$this->addaction[] = ['label' => 'Pesan Antar','icon'=>'fa fa-success','color'=>'success','url'=>CRUDBooster::mainpath('delivery').'/[id]','title'=>'Cetak','target'=>'_blank'];
+			// $this->addaction[] = [
+			// 	'label' => 'Pesan Antar',
+			// 	'icon'=>'fa fa-success',
+			// 	'color'=>'success',
+			// 	'url'=>CRUDBooster::mainpath('delivery').'/[id]','title'=>'Cetak','target'=>'_blank',
+			// 	'showIf'=>"[delivery_order]==0"];
+		
+			$this->addaction[] = [
+				'label' => 'Kirim',
+				'icon'=>'fa fa-success',
+				'color'=>'success',
+				'url'=>CRUDBooster::mainpath('delivery').'/[id]','title'=>'Cetak','target'=>'_blank',
+				'showIf'=>"[delivery_order]==0"];
 
+			$this->addaction[] = ['label'=>'Faktur','icon'=>'fa fa-print','color'=>'primary','url'=>CRUDBooster::mainpath('print').'/[id]','title'=>'Cetak','target'=>'_blank'];
 	        /* 
 	        | ---------------------------------------------------------------------- 
 	        | Add More Button Selected
@@ -173,7 +196,9 @@
 	        | @label, @count, @icon, @color 
 	        |
 	        */
-	        $this->index_statistic = array();
+			$this->index_statistic[] = ['label'=>'Total Order','count'=>$this->salesOrder->getTotalSalesOrder(),'icon'=>'fa fa-file-text','color'=>'warning'];
+			$this->index_statistic[] = ['label'=>'Total Order (Rp)','count'=>number_format($this->salesOrder->getTotalSalesOrderRp()),'icon'=>'fa fa-file-text','color'=>'danger'];
+			$this->index_statistic[] = ['label'=>'Total Piutang (Rp)','count'=>number_format($this->salesOrder->getTotalSalesPiutangRp()),'icon'=>'fa fa-file-text','color'=>'success'];
 
 
 
@@ -194,8 +219,20 @@
 								subTotal += sub;
 								
 							});
-							//console.log(subTotal);
+
+							let discount =  $('#discount').val();
+    						let expedition_cost = $('#expedition_cost').val();
+							let total_amount = $('#total_amount').val();
+
 							$('#subtotal').val(subTotal);
+							
+							let total = (parseInt(subTotal) - parseInt(discount)) + parseInt(expedition_cost);
+							let amountDue = (parseInt(total) - parseInt(total_amount));
+
+							$('#total').val(total);
+						
+							$('#amount_due').val(amountDue);
+						
 					},500);
 				});
 			
@@ -330,16 +367,18 @@
 	    public function hook_after_add($id) {        
 	        //Your code here
 			$sales = DB::table('sales_orders')->where('id',$id)->first();
+			
+			$total = ($sales->subtotal + $sales->expedition_cost);
 
 			$data = [
 				'id' => $sales->id,
 				'order_number' => $sales->order_number,
 				'order_date' => $sales->order_date,
-				'total_amount' => $sales->total,
+				'total_amount' => $total,
 				'module' => 'sales',
 			];
 		
-			$this->journalTransaction->purchaseJournalEntry((object)$data);
+			$this->journalTransaction->purchaseJournalEntry((object)$data,0);
 	    }
 
 	    /* 
@@ -408,6 +447,28 @@
 
 	    }
 
+		public function getPrint($id){
+			if(!CRUDBooster::isRead() && $this->global_privilege==FALSE || $this->button_add==FALSE) {    
+				CRUDBooster::redirect(CRUDBooster::adminPath(),trans("crudbooster.denied_access"));
+			  }
+
+			$data = [];
+			$data['page_title'] = 'Sales Order';
+
+			$data['sales_order'] = $this->salesOrder->getSalesOrder($id);
+		
+			$data['sales_detail'] =  $this->salesOrder->getDetailSalesOrder($id);
+
+			//
+			$data['print'] = (object)[
+				'print_at' => date('Y-m-d H:i:s'),
+				'print_by' => CRUDBooster::me()
+			];
+			//dd($data);
+			$this->cbView('prints.sales_order',$data);
+
+		}
+
 		public function getFormSales(){
 			if(!CRUDBooster::isView()) CRUDBooster::redirect(CRUDBooster::adminPath(),trans('crudbooster.denied_access'));
 			//Create your own query 
@@ -419,16 +480,44 @@
 
 		public function getDelivery($id){
 			$data = [];
-
+			$data['sales_order'] = $this->salesOrder->getSalesOrder($id);
+			$data['detail_sales'] = $this->salesOrder->getDetailSalesOrder($id);
+			
 			$this->cbView('forms/delivery_order',$data);
 		}
 
-		
-		public function postApprove($id) {
-		}
-
 		public function postKirim(){
-			die('here');
+			
+			$request = Request::all();
+			$data = [];
+			
+			$payload = [
+				'id' => $request['sales_order_id'],
+				'delivery_order' => 1,
+				'notes' => $request['acknowledge_notes']
+			];
+
+			$this->salesOrder->updateDeliveryOrder((object)$payload);
+
+			$salesOrder =  $this->salesOrder->getSalesOrder($request['sales_order_id']);
+			$detailSales =  $this->salesOrder->getDetailSalesOrder($request['sales_order_id']);
+			$data['sales_order'] = $salesOrder;
+			$data['detail_sales'] =$detailSales;
+
+			$dataJournal = [
+				'id' => $salesOrder->id,
+				'order_number' => $salesOrder->order_number,
+				'order_date' => $salesOrder->order_date,
+				'total_amount' => $salesOrder->total_amount,
+				'subtotal' => $salesOrder->subtotal,
+				'expedition_cost' => $salesOrder->expedition_cost,
+				'module' => 'delivery',
+			];
+
+			$this->journalTransaction->purchaseJournalEntry((object)$dataJournal,0);
+
+			$this->cbView('forms/delivery_order',$data);
+
 		}
 
 		public function postCetakpenjualan()
@@ -443,4 +532,4 @@
 
 			$this->cbView('prints.sales',$data);
 		}
-	}
+	} 

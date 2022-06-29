@@ -32,8 +32,11 @@
 <div class="panel panel-default">
     <div class="panel-heading">
         <strong><i class="fa fa-gears"></i> Penjualan</strong>
-          <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#approval_notes" id="approve" onclick="set_approve()">Approve</button>  
-          <button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#approval_notes" id="reject"  onclick="set_reject()">Reject</button> 
+          @if ($sales_order->delivery_order == 0)
+               <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#approval_notes" id="approve" onclick="set_approve()">Approve</button>  
+          @endif
+
+          <!-- <button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#approval_notes" id="reject"  onclick="set_reject()">Reject</button>  -->
 
     </div> 
   <!-- modal approval -->
@@ -49,14 +52,15 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                     </div>
-                 
+                   
                     <form method="post" action="{{CRUDBooster::mainpath('kirim')}}" id="form_approval"  name="form_approval">
-
+                  
                     {{ csrf_field() }}
                     <div class="modal-body">
                 
                     <div class="row">
                         <div class="form-group col-md-10">
+                        <input  type="hidden"  class="form-control" name="sales_order_id" id="sales_order_id" value={{$sales_order->id}}>
                         <input  type="hidden"  class="form-control" name="approval_status" id="approval_status" >  
                         </div>
                         </div>
@@ -87,34 +91,37 @@
 
             <tbody>
             <tr>
-            <td style="padding:5px;width:10%;">Reference/Order Number</td>
-            <td style="padding:5px;width:1%;">:</td>
-            <td style="padding:5px;width:74%;"></td>
+            <td style="padding:5px;width:10%;">No Order</td>
+            <td>:</td>
+            <td>{{$sales_order->order_number}}</td>
             </tr>
             <tr>
-            <td style="padding:5px;width:10%;">BIll Originator</td>
+            <td style="padding:5px;width:10%;">Tgl Order</td>
             <td>:</td>
-            <td></td>
+            <td>{{$sales_order->order_date}}</td>
             </tr>
             <tr>
-            <td style="padding:5px;width:10%;">Biller Department</td>
+            <td style="padding:5px;width:10%;">Pelanggan</td>
             <td>:</td>
-            <td></td>
+            <td>{{$sales_order->customer_name}}</td>
+            </tr>
+            <td style="padding:5px;width:10%;">No HP</td>
+            <td>:</td>
+            <td>{{$sales_order->customer_phone}}</td>
             </tr>
             <tr>
-            <td style="padding:5px;width:10%;">Dated</td>
+            <td style="padding:5px;width:10%;">Alamat</td>
             <td>:</td>
-            <td></td>
+            <td>{{$sales_order->customer_address}}</td>
+            <tr>
+            <td style="padding:5px;width:10%;">Expedisi</td>
+            <td>:</td>
+            <td>{{$sales_order->expedition_name}}</td>
             </tr>
             <tr>
-            <td style="padding:5px;width:10%;">CSR Code</td>
+            <td style="padding:5px;width:10%;">Keterangan</td>
             <td>:</td>
-            <td></td>
-            </tr>
-            <tr>
-            <td style="padding:5px;width:10%;">Cutomer/Other Ref</td>
-            <td>:</td>
-            <td></td>
+            <td>{{$sales_order->description}}</td>
             </tr>
             </tbody>
             </table>
@@ -124,58 +131,48 @@
             <table style="width:100%;border:1px solid black" id="det_billing">
             <thead>
             <tr>
-            <th>Line No</th>
-            <th>Description</th>
-            <th>Remarks</th>
-            <th>Charge type</th>
-            <th>Charge Code</th>
-            <th>Total Cost</th>
-            <th>Rate</th>
-            <th>Qty</th>
-            <th>Ammout</th>
-            <th>Income Tax Stat</th>
-            <th>Income Tax</th>
-          
+                <th>Produk</th>
+                <th>Lot Number</th>
+                <th>Qty</th>
+                <th>Harga</th>
+                <th>Total</th>
             </tr>
             </thead>
             <tbody> 
-
+            <?php $i = 0 ?>
+              @foreach($detail_sales as $detail)
+              <?php $i++;?>
+              <tr>
+                <td>{{$detail->product_name}}</td>
+                <td>{{$detail->lot_number}}</td>
+                <td>{{$detail->qty}}</td>
+                <td  style="text-align:right">{{number_format($detail->price)}}</td>
+                <td  style="text-align:right">{{number_format($detail->total)}}</td>
+              </tr>
+              @endforeach
             <tfoot>
-    <tr>
-            <td colspan="7"></td>
+        <tr>
+            <td colspan="3"></td>
             <td >Total Amount</td>
-            <td align="right">0</td>
-            <td ></td>
-            <td></td>
-        </tr>
-        
-        <tr>
-            <td colspan="7"></td>
-            <td >Vat/PPN 10% </td>
-            <td align="right"></td> <td ></td>
-            <td></td>
+            <td align="right">{{number_format($sales_order->subtotal)}}</td>
         </tr>
         <tr>
-            <td colspan="7"></td>
-            <td >Amount After Tax</td>
-            <td align="right"></td>
-            <td ></td>
-            <td></td>
+            <td colspan="3"></td>
+            <td >Diskon </td>
+            <td align="right">{{number_format($sales_order->discount)}}</td>
+          
         </tr>
         <tr>
-            <td colspan="7"></td>
-            <td >Income Tax Amount (-) </td> <!-- sum pph-->
-            <td align="right"></td>
-            <td ></td>
-            <td></td>
+            <td colspan="3"></td>
+            <td >Expedisi </td>
+            <td align="right">{{number_format($sales_order->expedition_cost)}}</td>
+          
         </tr>
         <tr>
-            <td colspan="7"></td>
+            <td colspan="3"></td>
             <td ><b>Grand Total</b></td>
-            <td align="right"></td>
-            <td ></td>
-            <td></td>
-                </tr>
+            <td align="right">{{number_format($sales_order->total)}}</td>
+        </tr>
     </tfoot>
             </table>
         </div>
@@ -198,6 +195,5 @@
         } 
       </script>
 
-<!-- end script buat prosess approval --> 
 
 @endsection

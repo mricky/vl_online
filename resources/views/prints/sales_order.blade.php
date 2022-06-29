@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Purchase Order</title>
+    <title>Invoice</title>
     <!-- Bootstrap CSS -->
     <link
       rel="stylesheet"
@@ -37,7 +37,7 @@
             <div class="row mt-3">
                 <div class="col-6"></div>
                 <div class="col-6 text-center">
-                    <h4>Faktur Pembelian</h4>
+                    <h4>Faktur Penjualan</h4>
                 </div>
             </div>
             <div class="row mt-3">
@@ -47,10 +47,7 @@
                             <td class="border-0">Kepada:</td>
                         </tr>
                         <tr class="no-border-left-right no-border-bottom">
-                            <td style="font-weight: bold;">{{$purchase_order->vendor_name}}</td>
-                        </tr>
-                        <tr class="no-border-left-right no-border-bottom">
-                            <td style="font-weight: bold;">{{$purchase_order->vendor_address}}</td>
+                            <td style="font-weight: bold;">{{$sales_order->customer_name}} / WA {{$sales_order->customer_phone}}</td>
                         </tr>
                     </table>
                 </div>
@@ -59,20 +56,21 @@
                         <tr>
                             <td style="border-bottom: dotted 3px #000000; border-right: dotted 3px #000000;">
                                 Tanggal <br>
-                                <strong>{{$purchase_order->order_date}}</strong>    
+                                <strong>29 Aug 2021</strong>    
                             </td>
                             <td style="border-bottom: dotted 3px #000000;">
                                 Nomor <br>
-                                <strong>{{$purchase_order->order_number}}</strong>
+                                <strong>S1.2021.08.00063</strong>
                             </td>
                         </tr>
                         <tr>
                             <td style="border-bottom: dotted 3px #000000; border-right: dotted 3px #000000;">
-                                Syarat Pembayaran <br>
-                                <strong></strong>
+                                Ekspedisi <br>
+                                <strong>{{$sales_order->expedition_name}}</strong>  
                             </td>
                             <td style="border-bottom: dotted 3px #000000;">
-                                FOB <br>
+                                Tanggal Pengiriman <br>
+                                <strong>{{$sales_order->order_date}}</strong>    
                             </td>
                         </tr>
                     </table>
@@ -80,21 +78,19 @@
             </div>
             <div class="row mt-2">
                 <div class="col-12">
-                <thead>
                     <table class="table table-bordered table-sm">
                         <tr>
                             <td style="text-align: center;">Kode Barang</td>
                             <td style="text-align: center;">Nama Barang</td>
-                            <td style="text-align: center;">Qty</td>
+                            <td style="text-align: center;">Jumlah</td>
                             <td style="text-align: center;">@Harga</td>
-                            <td style="text-align: center;">Total</td>
-                            <td style="text-align: center;">Downpayment</td>
-                           
+                            <td style="text-align: center;">Diskon</td>
+                            <td style="text-align: center;">Total Harga</td>
                         </tr>
-                        <thead>
                         <tbody>
+                            
                         <?php $i = 0 ?>
-                        @foreach($po_detail as $detail)
+                        @foreach($sales_detail as $detail)
                         <?php $i++;?>
                         <tr>
                             <td>{{$detail->product_code}}</td>
@@ -102,7 +98,7 @@
                             <td>{{$detail->qty}}</td>
                             <td  style="text-align:right">{{number_format($detail->price)}}</td>
                             <td  style="text-align:right">{{number_format($detail->subtotal)}}</td>
-                            <td  style="text-align:right">{{number_format($detail->downpayment)}}</td>
+                            <td  style="text-align:right">{{number_format($detail->total)}}</td>
                         </tr>
                         @endforeach
                         </tbody>
@@ -115,7 +111,7 @@
                     <table class="table table-bordered">
                         <tr>
                             <td width="20" style="border-left: hidden!important;border-top: hidden!important;border-bottom: hidden!important;">Terbilang:</td>
-                            <td>{{penyebut($purchase_order->total). "Rupiah"}}</td>
+                            <td>{{penyebut($sales_order->total). "Rupiah"}}</td>
                         </tr>
                     </table>
                 </div>
@@ -156,19 +152,27 @@
                     <table class="table table-bordered table-sm">
                         <tr>
                             <td>Sub Total</td>
-                            <td style="text-align: right;">{{rupiah($purchase_order->subtotal)}}</td>
+                            <td style="text-align: right;">{{rupiah($sales_order->subtotal)}}</td>
+                        </tr>
+                        <tr>
+                            <td>Diskon</td>
+                            <td style="text-align: right;">0</td>
+                        </tr>
+                        <tr>
+                            <td>Biaya Kirim</td>
+                            <td style="text-align: right;">{{rupiah($sales_order->expedition_cost)}}</td>
                         </tr>
                         <tr>
                             <td style="font-weight: bold;">Total</td>
-                            <td style="text-align: right; font-weight: bold;">{{rupiah($purchase_order->total)}}</td>
+                            <td style="text-align: right; font-weight: bold;">{{rupiah($sales_order->total)}}</td>
                         </tr>
                         <tr>
-                            <td>Down Payment</td>
-                            <td style="text-align: right;">{{rupiah($purchase_order->total_amount)}}</td>
+                            <td>Pembayaran</td>
+                            <td style="text-align: right;">{{rupiah($sales_order->total_amount)}}</td>
                         </tr>
                         <tr>
                             <td style="font-weight: bold;">Sisa</td>
-                            <td style="text-align: right; font-weight: bold;">{{rupiah($purchase_order->amount_due)}}</td>
+                            <td style="text-align: right; font-weight: bold;">{{rupiah($sales_order->amount_due)}}</td>
                         </tr>
                     </table>
                 </div>

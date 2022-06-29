@@ -414,7 +414,7 @@
 				'module' => 'purchase',
 			];
 		
-			$this->journalTransaction->purchaseJournalEntry((object)$data);
+			$this->journalTransaction->purchaseJournalEntry((object)$data,0); // automatic journal
 
 	    }
 
@@ -496,6 +496,7 @@
 			$data['purchase_order'] = $this->purchaseOrder->getPurchaseOrder($id);
 		
 			$data['po_detail'] =  $this->purchaseOrder->getDetailPurchaseOrder($id);
+
 			//
 			$data['print'] = (object)[
 				'print_at' => date('Y-m-d H:i:s'),

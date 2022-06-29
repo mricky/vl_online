@@ -417,6 +417,13 @@
 			$data = [];
 			$data['Neraca'] ='Laporan Stok';
 	
-			$this->cbView('reports.stok',$data);
+			$this->cbView('forms.stok',$data);
+		}
+
+		public function postCetakstok()
+		{
+			$data['products'] = DB::table('products')->get();
+
+			$this->cbView('prints.stok',$data);
 		}
 	}

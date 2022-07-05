@@ -22,10 +22,10 @@
                     </form>
                 </td>
                 <td>
-                    <form class="form-horizontal" method="post" id="form" enctype="multipart/form-data" action="" target="_blank">
-                        <input name="_token" value="" type="hidden"> 
+                    <form class="form-horizontal" method="post" id="form" enctype="multipart/form-data" action="{{CRUDBooster::mainpath('cetakiot')}}" target="_blank">
+                        <input name="_token" value="{{ csrf_token() }}" type="hidden"> 
                         <button type='submit' class='btn btn-primary' style="margin-left: 5px;">
-                            <i class='fa fa-print'></i> Laporan Product Iot
+                            <i class='fa fa-print'></i> Laporan Product Lot
                         </button>
                     </form>
                 </td>

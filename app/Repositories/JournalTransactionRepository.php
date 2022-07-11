@@ -8,14 +8,25 @@ interface IJournalTransaction {
 
     // purchase
     public function purchaseJournalEntry($data,$is_manual);
+    public function salesJournalEntry($data,$is_manual,$mode);
     public function deletePurchaseJournalEntry($data);  
     public function updatePurchaseJournalEntry($data);
 
     // Sales
 }
-class JournalTransactionRepository implements IJournalTransaction {
+class JournalTransactionRepository extends ChartOfAccountTransaction implements IJournalTransaction {
+    
+    private $bca;
+    private $uangMukaPenjualan;
+    private $piutangDagang;
 
-
+    function __construct()
+    {
+         $this->bca = DB::table('chart_of_accounts')->where('code','101-2001')->first(); // BCA 
+         $this->uangMukaPenjualan = DB::table('chart_of_accounts')->where('code','201-1002')->first(); // Uang Muka Penjualan
+         $this->piutangDagang =  DB::table('chart_of_accounts')->where('code','102-1001')->first(); // Putang Dagang
+    
+    }
     public function updatePurchaseJournalEntry($data)
     {
         
@@ -92,6 +103,92 @@ class JournalTransactionRepository implements IJournalTransaction {
         }
 
     }
+    public function deliveryJournalEntry($data,$is_manual,$mode){
+        
+    }
+    public function salesJournalEntry($data,$is_manual,$mode)
+    {
+        if($mode != 'no-journal'){
+            try {
+
+                DB::beginTransaction();
+                           
+                $sq = DB::table('journal_transactions')->max('id'); 
+                $year = substr(date("y"),-2);
+                $month = date("m");
+                $no = str_pad($sq+1,4,"0",STR_PAD_LEFT);
+              
+                $payload = [
+                    'transaction_date' => $data->order_date,
+                    'transaction_number' => 'GL-'.$year.$month.'-'.$no,
+                    'entry_no'  => $no,
+                    'ref_no' => $data->order_number,
+                    'memo' => '-',
+                    'total_debit' => $data->total_amount,
+                    'is_manual' => $is_manual,
+                    'total_credit' => $data->total_amount
+                ];
+    
+                $id = DB::table('journal_transactions')->insertGetId($payload);
+                if($mode == 'paid'){
+                    $dataTransaction = [
+                        [
+                            'journal_id' => $id,
+                            'account_id' => $this->bca->id,
+                            'debit'    => $data->total_amount,
+                            'credit' => 0,
+                            'is_manual' => $is_manual,
+                            'created_at' => now(),
+                        ],
+                        [
+                            'journal_id' => $id,
+                            'account_id' => $this->uangMukaPenjualan->id,
+                            'debit'    => 0,
+                            'credit' => $data->total_amount,
+                            'is_manual' => $is_manual,
+                            'created_at' => now(),
+                        ]
+                     ];
+                } else {
+                    $dataTransaction = [
+                        [
+                            'journal_id' => $id,
+                            'account_id' => $this->bca->id,
+                            'debit'    => $data->total_amount,
+                            'credit' => 0,
+                            'is_manual' => $is_manual,
+                            'created_at' => now(),
+                        ],
+                        [
+                            'journal_id' => $id,
+                            'account_id' => $this->uangMukaPenjualan->id,
+                            'debit'    => $data->total_amount,
+                            'credit' => 0,
+                            'is_manual' => $is_manual,
+                            'created_at' => now(),
+                        ],
+                        [
+                            'journal_id' => $id,
+                            'account_id' => $this->uangMukaPenjualan->id,
+                            'debit'    => 0,
+                            'credit' => $data->total_amount,
+                            'is_manual' => $is_manual,
+                            'created_at' => now(),
+                        ]
+                     ];
+                } 
+
+                DB::table('journal_details')->insert($dataTransaction);
+    
+                DB::commit();
+            } catch(\Exception $e){
+                DB::rollback();
+                throw $e;
+            }
+        }
+        
+    }
+
     public function purchaseJournalEntry($data,$is_manual)
     {
         // bisa jg pakai list debit dan list credit need refactor later

@@ -36,9 +36,9 @@ class SalesOrderRepository implements ISalesOrder {
     }
     public function getTotalSalesPiutangRp()
     {
-        // $data = DB::table('purchase_orders')->sum('purchase_orders.amount_due');
-        return 0;
-        // return $data;
+        $data = DB::table('sales_orders')->sum('sales_orders.amount_due');
+       
+         return $data;
     }
     public function getSalesOrder($id)
     {

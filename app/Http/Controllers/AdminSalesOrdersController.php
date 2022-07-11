@@ -76,7 +76,7 @@
 			$columns[] = ["label"=>"Lot Number","name"=>"lot_number",'type'=>'text','readonly'=>true];
 			$this->form[] = ['label'=>'Orders Detail','name'=>'sales_order_details','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'sales_order_details','foreign_key'=>'sales_order_id'];
 			$this->form[] = ['label'=>'Subtotal','name'=>'subtotal','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5','readonly'=>true];
-			$this->form[] = ['label'=>'Discount (-)','name'=>'discount','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
+			$this->form[] = ['label'=>'Discount (-)','name'=>'discount','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5','readonly'=>true];
 			$this->form[] = ['label'=>'Expedition Cost (+)','name'=>'expedition_cost','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
 			$this->form[] = ['label'=>'Total','name'=>'total','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5','readonly'=>true];
 			$this->form[] = ['label'=>'Total Bayar','name'=>'total_amount','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5','value'=>0];
@@ -140,7 +140,14 @@
 				'showIf'=>"[delivery_order]==0"];
 
 			$this->addaction[] = ['label'=>'Faktur','icon'=>'fa fa-print','color'=>'primary','url'=>CRUDBooster::mainpath('print').'/[id]','title'=>'Cetak','target'=>'_blank'];
-	        /* 
+			$this->addaction[] = [
+				'label' => 'Bayar',
+				'icon'=>'fa fa-money',
+				'color'=>'success',
+				'url'=>CRUDBooster::mainpath('payment').'/[id]','title'=>'Cetak','target'=>'_blank',
+				'showIf'=>"[amount_due]!=0"
+			];
+			/* 
 	        | ---------------------------------------------------------------------- 
 	        | Add More Button Selected
 	        | ----------------------------------------------------------------------     
@@ -369,16 +376,32 @@
 			$sales = DB::table('sales_orders')->where('id',$id)->first();
 			
 			$total = ($sales->subtotal + $sales->expedition_cost);
-
+			// hitung modal
+			// $sales_detail = DB::table('sales_order_detail')
+			// 				->join('productsx`')
 			$data = [
 				'id' => $sales->id,
 				'order_number' => $sales->order_number,
 				'order_date' => $sales->order_date,
 				'total_amount' => $total,
 				'module' => 'sales',
+				'modal' => 0,
+				'expedisi' => 0,
+				'diskon' => 0,
+				'amount_due' => 0,
 			];
-		
-			$this->journalTransaction->purchaseJournalEntry((object)$data,0);
+			
+			$mode = null;
+			if($sales->total == $sales->total_amount && $sales->total_amount != 0){
+				$mode = 'paid'; // paid
+			} else if ($sales->total >= $sales->total_amount && $sales->total_amount != 0) {
+				// bayar setengah
+				$mode = 'downpayment'; // paid
+			} else {
+				$mode = 'no-journal';
+			}
+			
+			$this->journalTransaction->salesJournalEntry((object)$data,0,$mode);
 	    }
 
 	    /* 
@@ -446,7 +469,14 @@
 	        //Your code here
 
 	    }
-
+		public function getPayment($id)
+		{
+			$data = [];
+			$data['sales_order'] = $this->salesOrder->getSalesOrder($id);
+			$data['detail_sales'] = $this->salesOrder->getDetailSalesOrder($id);
+		//	dd($data);
+			$this->cbView('forms/payment',$data);
+		}
 		public function getPrint($id){
 			if(!CRUDBooster::isRead() && $this->global_privilege==FALSE || $this->button_add==FALSE) {    
 				CRUDBooster::redirect(CRUDBooster::adminPath(),trans("crudbooster.denied_access"));
@@ -478,6 +508,13 @@
 			$this->cbView('forms.sales',$data);
 		}
 
+		public function getDetail($id){
+			$data = [];
+			$data['sales_order'] = $this->salesOrder->getSalesOrder($id);
+			$data['detail_sales'] = $this->salesOrder->getDetailSalesOrder($id);
+			
+			$this->cbView('forms/sales_detail',$data);
+		}
 		public function getDelivery($id){
 			$data = [];
 			$data['sales_order'] = $this->salesOrder->getSalesOrder($id);
@@ -486,6 +523,11 @@
 			$this->cbView('forms/delivery_order',$data);
 		}
 
+		public function postPayment(){
+			$request = Request::all();
+
+			dd($request);
+		}
 		public function postKirim(){
 			
 			$request = Request::all();

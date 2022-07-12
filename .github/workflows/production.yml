@@ -27,13 +27,13 @@ jobs:
     - name: Execute tests (Unit and Feature tests) via PHPUnit
       run: vendor/bin/phpunit
 
- deploy:
+  deploy:
       needs: [tests]
 
       runs-on: ubuntu-latest
 
       steps: 
-      - name: 'VL Online Production'
+      - name:  VL Online Production'
         uses: appleboy/ssh-action@master
         with: 
           host: ${{secrets.PROD_HOST}}
@@ -44,3 +44,4 @@ jobs:
             cd /var/www/vl_online
             git pull origin production
            
+        

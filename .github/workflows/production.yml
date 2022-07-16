@@ -41,7 +41,7 @@ jobs:
           password: ${{secrets.PROD_PASSWORD}}
           port: ${{secrets.PROD_PORT}}
           script: |
-            cd /var/www/vl_online
+            cd /var/www/html/vl_online
             git pull origin production
            
         

@@ -70,7 +70,7 @@
 							,'datamodal_select_to'=>'product_price:price,lot_number:lot_number'];
 			// sample more than 1
 			//$columns[] = ['label'=>'Product Lot','name'=>'product_item_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'product_items,lot_number','parent_select'=>'product_id','datatable_where'=>'lot_number is not null'];
-			$columns[] = ["label"=>"Harga","name"=>"price",'type'=>'number','readonly'=>true];
+			$columns[] = ["label"=>"Harga","name"=>"price",'type'=>'number'];
 			$columns[] = ["label"=>"Qty","name"=>"qty",'type'=>'number'];
 			$columns[] = ["label"=>"Total","name"=>"total",'type'=>'number','readonly'=>true,"callback_php"=>'number_format($row->total)','formula'=>"parseInt([qty]) * parseInt([price])"];
 			$columns[] = ["label"=>"Lot Number","name"=>"lot_number",'type'=>'text','readonly'=>true];

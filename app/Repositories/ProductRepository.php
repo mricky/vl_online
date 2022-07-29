@@ -5,10 +5,33 @@ use DB;
 interface IProduct {
     public function getProductById($productId);
     public function getItemLinePO($poId);
+    public function getTotalItem();
+    public function getTotalCategory();
+    public function getTotalBrand();
 
 }
 class ProductRepository implements IProduct {
 
+   
+    public function getTotalItem(){
+        $data = DB::table('products')->count('id');
+
+        return $data;
+    }
+
+    public function getTotalCategory()
+    {   
+        
+        $data = DB::table('product_categories')->count('id');
+
+        return $data;
+    }
+    public function getTotalBrand()
+    {   
+        $data = DB::table('product_brands')->count('id');
+
+        return $data;
+    }
     public function getProductById($id){
         die($id);
         $sql = 'vendor_id ='.$id;

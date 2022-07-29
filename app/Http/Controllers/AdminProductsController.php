@@ -1,12 +1,19 @@
 <?php namespace App\Http\Controllers;
 
-	use Session;
+use App\Repositories\ProductRepository;
+use Session;
 	use Request;
 	use DB;
 	use CRUDBooster;
 
 	class AdminProductsController extends \crocodicstudio\crudbooster\controllers\CBController {
 
+		private $product;
+		public function __construct(ProductRepository $product) 
+        {
+			 $this->product = $product;
+			
+        }
 	    public function cbInit() {
 
 			# START CONFIGURATION DO NOT REMOVE THIS LINE
@@ -153,9 +160,10 @@
 	        | @label, @count, @icon, @color 
 	        |
 	        */
-	        $this->index_statistic = array();
-
-
+	       // $this->index_statistic = array();
+			$this->index_statistic[] = ['label'=>'Total Item','count'=>$this->product->getTotalItem(),'icon'=>'fa fa-file-text','color'=>'warning'];
+			$this->index_statistic[] = ['label'=>'Total Category','count'=>number_format($this->product->getTotalCategory()),'icon'=>'fa fa-file-text','color'=>'danger'];
+			$this->index_statistic[] = ['label'=>'Total Brand','count'=>number_format($this->product->getTotalBrand()),'icon'=>'fa fa-file-text','color'=>'danger'];
 
 	        /*
 	        | ---------------------------------------------------------------------- 

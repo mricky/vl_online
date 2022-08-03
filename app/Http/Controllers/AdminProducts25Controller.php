@@ -38,8 +38,8 @@
 			$this->col[] = ["label"=>"Biaya","name"=>"product_cost","callback_php"=>'number_format($row->product_cost)'];
 			$this->col[] = ["label"=>"Harga","name"=>"product_price","callback_php"=>'number_format($row->product_price)'];
 			$this->col[] = ["label"=>"Qty Onhand","name"=>"qty_onhand"];
-			$this->col[] = ["label"=>"Qty Received","name"=>"qty_received"];
-			$this->col[] = ["label"=>"Qty Shipped","name"=>"qty_shipped"];
+			// $this->col[] = ["label"=>"Qty Received","name"=>"qty_received"];
+			// $this->col[] = ["label"=>"Qty Shipped","name"=>"qty_shipped"];
 			# END COLUMNS DO NOT REMOVE THIS LINE
 
 			# START FORM DO NOT REMOVE THIS LINE

@@ -6,6 +6,7 @@
 	use CRUDBooster;
 	use App\Repositories\JournalTransactionRepository;
 	use App\Repositories\SalesOrderRepository;
+	use Illuminate\Support\Str;
 	class AdminSalesOrdersController extends \crocodicstudio\crudbooster\controllers\CBController {
 
 		private $journalTransaction;
@@ -524,9 +525,25 @@
 		}
 
 		public function postPayment(){
+			// TODO: Payment next with journal transaction
 			$request = Request::all();
 
-			dd($request);
+			$amountDue = filter_var($request['val_amount_due'], FILTER_SANITIZE_NUMBER_INT);
+			$totalAmount = filter_var($request['total_amount'], FILTER_SANITIZE_NUMBER_INT);
+			$newAmountDue = (int)$amountDue - (int)$totalAmount;
+			if($totalAmount > $amountDue){
+				CRUDBooster::redirect($_SERVER['HTTP_REFERER'],"Jumlah Pembayaran melebihi nominal sisa","info");
+			}
+			
+			$payload = [
+				'id' => $request['order_id'],
+				'amount_due' => $newAmountDue,
+				'total_amount' => filter_var($request['total_amount'], FILTER_SANITIZE_NUMBER_INT),
+			];
+
+			$this->salesOrder->updatePayment((object)$payload);
+
+			CRUDBooster::redirect($_SERVER['HTTP_REFERER'], 'Pembayaran Berhasil', 'success'); 
 		}
 		public function postKirim(){
 			

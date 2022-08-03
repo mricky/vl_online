@@ -32,11 +32,6 @@
 <div class="panel panel-default">
     <div class="panel-heading">
         <strong><i class="fa fa-gears"></i> Penjualan</strong>
-          @if ($sales_order->delivery_order == 0)
-               <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#approval_notes" id="approve" onclick="set_approve()">Approve</button>  
-          @endif
-
-          <!-- <button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#approval_notes" id="reject"  onclick="set_reject()">Reject</button>  -->
 
     </div> 
   <!-- modal approval -->
@@ -123,7 +118,10 @@
             </tr>
             <td style="padding:5px;width:10%;">Bayar</td>
             <td>:</td>
-            <td> <input  type="hidden"  class="form-control" name="amount_due" id="amount_due" value={{$sales_order->amount_due}}> <input  type="text"  class="form-control" name="total_amount" id="total_amount" value={{$sales_order->id}}></td>
+            <td>
+            <input  type="hidden"  class="form-control" name="order_id" id="order_id" value={{$sales_order->id}}>
+             <input  type="hidden"  class="form-control" name="val_amount_due" id="val_amount_due" value={{$sales_order->amount_due}}>
+             <input  type="text"  class="form-control" name="total_amount" id="total_amount"></td>
             </tr>
             </tbody>
             </table>

@@ -9,10 +9,22 @@ interface ISalesOrder {
     public function getSalesOrder($id);
     public function getDetailSalesOrder($id);
     public function updateDeliveryOrder($data);
+    public function updatePayment($data);
 }
 
 class SalesOrderRepository implements ISalesOrder {
 
+    public function updatePayment($data){
+
+        $data = DB::table('sales_orders')->where('id',$data->id)->update([
+            'total_amount' => $data->total_amount,
+            'amount_due' => $data->amount_due
+
+        ]);
+
+        return $data;
+
+    }
     public function updateDeliveryOrder($data){
 
         $data = DB::table('sales_orders')->where('id',$data->id)->update([

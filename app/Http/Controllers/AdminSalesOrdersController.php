@@ -363,7 +363,11 @@
 			$postdata['order_number'] = $code.$customer.$year.$month.$no;
 			$postdata['order_status_id'] = 1;
 			$postdata['created_by'] = CRUDBooster::myId();
-	    }
+	  
+			if(empty($postdata['order_date'])){
+				CRUDBooster::redirect(CRUDBooster::mainpath("add"),"Tgl Order harus diisi","info");
+			}
+		}
 
 	    /* 
 	    | ---------------------------------------------------------------------- 

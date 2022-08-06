@@ -42,7 +42,7 @@
 			# START FORM DO NOT REMOVE THIS LINE
 			$this->form = [];
 			$this->form[] = ['label'=>'Name','name'=>'name','type'=>'text','validation'=>'required|string|min:3|max:70','width'=>'col-sm-10','placeholder'=>'You can only enter the letter only'];
-			$this->form[] = ['label'=>'Alamat','name'=>'address','type'=>'multitext','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
+			$this->form[] = ['label'=>'Alamat','name'=>'address','type'=>'textarea','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Phone','name'=>'phone','type'=>'number','validation'=>'required|numeric','width'=>'col-sm-10','placeholder'=>'You can only enter the number only'];
 			$this->form[] = ['label'=>'Facebook','name'=>'facebook','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Instagram','name'=>'instagram','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-10'];

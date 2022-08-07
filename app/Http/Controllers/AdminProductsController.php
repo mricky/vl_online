@@ -45,7 +45,7 @@ use Session;
 			$this->col[] = ["label"=>"Kategori","name"=>"category_id","join"=>"product_categories,name"];
 			$this->col[] = ["label"=>"Brand","name"=>"brand_id","join"=>"product_brands,name"];
 			$this->col[] = ["label"=>"Biaya","name"=>"product_cost"];
-			$this->col[] = ["label"=>"Harga","name"=>"product_price"];
+			$this->col[] = ["label"=>"Harga","name"=>"product_price","callback_php"=>'number_format($row->product_price)'];
 			$this->col[] = ["label"=>"Ket","name"=>"description"];
 			# END COLUMNS DO NOT REMOVE THIS LINE
 

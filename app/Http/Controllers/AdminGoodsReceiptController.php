@@ -4,17 +4,22 @@
 	use Request;
 	use DB;
 	use CRUDBooster;
-    use App\Repositories\ProductRepository;
-	use App\Repositories\JournalTransactionRepository;
+    use App\Repositories\{
+		ProductRepository,
+		JournalTransactionRepository,
+		GoodReceiptRepository
+	};
 
 	class AdminGoodsReceiptController extends \crocodicstudio\crudbooster\controllers\CBController {
 
 	    private $productRepository;
+		private $goodReceiptRepository;
 
-		public function __construct(ProductRepository $productRepository,JournalTransactionRepository $journalTransaction) 
+		public function __construct(ProductRepository $productRepository,JournalTransactionRepository $journalTransaction,GoodReceiptRepository $goodReceiptRepository) 
         {
        		 $this->productRepository = $productRepository;
 			 $this->journalTransaction = $journalTransaction;
+			 $this->goodReceiptRepository = $goodReceiptRepository;
         }
 
 
@@ -55,7 +60,7 @@
 			$this->form[] = ['label'=>'Supplier','name'=>'vendor_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'vendors,name'];
 			$this->form[] = ['label'=>'Tgl Penerimaan','name'=>'receipt_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-5'];
 			$this->form[] = ['label'=>'PO','name'=>'purchase_order_id','type'=>'datamodal'
-						,'validation'=>'required|min:1|max:255'
+						,'validation'=>'nullable|min:1|max:255'
 						,'width'=>'col-sm-5'
 						,'datamodal_table'=>'view_orders'
 						,'datamodal_columns'=>'vendor_name,order_number,order_date,description'
@@ -67,10 +72,16 @@
 			//$this->form[] = ['label'=>'PO','name'=>'purchase_order_id','type'=>'select','width'=>'col-sm-4','datatable'=>'purchase_orders,order_number,vendor_id,description','datatable_format'=>'order_number,\' - \',description','parent_select'=>'vendor_id'];
 			
 			$columns = [];
-			$columns[] = ['label'=>'Product','name'=>'product_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'products,name'];
-			$columns[] = ["label"=>"Barang Masuk","name"=>"qty_in",'type'=>'number'];
+			$columns[] = ['label'=>'Product','name'=>'product_id','type'=>'datamodal'
+			,'validation'=>'required|min:1|max:255'
+			,'width'=>'col-sm-2'
+			,'datamodal_table'=>'view_list_product_sales'
+			,'datamodal_columns'=>'name,category_name,brand_name,product_price,qty_onhand,lot_number'
+			,'datamodal_size'=>'large','datamodal_columns_alias'=>'Name, Kategori, Brand, Harga, Stok, Lot Number'
+			,'datamodal_select_to'=>'product_price:price,lot_number:lot_number'];
+			$columns[] = ["label"=>"Barang Masuk",'validation'=>'required|integer|min:1',"name"=>"qty_in",'type'=>'number'];
 			$columns[] = ["label"=>"Harga","name"=>"price",'type'=>'number'];
-			$columns[] = ["label"=>"Simpan di Supplier","name"=>"is_store_vendor_location",'type'=>'radio','dataenum'=>'0|No;1|Yes','width'=>'col-sm-5'];
+			$columns[] = ["label"=>"Simpan di Supplier",'validation'=>'required|in:0,1',"name"=>"is_store_vendor_location",'type'=>'radio','dataenum'=>'0|No;1|Yes','width'=>'col-sm-5'];
 			$columns[] = ["label"=>"Lot No","name"=>"lot_number",'type'=>'text','readonly'=>true];
 
 			$this->form[] = ['label'=>'Detail Penerimaan','name'=>'good_receipt_details','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'goods_receipt_details','foreign_key'=>'good_receipt_id'];
@@ -115,7 +126,7 @@
 	        | @showIf 	   = If condition when action show. Use field alias. e.g : [id] == 1
 	        | 
 	        */
-	        $this->addaction[] = ['label'=>'Print PO','icon'=>'fa fa-print','color'=>'primary','url'=>CRUDBooster::mainpath('print').'/[id]','title'=>'Cetak','target'=>'_blank'];
+	      //  $this->addaction[] = ['label'=>'Print PO','icon'=>'fa fa-print','color'=>'primary','url'=>CRUDBooster::mainpath('print').'/[id]','title'=>'Cetak','target'=>'_blank'];
 
 
 
@@ -300,14 +311,22 @@
 			
 			$code = 'GR-';
 			$supplier = DB::table('vendors')->where('id',$postdata['vendor_id'])->first()->code;
-		    $po = DB::table('purchase_orders')->where('id',$postdata['purchase_order_id'])->first();
+		    //$po = DB::table('purchase_orders')->where('id',$postdata['purchase_order_id'])->first();
 			$sq = DB::table('goods_receipt')->max('id'); 
 			$year = substr(date("y"),-2);
 			$month = date("m");
 			$no = str_pad($sq+1,4,"0",STR_PAD_LEFT);
 			$postdata['code'] = $code.$supplier.$year.$month.$no;
-			$postdata['vendor_id'] = $po->vendor_id;
+			//$postdata['vendor_id'] = $po->vendor_id;
 			$postdata['created_by'] = CRUDBooster::myId();
+
+			if(empty($postdata['vendor_id'])){
+				CRUDBooster::redirect(CRUDBooster::mainpath("add"),"Supplier harus diisi","info");
+			}
+
+			if(empty($postdata['receipt_date'])){
+				CRUDBooster::redirect(CRUDBooster::mainpath("add"),"Tgl Penerimaan harus diisi","info");
+			}
 	    }
 
 	    /* 
@@ -319,19 +338,20 @@
 	    */
 	    public function hook_after_add($id) {        
 	        //Your code here
-
-			$receive = DB::table('goods_receipt')->where('id',$id)->first();
-			$purchase =  DB::table('purchase_orders')->where('id',$receive->purchase_order_id)->first();
-			$data = [
-				'id' => $receive->id,
-				'order_number' => $receive->code,
-				'order_date' => $receive->receipt_date,
-				'total_amount' => $purchase->total_amount,
-				'module' => 'receive',
-			];
+			// no journal 
+			// $receive = DB::table('goods_receipt')->where('id',$id)->first();
+			// $purchase =  DB::table('purchase_orders')->where('id',$receive->purchase_order_id)->first();
+			// $data = [
+			// 	'id' => $receive->id,
+			// 	'order_number' => $receive->code,
+			// 	'order_date' => $receive->receipt_date,
+			// 	'total_amount' => $purchase->total_amount,
+			// 	'module' => 'receive',
+			// ];
 			
-			$this->journalTransaction->purchaseJournalEntry((object)$data,0);
-
+			 //$this->journalTransaction->purchaseJournalEntry((object)$data,0);
+		   	 $this->goodReceiptRepository->updateDetailGoodReceipt($id);
+			
 	    }
 
 	    /* 

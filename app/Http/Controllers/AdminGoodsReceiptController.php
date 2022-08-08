@@ -79,9 +79,9 @@
 			,'datamodal_columns'=>'name,category_name,brand_name,product_price,qty_onhand,lot_number'
 			,'datamodal_size'=>'large','datamodal_columns_alias'=>'Name, Kategori, Brand, Harga, Stok, Lot Number'
 			,'datamodal_select_to'=>'product_price:price,lot_number:lot_number'];
-			$columns[] = ["label"=>"Barang Masuk",'validation'=>'required|integer|min:1',"name"=>"qty_in",'type'=>'number'];
-			$columns[] = ["label"=>"Harga","name"=>"price",'type'=>'number'];
-			$columns[] = ["label"=>"Simpan di Supplier",'validation'=>'required|in:0,1',"name"=>"is_store_vendor_location",'type'=>'radio','dataenum'=>'0|No;1|Yes','width'=>'col-sm-5'];
+			$columns[] = ["label"=>"Barang Masuk",'required'=>true,"name"=>"qty_in",'type'=>'number'];
+			$columns[] = ["label"=>"Harga","name"=>"price",'type'=>'number','required'=>true];
+			$columns[] = ["label"=>"Simpan di Supplier",'required'=>true,"name"=>"is_store_vendor_location",'type'=>'radio','dataenum'=>'0|No;1|Yes','width'=>'col-sm-5'];
 			$columns[] = ["label"=>"Lot No","name"=>"lot_number",'type'=>'text','readonly'=>true];
 
 			$this->form[] = ['label'=>'Detail Penerimaan','name'=>'good_receipt_details','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'goods_receipt_details','foreign_key'=>'good_receipt_id'];

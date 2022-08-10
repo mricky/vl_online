@@ -53,6 +53,8 @@
 			$this->col[] = ["label"=>"Tgl Penerimaan","name"=>"receipt_date"];
 			//$this->col[] = ["label"=>"No PO Supplier","name"=>"po_vendor"];
 			$this->col[] = ["label"=>"Keterangan","name"=>"description"];
+			$this->col[] = ["label"=>"Dibuat Oleh","name"=>"created_by","join"=>"cms_users,name"];
+			$this->col[] = ["label"=>"Dibuat","name"=>"created_at"];
 			# END COLUMNS DO NOT REMOVE THIS LINE
 
 			# START FORM DO NOT REMOVE THIS LINE
@@ -65,7 +67,7 @@
 						,'datamodal_table'=>'view_orders'
 						,'datamodal_columns'=>'vendor_name,order_number,order_date,description'
 						,'datamodal_size'=>'large','datamodal_columns_alias'=>'Supplier,Order No,Tgl Order, Keterangan'
-						,'datamodal_select_to'=>'id:purchase_order_id'
+						,'datamodal_select_to'=>'id:purchase_order_id,product_price:price'
 						,'datamodal_where' => ''];
 
 		
@@ -308,7 +310,6 @@
 	    */
 	    public function hook_before_add(&$postdata) {        
 	        //Your code here
-			
 			$code = 'GR-';
 			$supplier = DB::table('vendors')->where('id',$postdata['vendor_id'])->first()->code;
 		    //$po = DB::table('purchase_orders')->where('id',$postdata['purchase_order_id'])->first();
@@ -327,6 +328,8 @@
 			if(empty($postdata['receipt_date'])){
 				CRUDBooster::redirect(CRUDBooster::mainpath("add"),"Tgl Penerimaan harus diisi","info");
 			}
+
+		
 	    }
 
 	    /* 

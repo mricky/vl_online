@@ -45,6 +45,7 @@
 			$this->col[] = ["label"=>"Biaya","name"=>"product_cost","callback_php"=>'number_format($row->product_cost)'];
 			$this->col[] = ["label"=>"Harga","name"=>"product_price","callback_php"=>'number_format($row->product_price)'];
 			$this->col[] = ["label"=>"Qty Onhand","name"=>"qty_onhand"];
+			$this->col[] = ["label"=>"Diubah Oleh","name"=>"updated_by","join"=>"cms_users,name"];
 			// $this->col[] = ["label"=>"Qty Received","name"=>"qty_received"];
 			// $this->col[] = ["label"=>"Qty Shipped","name"=>"qty_shipped"];
 			# END COLUMNS DO NOT REMOVE THIS LINE
@@ -56,7 +57,7 @@
 			$this->form[] = ['label'=>'Brand','name'=>'brand_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'product_brands,name'];
 			$this->form[] = ['label'=>'Biaya','name'=>'product_cost','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Harga','name'=>'product_price','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
-			//$this->form[] = ['label'=>'Jumlah','name'=>'qty_onhand','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
+			$this->form[] = ['label'=>'Jumlah','name'=>'qty_onhand','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
 			//$this->form[] = ['label'=>'Jumlah Alokasi','name'=>'qty_allocated','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
 			//$this->form[] = ['label'=>'Jumlah Terkirim','name'=>'qty_shipped','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Keterangan','name'=>'description','type'=>'textarea','validation'=>'nullable|string|min:3|max:5000','width'=>'col-sm-10'];
@@ -343,6 +344,11 @@
 	    public function hook_after_edit($id) {
 	        //Your code here 
 
+			DB::table('products')->where('id',$id)->update([
+				'updated_at' => now(),
+				'updated_by' => CRUDBooster::myId()
+			]);
+			
 	    }
 
 	    /* 

@@ -61,15 +61,10 @@
 			$this->form[] = ['label'=>'Expedisi','name'=>'expedition_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'expeditions,name'];
 			$this->form[] = ['label'=>'Keterangan','name'=>'description','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
 			$columns = [];
-			//$columns[] = ['label'=>'Product','name'=>'product_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'products,name'];
-			$columns[] = ['label'=>'Product','name'=>'product_id','type'=>'datamodal'
-							,'validation'=>'required|min:1|max:255'
-							,'width'=>'col-sm-2'
-							,'datamodal_table'=>'view_list_product_sales'
-							,'datamodal_columns'=>'name,category_name,brand_name,product_price,qty_onhand,lot_number'
-							,'datamodal_size'=>'large','datamodal_columns_alias'=>'Name, Kategori, Brand, Harga, Stok, Lot Number'
-							,'datamodal_select_to'=>'product_price:price,lot_number:lot_number'];
+			$columns[] = ['label'=>'Produk','name'=>'product_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'products,name','datatable_format'=>"id,' - ',name"];
+			
 			// sample more than 1
+			//$columns[] = ['label'=>'Product','name'=>'product_id','type'=>'select2','datatable'=>'products,name','datatable_format'=>"id,' - ',name"];
 			//$columns[] = ['label'=>'Product Lot','name'=>'product_item_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'product_items,lot_number','parent_select'=>'product_id','datatable_where'=>'lot_number is not null'];
 			$columns[] = ["label"=>"Harga","name"=>"price",'type'=>'number'];
 			$columns[] = ["label"=>"Qty","name"=>"qty",'type'=>'number'];

@@ -74,13 +74,14 @@
 			//$this->form[] = ['label'=>'PO','name'=>'purchase_order_id','type'=>'select','width'=>'col-sm-4','datatable'=>'purchase_orders,order_number,vendor_id,description','datatable_format'=>'order_number,\' - \',description','parent_select'=>'vendor_id'];
 			
 			$columns = [];
-			$columns[] = ['label'=>'Product','name'=>'product_id','type'=>'datamodal'
-			,'validation'=>'required|min:1|max:255'
-			,'width'=>'col-sm-2'
-			,'datamodal_table'=>'view_list_product_sales'
-			,'datamodal_columns'=>'name,category_name,brand_name,product_price,qty_onhand,lot_number'
-			,'datamodal_size'=>'large','datamodal_columns_alias'=>'Name, Kategori, Brand, Harga, Stok, Lot Number'
-			,'datamodal_select_to'=>'product_price:price,lot_number:lot_number'];
+			$columns[] = ['label'=>'Produk','name'=>'product_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'products,name','datatable_format'=>"id,' - ',name"];
+			// $columns[] = ['label'=>'Product','name'=>'product_id','type'=>'datamodal'
+			// ,'validation'=>'required|min:1|max:255'
+			// ,'width'=>'col-sm-2'
+			// ,'datamodal_table'=>'view_list_product_sales'
+			// ,'datamodal_columns'=>'name,category_name,brand_name,product_price,qty_onhand,lot_number'
+			// ,'datamodal_size'=>'large','datamodal_columns_alias'=>'Name, Kategori, Brand, Harga, Stok, Lot Number'
+			// ,'datamodal_select_to'=>'product_price:price,lot_number:lot_number'];
 			$columns[] = ["label"=>"Barang Masuk",'required'=>true,"name"=>"qty_in",'type'=>'number'];
 			$columns[] = ["label"=>"Harga","name"=>"price",'type'=>'number','required'=>true];
 			$columns[] = ["label"=>"Simpan di Supplier",'required'=>true,"name"=>"is_store_vendor_location",'type'=>'radio','dataenum'=>'0|No;1|Yes','width'=>'col-sm-5'];

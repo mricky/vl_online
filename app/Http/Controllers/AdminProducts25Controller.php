@@ -45,6 +45,7 @@
 			$this->col[] = ["label"=>"Biaya","name"=>"product_cost","callback_php"=>'number_format($row->product_cost)'];
 			$this->col[] = ["label"=>"Harga","name"=>"product_price","callback_php"=>'number_format($row->product_price)'];
 			$this->col[] = ["label"=>"Qty Onhand","name"=>"qty_onhand"];
+			$this->col[] = ["label"=>"Penyimpanan","name"=>"is_store_vendor_location","callback_php"=>'($row->is_store_vendor_location==0)?"<span class=\"label label-default\">Internal</span>":"<span class=\"label label-danger\">Vendor</span>"'];
 			$this->col[] = ["label"=>"Diubah Oleh","name"=>"updated_by","join"=>"cms_users,name"];
 			// $this->col[] = ["label"=>"Qty Received","name"=>"qty_received"];
 			// $this->col[] = ["label"=>"Qty Shipped","name"=>"qty_shipped"];
@@ -62,6 +63,7 @@
 			//$this->form[] = ['label'=>'Jumlah Terkirim','name'=>'qty_shipped','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Keterangan','name'=>'description','type'=>'textarea','validation'=>'nullable|string|min:3|max:5000','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Track Lot No','name'=>'is_track_lot_number','type'=>'radio','dataenum'=>'0|No;1|Yes','width'=>'col-sm-10'];
+			$this->form[] = ['label'=>'Penyimpanan','name'=>'is_store_vendor_location','type'=>'radio','dataenum'=>'0|Internal;1|Vendor','width'=>'col-sm-10'];
 			# END FORM DO NOT REMOVE THIS LINE
 
 			# OLD START FORM

@@ -58,13 +58,8 @@
 			$this->form[] = ['label'=>'Keterangan','name'=>'description','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-5'];
 	
 			$columns = [];
-			$columns[] = ['label'=>'Product','name'=>'product_id','type'=>'datamodal'
-						,'validation'=>'required|min:1|max:255'
-						,'width'=>'col-sm-2'
-						,'datamodal_table'=>'view_list_products'
-						,'datamodal_columns'=>'code,name,category_name,brand_name,qty_onhand'
-						,'datamodal_size'=>'large','datamodal_columns_alias'=>'SKU,Nama,Kategori,Brand, Qty'
-						,'datamodal_select_to'=>'product_price:price,qty:qty'];
+			$columns[] = ['label'=>'Produk','name'=>'product_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'products,name','datatable_format'=>"id,' - ',name"];
+			
 			$columns[] = ["label"=>"Qty","name"=>"qty",'type'=>'number'];
 			$columns[] = ["label"=>"Harga","name"=>"price",'type'=>'number'];
 			$columns[] = ["label"=>"Subtotal","name"=>"subtotal",'type'=>'number',"readonly"=>true,'formula'=>"[qty] * [price]"];

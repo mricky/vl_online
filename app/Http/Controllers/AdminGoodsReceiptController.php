@@ -1,6 +1,7 @@
 <?php namespace App\Http\Controllers;
 
-	use Session;
+use App\Models\Product;
+use Session;
 	use Request;
 	use DB;
 	use CRUDBooster;
@@ -82,9 +83,10 @@
 			// ,'datamodal_columns'=>'name,category_name,brand_name,product_price,qty_onhand,lot_number'
 			// ,'datamodal_size'=>'large','datamodal_columns_alias'=>'Name, Kategori, Brand, Harga, Stok, Lot Number'
 			// ,'datamodal_select_to'=>'product_price:price,lot_number:lot_number'];
+			$columns[] = ["label"=>"Barang Pesan",'required'=>true,"name"=>"qty_demand",'type'=>'number','readonly'=>true];
 			$columns[] = ["label"=>"Barang Masuk",'required'=>true,"name"=>"qty_in",'type'=>'number'];
 			$columns[] = ["label"=>"Harga","name"=>"price",'type'=>'number','required'=>true];
-			$columns[] = ["label"=>"Simpan di Supplier",'required'=>true,"name"=>"is_store_vendor_location",'type'=>'radio','dataenum'=>'0|No;1|Yes','width'=>'col-sm-5'];
+			$columns[] = ['label'=>'Lokasi','name'=>'wh_location_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'wh_locations,wh_location_name'];
 			$columns[] = ["label"=>"Lot No","name"=>"lot_number",'type'=>'text','readonly'=>true];
 
 			$this->form[] = ['label'=>'Detail Penerimaan','name'=>'good_receipt_details','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'goods_receipt_details','foreign_key'=>'good_receipt_id'];
@@ -189,8 +191,9 @@
 	        | @label, @count, @icon, @color 
 	        |
 	        */
-	        $this->index_statistic = array();
-
+	        //$this->index_statistic = array();
+			$this->index_statistic[] = ['label'=>'Process','count'=>$this->goodReceiptRepository->getTotalProcessReceipt(),'icon'=>'fa fa-file-text','color'=>'warning'];
+			$this->index_statistic[] = ['label'=>'Selesai','count'=>$this->goodReceiptRepository->getTotalDoneReceipt(),'icon'=>'fa fa-file-text','color'=>'success'];
 
 
 	        /*
@@ -289,7 +292,7 @@
 	    */
 	    public function hook_query_index(&$query) {
 	        //Your code here
-	
+			$query->where('status_id',1);
 	    }
 
 	    /*
@@ -379,8 +382,12 @@
 	    | 
 	    */
 	    public function hook_after_edit($id) {
-	        //Your code here 
-
+	        // Update Stok
+			// Update Lokasi Stok
+			DB::table('goods_receipt')->where('id',$id)->update([
+				'status_id' => 2
+			]);
+			$this->productRepository->updateStokLocation($id);
 	    }
 
 	    /* 
@@ -446,8 +453,19 @@
 
 		public function postCetakstok()
 		{
-			$data['products'] = DB::table('products')->get();
-
+			
+			$data['products'] = Product::select('products.*',DB::raw("sum(internal.qty_onhand) as qty_internal"),DB::raw("sum(vendor.qty_onhand) as qty_vendor"))
+									->join('product_locations as internal', function($join){
+										$join->on('products.id','=','internal.product_id');
+										$join->where('internal.wh_location_id',1);
+									})
+									->join('product_locations as vendor', function($join){
+										$join->on('products.id','=','internal.product_id');
+										$join->where('vendor.wh_location_id','!=',1);
+									})
+									->groupBy('products.id')
+									->get();
+			
 			$this->cbView('prints.stok',$data);
 		}
 	}

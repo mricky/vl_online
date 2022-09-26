@@ -1,12 +1,19 @@
 <?php namespace App\Http\Controllers;
 
-	use Session;
+use App\Repositories\CustomerRepository;
+use Session;
 	use Request;
 	use DB;
 	use CRUDBooster;
 
 	class AdminCustomersController extends \crocodicstudio\crudbooster\controllers\CBController {
 
+		private $customer;
+		public function __construct(CustomerRepository $customer) 
+        {
+			 $this->customer = $customer;
+			
+        }
 	    public function cbInit() {
 
 			# START CONFIGURATION DO NOT REMOVE THIS LINE
@@ -335,7 +342,12 @@
 
 	    }
 
+		public function findCustomer(Request $request){
+			$term = trim(Request::get('q'));
 
+			$customer = $this->customer->findCustomer($term);
+			return response()->json($customer);
+		}
 
 	    //By the way, you can still create your own method in here... :) 
 

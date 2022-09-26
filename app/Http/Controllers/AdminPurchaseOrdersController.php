@@ -1,6 +1,7 @@
 <?php namespace App\Http\Controllers;
 
-	use Session;
+use App\Repositories\GoodReceiptRepository;
+use Session;
 	use Request;
 	use DB;
 	use CRUDBooster;
@@ -10,11 +11,13 @@
 
 		private $purchaseOrder;
 		private $journalTransaction;
+		private $goodReceipt;
 
-		public function __construct(PurchaseOrderRepository $purchaseOrder,JournalTransactionRepository $journalTransaction) 
+		public function __construct(PurchaseOrderRepository $purchaseOrder,JournalTransactionRepository $journalTransaction, GoodReceiptRepository $goodReceipt) 
         {
        		 $this->purchaseOrder = $purchaseOrder;
 			 $this->journalTransaction = $journalTransaction;
+			 $this->goodReceipt = $goodReceipt;
         }
 	    public function cbInit() {
 
@@ -54,8 +57,9 @@
 			$this->form = [];
 			$this->form[] = ['label'=>'Supplier','name'=>'vendor_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'vendors,name'];
 			$this->form[] = ['label'=>'Tgl Order','name'=>'order_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-5'];
+			$this->form[] = ['label'=>'Tgl Estimasi','name'=>'estimated_date','type'=>'date','validation'=>'nullable|date','width'=>'col-sm-5'];
 			//$this->form[] = ['label'=>'Tgl Kirim','name'=>'delivery_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-10'];
-			$this->form[] = ['label'=>'Keterangan','name'=>'description','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-5'];
+			$this->form[] = ['label'=>'Keterangan','name'=>'description','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
 	
 			$columns = [];
 			$columns[] = ['label'=>'Produk','name'=>'product_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'products,name','datatable_format'=>"id,' - ',name"];
@@ -408,8 +412,9 @@
 				'total_amount' => $purchase->total_amount,
 				'module' => 'purchase',
 			];
-		
-			$this->journalTransaction->purchaseJournalEntry((object)$data,0); // automatic journal
+			
+			$this->goodReceipt->automaticReceiptEntry($purchase->id);
+			//$this->journalTransaction->purchaseJournalEntry((object)$data,0); // automatic journal
 
 	    }
 

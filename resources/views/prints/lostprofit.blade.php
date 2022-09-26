@@ -35,7 +35,7 @@
         <div class="container">
             <div class="row mt-3">
                 <div class="col-12 text-center">
-                    <p style="font-size: 18px; margin: 0; padding: 0;">PROJECT PAUL</p>
+                    <p style="font-size: 18px; margin: 0; padding: 0;">VL Online</p>
                     <h3>Profit & Loss Standard</h3>
                     <p style="font-size: 18px;">
                         {{$tgl_data}} <br>

@@ -40,7 +40,7 @@
     <section>
         <div class="row no-gutters">
             <div class="col-12 text-center">
-                <p style="font-size: 18px; margin: 0; padding: 0;">PROJECT PAUL</p>
+                <p style="font-size: 18px; margin: 0; padding: 0;">VL Online</p>
                 <h4>Laporan Pembelian</h4>
                 <p style="font-size: 18px;">
                     {{$tgl_data}} <br>

@@ -1,10 +1,16 @@
 <?php namespace App\Http\Controllers;
 
 use App\Repositories\ProductRepository;
+use App\Models\{
+	Product,
+	ProductLocation
+};
 use Session;
 	use Request;
+	
 	use DB;
 	use CRUDBooster;
+use GuzzleHttp\Psr7\Request as Psr7Request;
 
 	class AdminProductsController extends \crocodicstudio\crudbooster\controllers\CBController {
 
@@ -329,7 +335,7 @@ use Session;
 	    */
 	    public function hook_before_edit(&$postdata,$id) {        
 	        //Your code here
-
+		
 	    }
 
 	    /* 
@@ -341,6 +347,12 @@ use Session;
 	    */
 	    public function hook_after_edit($id) {
 	        //Your code here 
+			$product = Product::find($id);
+			ProductLocation::where('product_id',$id)
+											->where('wh_location_id',1)
+											->whereNull('good_receipt_id')->update([
+												'qty_onhand' => $product->qty_onhand
+											]);
 
 	    }
 
@@ -368,9 +380,28 @@ use Session;
 
 	    }
 
+		public function syncInternalStock(){
+			$this->product->syncInternalStock();
+		}
 
+		public function findProductItem(Request $request){
+			$term = trim(Request::get('q'));
 
+			$brand = $this->product->findProductItem($term);
+			return response()->json($brand);
+		}
+
+		public function findProductCategory(){
+			$term = trim(Request::get('q'));
+			$category = $this->product->findProductCategory($term);
+
+			return response()->json($category);
+		}
+		public function findProductBrand(Request $request){
+			$term = trim(Request::get('q'));
+
+			$brand = $this->product->findProductBrand($term);
+			return response()->json($brand);
+		}
 	    //By the way, you can still create your own method in here... :) 
-
-
 	}

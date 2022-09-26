@@ -5,16 +5,22 @@
 	use DB;
 	use CRUDBooster;
 	use App\Repositories\JournalTransactionRepository;
-	use App\Repositories\SalesOrderRepository;
+	use App\Repositories\{
+		SalesOrderRepository,
+		ProductRepository
+	};
+	use Maatwebsite\Excel\Facades\Excel;
 	use Illuminate\Support\Str;
 	class AdminSalesOrdersController extends \crocodicstudio\crudbooster\controllers\CBController {
 
 		private $journalTransaction;
 		private $salesOrder;
-		public function __construct(SalesOrderRepository $salesOrder,JournalTransactionRepository $journalTransaction) 
+		private $productRepository;
+		public function __construct(SalesOrderRepository $salesOrder,JournalTransactionRepository $journalTransaction, ProductRepository $productRepository) 
         {
 			 $this->salesOrder = $salesOrder;
 			 $this->journalTransaction = $journalTransaction;
+			 $this->productRepository = $productRepository;
         }
 
 	    public function cbInit() {
@@ -61,13 +67,13 @@
 			$this->form[] = ['label'=>'Expedisi','name'=>'expedition_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'expeditions,name'];
 			$this->form[] = ['label'=>'Keterangan','name'=>'description','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
 			$columns = [];
-			$columns[] = ['label'=>'Produk','name'=>'product_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'products,name','datatable_format'=>"id,' - ',name"];
-			
+			$columns[] = ['label'=>'Produk','name'=>'product_id','type'=>'select','required'=>true,'width'=>'col-sm-5','datatable'=>'view_product,product_name'];
+			$columns[] = ['label'=>'Lokasi Produk','name'=>'product_location_id','type'=>'select','required'=>true,'width'=>'col-sm-5','datatable'=>'view_product_location,product_location','parent_select'=>'product_id'];
 			// sample more than 1
 			//$columns[] = ['label'=>'Product','name'=>'product_id','type'=>'select2','datatable'=>'products,name','datatable_format'=>"id,' - ',name"];
 			//$columns[] = ['label'=>'Product Lot','name'=>'product_item_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'product_items,lot_number','parent_select'=>'product_id','datatable_where'=>'lot_number is not null'];
-			$columns[] = ["label"=>"Harga","name"=>"price",'type'=>'number'];
-			$columns[] = ["label"=>"Qty","name"=>"qty",'type'=>'number'];
+			$columns[] = ["label"=>"Harga","name"=>"price",'type'=>'number','required'=>true];
+			$columns[] = ["label"=>"Qty","name"=>"qty",'type'=>'number','required'=>true];
 			$columns[] = ["label"=>"Total","name"=>"total",'type'=>'number','readonly'=>true,"callback_php"=>'number_format($row->total)','formula'=>"parseInt([qty]) * parseInt([price])"];
 			$columns[] = ["label"=>"Lot Number","name"=>"lot_number",'type'=>'text','readonly'=>true];
 			$this->form[] = ['label'=>'Orders Detail','name'=>'sales_order_details','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'sales_order_details','foreign_key'=>'sales_order_id'];
@@ -505,7 +511,7 @@
 			$data = [];
 			$data['Neraca'] ='Laporan Penjualan';
 	
-			$this->cbView('forms.sales',$data);
+			$this->cbView('forms.sales_new',$data);
 		}
 
 		public function getDetail($id){
@@ -572,14 +578,101 @@
 				'module' => 'delivery',
 			];
 
+			// TODO: QTY -
+			$this->productRepository->updateSalesStokLocation($salesOrder->id);
+
 			$this->journalTransaction->purchaseJournalEntry((object)$dataJournal,0);
 
 			$this->cbView('forms/delivery_order',$data);
 
 		}
+		public function postCetakpenjualan(){
+		
+			$customer = Request::get('customer_list');
+			$category = Request::get('category_list');
+			$brand = Request::get('brand_list');
+			$item = Request::get('item_list');
+			
+			$data = [];
 
-		public function postCetakpenjualan()
+			$sales = DB::table('sales_orders as t1')
+						->select('t1.*','t2.name', 't3.name as expedition','t5.name as product_name','t6.name as category_name','t7.name as brand_name')
+						->leftJoin('customers as t2','t1.customer_id','=','t2.id')
+						->join('sales_order_details as t4','t1.id','=','t4.sales_order_id')
+						->join('products as t5','t4.product_id','t5.id')
+						->join('product_categories as t6','t6.id','t5.category_id')
+						->join('product_brands as t7','t5.brand_id','t7.id')
+						->leftJoin('expeditions as t3','t1.expedition_id','=','t3.id');
+						// ->whereIn('t2.id',$customer)
+						// ->orWhereIn('t6.id',$category)
+						// ->get();
+			$sales = $sales->when($customer, function($sales) use ($customer){
+				return $sales->whereIn('t2.id',$customer);
+			});
+			$sales = $sales->when($category, function($sales) use ($category){
+				return $sales->whereIn('t6.id',$category);
+			});
+			$sales = $sales->when($brand, function($sales) use ($brand){
+				return $sales->whereIn('t7.id',$brand);
+			});
+			$sales = $sales->when($item, function($sales) use ($item){
+				return $sales->whereIn('t5.id',$item);
+			});
+			$sales = $sales->get();
+			$data['page_title'] = 'Laporan Penjualan Barang';
+
+			$datas = Array();
+			$no=1;
+			if($sales) {
+				foreach($sales as $item){
+					$data_raw = array(
+						$no,
+						$item->order_number,
+						$item->name,
+						$item->order_date,
+						$item->category_name,
+						$item->brand_name,
+						$item->product_name,
+						$item->expedition,
+						$item->subtotal,
+						$item->discount,
+						$item->expedition_cost,
+						$item->total,
+						$item->total_amount,
+						$item->amount_due
+					);
+					array_push($datas,$data_raw);
+					$no++;
+				}
+			}
+			Excel::create("Laporan Penjualan Barang", function($excel) use($datas) {
+				$excel->sheet('Penjualan Barang', function($sheet) use($datas) {
+					$judul=['Laporan Penjualan Barang'];
+					$sheet->appendRow($judul);
+					$sheet->row($sheet->getHighestRow(), function ($row) {
+						$row->setFontSize(14);
+						$row->setFontWeight('bold');
+					});
+					$sheet->mergeCells('A1:N1');
+					
+					// Columns
+					$labels = ['No','No. Order','Pelanggan','Tgl Order','Kategori','Brand','Item','Expedisi','Sub Total', 'Discount','Biaya Expedisi','Total','Pelunasan','Sisa'];
+
+					$sheet->appendRow($labels);
+					$sheet->row($sheet->getHighestRow(), function ($row) {
+						$row->setFontWeight('bold');
+					});
+
+					foreach ($datas as $data) {
+						$sheet->appendRow($data);
+					}
+				});
+			})->export('xlsx');
+
+		}
+		public function postCetakpenjualanPDF()
 		{
+		
 			$data['tgl_data']=date('d-M-Y',strtotime($_POST['tgl_awal']) )." s/d ". date('d-M-Y',strtotime($_POST['tgl_akhir']));
 
 			$data['sales'] = DB::table('sales_orders as t1')
@@ -589,5 +682,15 @@
 									->get();
 
 			$this->cbView('prints.sales',$data);
+		}
+		public function getStatus(){
+			if(!CRUDBooster::isRead() && $this->global_privilege==FALSE || $this->button_edit==FALSE) {    
+				CRUDBooster::redirect(CRUDBooster::adminPath(),trans("crudbooster.denied_access"));
+			  }
+
+			  $data = [];
+			  $data['page_title'] = 'Detail Data';
+
+			  $this->cbView('dashboards.statistic',$data);
 		}
 	} 

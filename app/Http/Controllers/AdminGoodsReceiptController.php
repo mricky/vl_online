@@ -468,4 +468,15 @@ use Session;
 			
 			$this->cbView('prints.stok',$data);
 		}
+
+		public function postCetakiot()
+		{
+			$data['products'] = DB::table('goods_receipt_details as t1')
+									->select('t1.*','t2.code', 't2.name')
+									->leftJoin('products as t2','t1.product_id','=','t2.id')
+									//->leftJoin('goods_receipt as t3','t1.goods_receipt_id','=','t3.id')
+									->get();
+
+			$this->cbView('prints.stok-iot',$data);
+		}
 	}

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laporan Stok</title>
+    <title>Laporan Stok Lot</title>
     <!-- Bootstrap CSS -->
     <link
       rel="stylesheet"
@@ -40,7 +40,7 @@
     <section>
         <div class="row no-gutters mb-3">
             <div class="col-12 text-center">
-                <p style="font-size: 18px; margin: 0; padding: 0;">VL Online</p>
+                <p style="font-size: 18px; margin: 0; padding: 0;">PROJECT PAUL</p>
                 <h4>Laporan Inventory</h4>
             </div>
         </div>
@@ -53,43 +53,39 @@
                         <tr>
                             <td class="font-weight-bold" style="border-bottom: 1px solid black">Item Code</td>
                             <td class="font-weight-bold" style="border-bottom: 1px solid black">Item Name</td>
-                            <td class="font-weight-bold text-center" style="border-bottom: 1px solid black">Stok</td>
-                            <td class="font-weight-bold text-center" style="border-bottom: 1px solid black">Alokasi Pesanan</td>
-                            <td class="font-weight-bold text-center" style="border-bottom: 1px solid black">Jumlah Barang Terima</td>
-                            <td class="font-weight-bold text-center" style="border-bottom: 1px solid black">Jumlah Barang Kirim</td>
-                            <td class="font-weight-bold text-center" style="border-bottom: 1px solid black">Gudang Internal</td>
-                            <td class="font-weight-bold text-center" style="border-bottom: 1px solid black">Gudang Vendor</td>
+                            <td class="font-weight-bold text-center" style="border-bottom: 1px solid black">Lot Number</td>
+                            <td class="font-weight-bold text-center" style="border-bottom: 1px solid black">Qty</td>
+                            <td class="font-weight-bold text-center" style="border-bottom: 1px solid black">Price</td>
+                            <td class="font-weight-bold text-center" style="border-bottom: 1px solid black">Status</td>
                         </tr>
                         @php
-                            $total_stok = 0;
-                            $total_allocated = 0;
-                            $total_received = 0;
-                            $total_shipped = 0;
+                            $total_qty = 0;
+                            $total_price = 0;
                         @endphp
                         @foreach ($products as $item)
                         @php
-                           $total_stok += $item->qty_onhand; 
-                           $total_allocated += $item->qty_allocated; 
-                           $total_received += $item->qty_received; 
-                           $total_shipped += $item->qty_shipped; 
+                           $total_qty += $item->qty_in; 
+                           $total_price += $item->price;  
                         @endphp
                             <tr>
                                 <td>{{ $item->code }}</td>
                                 <td>{{ $item->name }}</td>
-                                <td class="text-center">{{ $item->qty_onhand }}</td>
-                                <td class="text-center">{{ $item->qty_allocated }}</td>
-                                <td class="text-center">{{ $item->qty_received }}</td>
-                                <td class="text-center">{{ $item->qty_shipped}}</td>
-                                <td class="text-center">{{ $item->qty_internal}}</td>
-                                <td class="text-center">{{ $item->qty_vendor}}</td>
+                                <td class="text-center">{{ $item->lot_number }}</td>
+                                <td class="text-center">{{ $item->qty_in }}</td>
+                                <td class="text-center">{{number_format($item->price,0,',','.')}}</td>
+                                <td class="text-center">
+                                    @if ($item->is_store_vendor_location == 0)
+                                        {{ 'Barang di Gudang' }}
+                                    @else
+                                        {{ 'Barang di Vendor' }}
+                                    @endif
+                                </td>
                             </tr>
                         @endforeach
                         <tr>
-                            <td class="font-weight-bold" colspan="2">Total:</td>
-                            <td class="font-weight-bold text-center" style="border-top: 1px solid black">{{ $total_stok}}</td>
-                            <td class="font-weight-bold text-center" style="border-top: 1px solid black">{{ $total_allocated}}</td>
-                            <td class="font-weight-bold text-center" style="border-top: 1px solid black">{{ $total_received}}</td>
-                            <td class="font-weight-bold text-center" style="border-top: 1px solid black">{{ $total_shipped}}</td>
+                            <td class="font-weight-bold" colspan="3">Total:</td>
+                            <td class="font-weight-bold text-center" style="border-top: 1px solid black">{{ $total_qty}}</td>
+                            <td class="font-weight-bold text-center" style="border-top: 1px solid black">{{number_format($total_price,0,',','.')}}</td>
                         </tr>
                     </tbody>
                 </table>

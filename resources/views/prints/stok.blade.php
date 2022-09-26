@@ -40,7 +40,7 @@
     <section>
         <div class="row no-gutters mb-3">
             <div class="col-12 text-center">
-                <p style="font-size: 18px; margin: 0; padding: 0;">PROJECT PAUL</p>
+                <p style="font-size: 18px; margin: 0; padding: 0;">VL Online</p>
                 <h4>Laporan Inventory</h4>
             </div>
         </div>
@@ -57,6 +57,8 @@
                             <td class="font-weight-bold text-center" style="border-bottom: 1px solid black">Alokasi Pesanan</td>
                             <td class="font-weight-bold text-center" style="border-bottom: 1px solid black">Jumlah Barang Terima</td>
                             <td class="font-weight-bold text-center" style="border-bottom: 1px solid black">Jumlah Barang Kirim</td>
+                            <td class="font-weight-bold text-center" style="border-bottom: 1px solid black">Gudang Internal</td>
+                            <td class="font-weight-bold text-center" style="border-bottom: 1px solid black">Gudang Vendor</td>
                         </tr>
                         @php
                             $total_stok = 0;
@@ -78,6 +80,8 @@
                                 <td class="text-center">{{ $item->qty_allocated }}</td>
                                 <td class="text-center">{{ $item->qty_received }}</td>
                                 <td class="text-center">{{ $item->qty_shipped}}</td>
+                                <td class="text-center">{{ $item->qty_internal}}</td>
+                                <td class="text-center">{{ $item->qty_vendor}}</td>
                             </tr>
                         @endforeach
                         <tr>

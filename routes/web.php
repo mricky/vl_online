@@ -14,5 +14,9 @@
 // Route::get('/', function () {
 //     return view('welcome');
 // });
-
+Route::get('/find-customer','AdminCustomersController@findCustomer');
 Route::get('/searchItemLinePO/{po_id}','AdminGoodsReceiptController@searchItemLinePO');
+Route::get('/syncInternalStock','AdminProductsController@syncInternalStock');
+Route::get('/find-product-item','AdminProductsController@findProductItem');
+Route::get('/find-product-category','AdminProductsController@findProductCategory');
+Route::get('/find-product-brand','AdminProductsController@findProductBrand');

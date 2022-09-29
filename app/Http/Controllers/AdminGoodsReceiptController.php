@@ -35,7 +35,7 @@ use Session;
 			$this->button_table_action = true;
 			$this->button_bulk_action = true;
 			$this->button_action_style = "button_icon";
-			$this->button_add = false;
+			$this->button_add = true;
 			$this->button_edit = false;
 			$this->button_delete = false;
 			$this->button_detail = true;
@@ -62,6 +62,7 @@ use Session;
 			$this->form = [];
 			$this->form[] = ['label'=>'Supplier','name'=>'vendor_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'vendors,name'];
 			$this->form[] = ['label'=>'Tgl Penerimaan','name'=>'receipt_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-5'];
+			if(!CRUDBooster::isCreate()){
 			$this->form[] = ['label'=>'PO','name'=>'purchase_order_id','type'=>'datamodal'
 						,'validation'=>'nullable|min:1|max:255'
 						,'width'=>'col-sm-5'
@@ -70,7 +71,7 @@ use Session;
 						,'datamodal_size'=>'large','datamodal_columns_alias'=>'Supplier,Order No,Tgl Order, Keterangan'
 						,'datamodal_select_to'=>'id:purchase_order_id,product_price:price'
 						,'datamodal_where' => ''];
-
+			}
 		
 			//$this->form[] = ['label'=>'PO','name'=>'purchase_order_id','type'=>'select','width'=>'col-sm-4','datatable'=>'purchase_orders,order_number,vendor_id,description','datatable_format'=>'order_number,\' - \',description','parent_select'=>'vendor_id'];
 			
@@ -83,7 +84,15 @@ use Session;
 			// ,'datamodal_columns'=>'name,category_name,brand_name,product_price,qty_onhand,lot_number'
 			// ,'datamodal_size'=>'large','datamodal_columns_alias'=>'Name, Kategori, Brand, Harga, Stok, Lot Number'
 			// ,'datamodal_select_to'=>'product_price:price,lot_number:lot_number'];
-			$columns[] = ["label"=>"Barang Pesan",'required'=>true,"name"=>"qty_demand",'type'=>'number','readonly'=>true];
+			if(CRUDBooster::isCreate()){
+				$columns[] = ["label"=>"Barang Pesan",'required'=>true,"name"=>"qty_demand",'type'=>'number','readonly'=>false];
+			}
+			else 
+			{
+				$columns[] = ["label"=>"Barang Pesan",'required'=>true,"name"=>"qty_demand",'type'=>'number','readonly'=>true];
+			}
+
+		
 			$columns[] = ["label"=>"Barang Masuk",'required'=>true,"name"=>"qty_in",'type'=>'number'];
 			$columns[] = ["label"=>"Harga","name"=>"price",'type'=>'number','required'=>true];
 			$columns[] = ['label'=>'Lokasi','name'=>'wh_location_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'wh_locations,wh_location_name'];
@@ -324,7 +333,7 @@ use Session;
 			$postdata['code'] = $code.$supplier.$year.$month.$no;
 			//$postdata['vendor_id'] = $po->vendor_id;
 			$postdata['created_by'] = CRUDBooster::myId();
-
+			$postdata['status_id'] = 2;
 			if(empty($postdata['vendor_id'])){
 				CRUDBooster::redirect(CRUDBooster::mainpath("add"),"Supplier harus diisi","info");
 			}

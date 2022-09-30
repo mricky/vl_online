@@ -36,7 +36,7 @@ use Session;
 			$this->button_bulk_action = true;
 			$this->button_action_style = "button_icon";
 			$this->button_add = false;
-			$this->button_edit = false;
+			$this->button_edit = true;
 			$this->button_delete = false;
 			$this->button_detail = true;
 			$this->button_show = true;
@@ -384,10 +384,10 @@ use Session;
 	    public function hook_after_edit($id) {
 	        // Update Stok
 			// Update Lokasi Stok
-			DB::table('goods_receipt')->where('id',$id)->update([
-				'status_id' => 2
-			]);
-			$this->productRepository->updateStokLocation($id);
+			// DB::table('goods_receipt')->where('id',$id)->update([
+			// 	'status_id' => 2
+			// ]);
+			// $this->productRepository->updateStokLocation($id);
 	    }
 
 	    /* 

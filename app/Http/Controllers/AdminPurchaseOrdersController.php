@@ -47,11 +47,11 @@ use Session;
 			$this->col[] = ["label"=>"Tgl Order","name"=>"order_date"];
 			//$this->col[] = ["label"=>"Tg Pengiriman","name"=>"delivery_date"];
 			$this->col[] = ["label"=>"Barang Pesan","name"=>"(SELECT COALESCE(SUM(purchase_order_details.qty),0) FROM purchase_order_details where purchase_order_details.purchase_order_id = purchase_orders.id) as total_pesan"];
-			$this->col[] = ["label"=>"Barang Terima","name"=>"(SELECT COALESCE(SUM(goods_receipt_details.qty_in),0) 
-																	FROM purchase_order_details 
-																	INNER JOIN goods_receipt on goods_receipt.purchase_order_id = purchase_order_details.purchase_order_id
-																	INNER JOIN goods_receipt_details on goods_receipt_details.good_receipt_id = goods_receipt.id
-																	WHERE purchase_order_details.purchase_order_id = purchase_orders.id) as total_terima"];
+			// $this->col[] = ["label"=>"Barang Terima","name"=>"(SELECT COALESCE(SUM(goods_receipt_details.qty_in),0) 
+			// 														FROM purchase_order_details 
+			// 														INNER JOIN goods_receipt on goods_receipt.purchase_order_id = purchase_order_details.purchase_order_id
+			// 														INNER JOIN goods_receipt_details on goods_receipt_details.good_receipt_id = goods_receipt.id
+			// 														WHERE purchase_order_details.purchase_order_id = purchase_orders.id) as total_terima"];
 			
 			# TODO
 			// total pesan

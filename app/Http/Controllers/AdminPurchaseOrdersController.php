@@ -46,6 +46,18 @@ use Session;
 			$this->col[] = ["label"=>"No Order","name"=>"order_number"];
 			$this->col[] = ["label"=>"Tgl Order","name"=>"order_date"];
 			//$this->col[] = ["label"=>"Tg Pengiriman","name"=>"delivery_date"];
+			$this->col[] = ["label"=>"Barang Pesan","name"=>"(SELECT COALESCE(SUM(purchase_order_details.qty),0) FROM purchase_order_details where purchase_order_details.purchase_order_id = purchase_orders.id) as total_pesan"];
+			$this->col[] = ["label"=>"Barang Terima","name"=>"(SELECT COALESCE(SUM(goods_receipt_details.qty_in),0) 
+																	FROM purchase_order_details 
+																	INNER JOIN goods_receipt on goods_receipt.purchase_order_id = purchase_order_details.purchase_order_id
+																	INNER JOIN goods_receipt_details on goods_receipt_details.good_receipt_id = goods_receipt.id
+																	WHERE purchase_order_details.purchase_order_id = purchase_orders.id) as total_terima"];
+			
+			# TODO
+			// total pesan
+			// total terima
+			// total selisih
+			// pending penerimaan
 			$this->col[] = ["label"=>"Subtotal","name"=>"subtotal","callback_php"=>'number_format($row->subtotal)'];
 			$this->col[] = ["label"=>"Discount","name"=>"discount","callback_php"=>'number_format($row->discount)'];
 			//$this->col[] = ["label"=>"Total","name"=>"total","callback_php"=>'number_format($row->total)'];
@@ -56,6 +68,7 @@ use Session;
 			# START FORM DO NOT REMOVE THIS LINE
 			$this->form = [];
 			$this->form[] = ['label'=>'Supplier','name'=>'vendor_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'vendors,name'];
+			$this->form[] = ['label'=>'No Order','name'=>'order_number','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5','readonly'=>true];
 			$this->form[] = ['label'=>'Tgl Order','name'=>'order_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-5'];
 			$this->form[] = ['label'=>'Tgl Estimasi','name'=>'estimated_date','type'=>'date','validation'=>'nullable|date','width'=>'col-sm-5'];
 			//$this->form[] = ['label'=>'Tgl Kirim','name'=>'delivery_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-10'];

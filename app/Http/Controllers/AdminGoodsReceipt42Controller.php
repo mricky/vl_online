@@ -61,6 +61,7 @@ use Session;
 			# START FORM DO NOT REMOVE THIS LINE
 			$this->form = [];
 			$this->form[] = ['label'=>'Supplier','name'=>'vendor_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'vendors,name'];
+			$this->form[] = ['label'=>'No Penerimaan','name'=>'code','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
 			$this->form[] = ['label'=>'Tgl Penerimaan','name'=>'receipt_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-5'];
 			$this->form[] = ['label'=>'PO','name'=>'purchase_order_id','type'=>'datamodal'
 						,'validation'=>'nullable|min:1|max:255'

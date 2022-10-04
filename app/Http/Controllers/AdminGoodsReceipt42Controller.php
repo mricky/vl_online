@@ -63,14 +63,7 @@ use Session;
 			$this->form[] = ['label'=>'Supplier','name'=>'vendor_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'vendors,name'];
 			$this->form[] = ['label'=>'No Penerimaan','name'=>'code','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
 			$this->form[] = ['label'=>'Tgl Penerimaan','name'=>'receipt_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-5'];
-			$this->form[] = ['label'=>'PO','name'=>'purchase_order_id','type'=>'datamodal'
-						,'validation'=>'nullable|min:1|max:255'
-						,'width'=>'col-sm-5'
-						,'datamodal_table'=>'view_orders'
-						,'datamodal_columns'=>'vendor_name,order_number,order_date,description'
-						,'datamodal_size'=>'large','datamodal_columns_alias'=>'Supplier,Order No,Tgl Order, Keterangan'
-						,'datamodal_select_to'=>'id:purchase_order_id,product_price:price'
-						,'datamodal_where' => ''];
+			$this->form[] = ['label'=>'PO','name'=>'purchase_order_id','type'=>'select','required'=>true,'width'=>'col-sm-5','datatable'=>'view_orders,order_number'];
 
 		
 			//$this->form[] = ['label'=>'PO','name'=>'purchase_order_id','type'=>'select','width'=>'col-sm-4','datatable'=>'purchase_orders,order_number,vendor_id,description','datatable_format'=>'order_number,\' - \',description','parent_select'=>'vendor_id'];
@@ -384,11 +377,7 @@ use Session;
 	    */
 	    public function hook_after_edit($id) {
 	        // Update Stok
-			// Update Lokasi Stok
-			// DB::table('goods_receipt')->where('id',$id)->update([
-			// 	'status_id' => 2
-			// ]);
-			// $this->productRepository->updateStokLocation($id);
+			 $this->productRepository->updateStokLocation($id);
 	    }
 
 	    /* 

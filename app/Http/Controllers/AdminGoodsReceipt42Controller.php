@@ -84,7 +84,7 @@ use Session;
 			// ,'datamodal_columns'=>'name,category_name,brand_name,product_price,qty_onhand,lot_number'
 			// ,'datamodal_size'=>'large','datamodal_columns_alias'=>'Name, Kategori, Brand, Harga, Stok, Lot Number'
 			// ,'datamodal_select_to'=>'product_price:price,lot_number:lot_number'];
-			$columns[] = ["label"=>"Barang Pesan",'required'=>true,"name"=>"qty_demand",'type'=>'number','readonly'=>true];
+			$columns[] = ["label"=>"Barang Pesan",'required'=>true,"name"=>"qty_demand",'type'=>'number','readonly'=>false];
 			$columns[] = ["label"=>"Barang Masuk",'required'=>true,"name"=>"qty_in",'type'=>'number'];
 			$columns[] = ["label"=>"Harga","name"=>"price",'type'=>'number','required'=>true];
 			$columns[] = ['label'=>'Lokasi','name'=>'wh_location_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'wh_locations,wh_location_name'];

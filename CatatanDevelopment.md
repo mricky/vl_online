@@ -63,3 +63,40 @@ http://vl_online.test/find-product-category?q=AMINA
 # SALES
 Product
 Product Lokasi
+
+# Debug
+echo '<pre>'; print(); echo '<pre>'; exit;
+
+# Fix View
+DROP VIEW IF EXISTS `view_product_location`;
+CREATE VIEW `view_product_location` AS select `product_locations`.`id` AS `id`,`products`.`name` AS `name`,`product_locations`.`product_id` AS `product_id`,`product_locations`.`wh_location_id` AS `wh_location_id`,`wh_locations`.`wh_location_name`,`product_locations`.`qty_onhand`,`vendors`.`name` as `vendor_name`, 
+IF(`product_locations`.`good_receipt_id` IS NOT NULL, concat('Supplier : ',`vendors`.`name`,' Lokasi : ',convert(`wh_locations`.`wh_location_name` using utf8mb4),' Jumlah : ',`product_locations`.`qty_onhand`),
+concat('Supplier : No Receive, Lokasi : ',convert(`wh_locations`.`wh_location_name` using utf8mb4),' Jumlah : ',`product_locations`.`qty_onhand`))  AS `product_location`
+FROM ((((`product_locations` join `products` on((`products`.`id` = `product_locations`.`product_id`))) join `wh_locations` on((`wh_locations`.`id` = `product_locations`.`wh_location_id`))) left join `goods_receipt` on((`goods_receipt`.`id` = `product_locations`.`good_receipt_id`))) left join `vendors` on((`goods_receipt`.`vendor_id` = `vendors`.`id`))) ;
+
+# Fix Library 
+CBController.php
+ public function getDataTable()
+    {
+        $table = Request::get('table');
+        $label = Request::get('label');
+        $datatableWhere = urldecode(Request::get('datatable_where'));
+        $foreign_key_name = Request::get('fk_name');
+        $foreign_key_value = Request::get('fk_value');
+        
+        $foreign_key_value = preg_replace('/\D/', '', $foreign_key_value);
+
+        if ($table && $label && $foreign_key_name && $foreign_key_value) {
+            $query = DB::table($table);
+            // if ($datatableWhere) {
+            //     $query->whereRaw($datatableWhere);
+            // }
+            $query->select('id as select_value', $label.' as select_label');
+            $query->where($foreign_key_name,$foreign_key_value);
+            $query->orderby($label, 'asc');
+       
+            return response()->json($query->get());
+        } else {
+            return response()->json([]);
+        }
+    }

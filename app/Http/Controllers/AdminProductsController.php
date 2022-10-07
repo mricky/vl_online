@@ -323,6 +323,13 @@ use GuzzleHttp\Psr7\Request as Psr7Request;
 			// 	'code' -> $product->code,
 			// ]
 			// $product_item DB::table('item_products')=
+			//$this->productRepository->updateStokByProductEntry($id);
+			$product = Product::find($id);
+			ProductLocation::where('product_id',$id)
+											->where('wh_location_id',1)
+											->whereNull('good_receipt_id')->update([
+												'qty_onhand' => $product->qty_onhand
+											]);
 	    }
 
 	    /* 

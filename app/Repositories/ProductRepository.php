@@ -134,6 +134,28 @@ class ProductRepository implements IProduct {
         return $salesDetails;   
 
     }
+    public function updateStokByProductEntry($id){
+
+        $product = Product::find($id);
+
+        try {
+            DB::beginTransaction();
+
+                ProductLocation::create([
+                    'good_receipt_id' => $id,
+                    'product_id' => $id,
+                    'wh_location_id' =>1,
+                    'qty_onhand' => $product->qty_onhand,
+                    'product_price' => $product->product_price,
+                    'created_by' => CRUDBooster::myId() ?? 1
+                ]);
+            DB::commit();
+        } catch(\Exception $e){
+            DB::rollback();
+            throw $e;
+        }
+       return $product; 
+    }
     public function updateStokLocation($id){
         
         $receives = GoodReceiptDetail::where('good_receipt_id',$id)->get();

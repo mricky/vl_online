@@ -27,6 +27,7 @@ interface IProduct {
     public function getTotalBrand();
     public function updateStokLocation($receiveId);
     public function updateSalesStokLocation($salesId);
+    public function updateStokByProductEntry($id);
 
 }
 class ProductRepository implements IProduct {
@@ -135,14 +136,12 @@ class ProductRepository implements IProduct {
 
     }
     public function updateStokByProductEntry($id){
-
+    
         $product = Product::find($id);
-
         try {
             DB::beginTransaction();
 
                 ProductLocation::create([
-                    'good_receipt_id' => $id,
                     'product_id' => $id,
                     'wh_location_id' =>1,
                     'qty_onhand' => $product->qty_onhand,
@@ -154,6 +153,7 @@ class ProductRepository implements IProduct {
             DB::rollback();
             throw $e;
         }
+        
        return $product; 
     }
     public function updateStokLocation($id){

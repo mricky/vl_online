@@ -18,7 +18,6 @@ use GuzzleHttp\Psr7\Request as Psr7Request;
 		public function __construct(ProductRepository $product) 
         {
 			 $this->product = $product;
-			
         }
 	    public function cbInit() {
 
@@ -317,19 +316,15 @@ use GuzzleHttp\Psr7\Request as Psr7Request;
 	    */
 	    public function hook_after_add($id) {        
 	        //Your code here
-			// $product = DB::table('products')->where('id',$id)->first();
+		
 			// $payload = [
 			// 	'product_id' => $product->id,
 			// 	'code' -> $product->code,
 			// ]
 			// $product_item DB::table('item_products')=
-			//$this->productRepository->updateStokByProductEntry($id);
-			$product = Product::find($id);
-			ProductLocation::where('product_id',$id)
-											->where('wh_location_id',1)
-											->whereNull('good_receipt_id')->update([
-												'qty_onhand' => $product->qty_onhand
-											]);
+		  
+			$this->product->updateStokByProductEntry($id);
+			
 	    }
 
 	    /* 

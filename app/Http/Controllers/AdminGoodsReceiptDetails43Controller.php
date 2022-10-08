@@ -159,10 +159,10 @@
 	        |
 	        */
 	        $this->index_statistic = array();
-			$this->index_statistic[] = ['label'=>'Barang Terima / Hari','url'=>'goods_receipt_details43?filter=incoming-day','count'=>$this->goodReceiptRepository->getTotalItemIncoming('day'),'icon'=>'fa fa-check','color'=>'danger'];
-			$this->index_statistic[] = ['label'=>'Barang Terima / Minggu','url'=>'goods_receipt_details43?filter=incoming-week','count'=>$this->goodReceiptRepository->getTotalItemIncoming('week'),'icon'=>'fa fa-check','color'=>'danger'];
-			$this->index_statistic[] = ['label'=>'Barang Terima / Bulan','url'=>'goods_receipt_details43?filter=incoming-month','count'=>$this->goodReceiptRepository->getTotalItemIncoming('month'),'icon'=>'fa fa-check','color'=>'danger'];
-			$this->index_statistic[] = ['label'=>'Barang Terima / Tahun','url'=>'goods_receipt_details43?filter=incoming-year','count'=>$this->goodReceiptRepository->getTotalItemIncoming('year'),'icon'=>'fa fa-check','color'=>'danger'];
+			$this->index_statistic[] = ['label'=>'Barang Terima / Hari','url'=>'goods_receipt_details43?filter=incoming-day','count'=>$this->goodReceiptRepository->getTotalItemIncoming('day','done'),'icon'=>'fa fa-check','color'=>'danger'];
+			$this->index_statistic[] = ['label'=>'Barang Terima / Minggu','url'=>'goods_receipt_details43?filter=incoming-week','count'=>$this->goodReceiptRepository->getTotalItemIncoming('week','done'),'icon'=>'fa fa-check','color'=>'danger'];
+			$this->index_statistic[] = ['label'=>'Barang Terima / Bulan','url'=>'goods_receipt_details43?filter=incoming-month','count'=>$this->goodReceiptRepository->getTotalItemIncoming('month','done'),'icon'=>'fa fa-check','color'=>'danger'];
+			$this->index_statistic[] = ['label'=>'Barang Terima / Tahun','url'=>'goods_receipt_details43?filter=incoming-year','count'=>$this->goodReceiptRepository->getTotalItemIncoming('year','done'),'icon'=>'fa fa-check','color'=>'danger'];
 
 	        /*
 	        | ---------------------------------------------------------------------- 

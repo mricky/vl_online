@@ -2,8 +2,8 @@
 @section('content')
  <script src="{{ asset ('vendor/crudbooster/assets/adminlte/plugins/jQuery/jquery-2.2.3.min.js') }}"></script>
 
- <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.css"> 
- <script src="//cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.css"> 
+<script src="//cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.min.js"></script>
 
 <!-- Bootstrap 3.4.1 JS -->
@@ -28,37 +28,35 @@
             </div><!-- /.modal-content -->
         </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->
-   
-        <br/>
+
+    <br/>
     <div id="statistic-area">
         <div class="statistic-row row">
             <div id="area1" class="col-sm-3 connectedSortable">
                 <div id="a47ac995636050d5a0f97ef5d924dfe7" class="border-box">
                     <div class="small-box bg-red">
                         <div class="inner inner-box">
-                            <h3>20</h3>
-                            <p>Proses PO</p>
+                            <h3 id='item-incoming-process'></h3>
+                            <p>Pending Penerimaan</p>
                         </div>
                         <div class="icon">
                             <i class="ion ion-stats-bars	"></i>
                         </div>
-                        <a href="/tm_project25" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
+                        <a href="/admin/goods_receipt" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
                     </div>                   
                 </div>
-               
-               
             </div>
             <div id="area2" class="col-sm-3 connectedSortable">
                 <div id="c7e2bd4aaec72d3f8b27c2d90ec00bf1" class="border-box">
                     <div class="small-box bg-green	">
                         <div class="inner inner-box">
-                            <h3>0</h3>
-                            <p>Proses Penerimaan</p>
+                            <h3 id='item-incoming'></h3>
+                            <p>Pernerimaan</p>
                         </div>
                         <div class="icon">
                             <i class="ion ion-clipboard	"></i>
                         </div>
-                        <a href="/tr_equipment_request" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
+                        <a href="/admin/goods_receipt_details43?filter=incoming-month" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
                     </div>
                 </div>    
             </div>
@@ -67,12 +65,12 @@
                     <div class="small-box bg-aqua">
                         <div class="inner inner-box">
                             <h3>0</h3>
-                            <p>Proses Penjualan</p>
+                            <p>Penjualan</p>
                         </div>
                         <div class="icon">
                             <i class="ion ion-ios-gear"></i>
                         </div>
-                        <a href="/tm_equipment_maintenance" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
+                        <a href="/admin/sales_orders" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
                     </div>
                 </div>
             </div>
@@ -81,96 +79,140 @@
                     <div class="small-box bg-yellow	">
                         <div class="inner inner-box">
                             <h3>0</h3>
-                            <p>Proses Delivery</p> 
+                            <p>Pengiriman</p> 
                         </div>
                         <div class="icon">
                             <i class="ion ion-ios-gear"></i>
                         </div>
-                         <a href="/tm_equipment?stnk=1" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
+                         <a href="/admin/sales_orders" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
                     </div
                 </div>   
             </div>
         </div>
          <!-- Grafik -->
          <div class='statistic-row row'>
-            <div id='area5' class="col-sm-6 connectedSortable">
+            <div id='area5' class="col-sm-12 connectedSortable">
              
                 {{--print($data_result)--}}
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         Penjualan
-
                     </div>
                     <div class="panel-body">
+                    <ul class="nav nav-pills ranges">
+                        <li><a href="#" data-range='1'>1 Hari</a></li>
+                        <li><a href="#" data-range='7'>7 Hari</a></li>
+                        <li><a href="#" data-range='30'>30 Hari</a></li>
+                        <li><a href="#" data-range='60'>60 Hari</a></li>
+                        <li><a href="#" data-range='90'>90 Hari</a></li>
+                    </ul>
                         <div id="chartContainer-a036a135b772c032058b230e027fd55a" style="height: 250px;"></div>
 
 
                         <script type="text/javascript">
-                $(function() {
-                new Morris.Bar({
-                element: 'chartContainer-a036a135b772c032058b230e027fd55a',
-                        data: [
-                            { y: 'ACCESSORIES', a: 20, b: 75},
-                            { y: 'JACKET', a: 30,  b: 75},
-                            { y: 'GLASSES', a: 40,  b: 75},
-                            { y: 'FOOTWEAR', a:50,  b: 75}
-                          ],
-                        xkey: 'y',
-                        ykeys: ['a'],
-                        gridIntegers: true,
-                        labels: ['Jumlah'],
-                        resize: true,
-                        parseTime: false,
-                        behaveLikeLine:true,
-                        //barColors:['#e51111', '#5e2590'],
-                        hideHover: 'auto'
-                });
-                }
-                )
+                        $(function() {
+                                 function requestTotalItems(){
+                                      $.ajax({
+                                            type: "GET",
+                                            url: "{{url('widget/total-items')}}", // This is the URL to the API
+                                           
+                                        })
+                                        .done(function( data ) {
+                                       
+                                             console.log(data.total_incoming);
+                                             $('#item-incoming').html(data.total_incoming);
+                                             $('#item-incoming-process').html(data.total_incoming_process);
+                                        })
+                                        .fail(function() {
+                                        // If there is no communication between the server, show an error
+                                        alert( "error occured" );
+                                        });
+                                 }
+                                 function requestData(days, chart){
+                                        $.ajax({
+                                            type: "GET",
+                                            url: "{{url('charts/penjualan')}}", // This is the URL to the API
+                                            data: { days: days }
+                                        })
+                                        .done(function( data ) {
+                                        // When the response to the AJAX request comes back render the chart with new data
+                                        chart.setData(JSON.parse(data));
+                                        })
+                                        .fail(function() {
+                                        // If there is no communication between the server, show an error
+                                        alert( "error occured" );
+                                        });
+                               }
+                                var chart = Morris.Bar({
+                                    // ID of the element in which to draw the chart.
+                                    element: 'chartContainer-a036a135b772c032058b230e027fd55a',
+                                    // Set initial data (ideally you would provide an array of default data)
+                                    data: [0,0],
+                                    xkey: 'date',
+                                    ykeys: ['value'],
+                                    labels: ['Penjualan']
+                                    
+                                });
 
-
+                                requestTotalItems();
+                                requestData(7, chart);
+                                $('ul.ranges a').click(function(e){
+                                    e.preventDefault();
+                                    // Get the number of days from the data attribute
+                                    var el = $(this);
+                                    days = el.attr('data-range');
+                                    // Request the data and render the chart using our handy function
+                                    requestData(days, chart);
+                                    // Make things pretty to show which button/tab the user clicked
+                                    el.parent().addClass('active');
+                                    el.parent().siblings().removeClass('active');
+                                })
+                             });
                         </script>
 
                     </div>
                 </div>
             </div>
-            <div id='area6' class="col-sm-6 connectedSortable">
+            <div id='area6' class="col-sm-12 connectedSortable">
                 
                 {{--print($data_result)--}}
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        Stok Location
+                        Barang Terlaris
 
                     </div>
                     <div class="panel-body">
-                        <div id="donut-example" style="height: 250px;"></div>
-
-
+                        <div id="chart-fast-moving" style="height: 250px;"></div>
                         <script type="text/javascript">
-                $(function() {
-                    Morris.Donut({
-                         element: 'donut-example',
-                    data: [
-                        {label: "WALLET", value: 12},
-                        {label: "TSHIRT", value: 30},
-                        {label: "TOTEBAG", value: 20},
-                        {label: "SWEATSHIRT", value: 40},
-                        {label: "SHIRT", value: 40},
-                        {label: "POUCH", value: 40},
-                        {label: "PANTS", value: 0},
-                        {label: "OUTER", value: 0},
-                        {label: "JACKET", value: 0},
-                        {label: "GLASSES", value: 40},
-                        {label: "FOOTWEAR", value: 3},
-                        {label: "CLUTCH", value: 40},
-                        {label: "CAP/HAT", value: 2},
-                        {label: "ACCESSORIES", value: 10},
-  
-                    ]
-                    });
+                            $(function() {
+                               
+                                var chartItemFastMoving = Morris.Donut({
+                                    // ID of the element in which to draw the chart.
+                                    element: 'chart-fast-moving',
+                                 
+                                    data: [0,0],
+                                    xkey: 'label',
+                                    ykeys: ['value'],
+                                    labels: ['Item']
+                                    
+                                });
 
-                 }
-                )
+                                function requestItemFastMoving(){
+                                        $.ajax({
+                                            type: "GET",
+                                            url: "{{url('chart/fast-moving-items')}}"
+                                        })
+                                        .done(function( data ) {
+                                        // When the response to the AJAX request comes back render the chart with new data
+                                          chartItemFastMoving.setData(JSON.parse(data));
+                                        })
+                                        .fail(function() {
+                                        // If there is no communication between the server, show an error
+                                        alert( "error occured" );
+                                        });
+                               }
+                               requestItemFastMoving();
+                            })
 
 
                         </script>

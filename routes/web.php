@@ -20,3 +20,10 @@ Route::get('/syncInternalStock','AdminProductsController@syncInternalStock');
 Route::get('/find-product-item','AdminProductsController@findProductItem');
 Route::get('/find-product-category','AdminProductsController@findProductCategory');
 Route::get('/find-product-brand','AdminProductsController@findProductBrand');
+
+#Dashboard
+Route::get('/charts/penjualan','DashboardController@indexPenjualan');
+Route::get('/charts/pembelian','DashboardController@indexPembelian');
+Route::get('/charts/penerimaan','DashboardController@indexPenerimaan');
+Route::get('/chart/fast-moving-items','DashboardController@indexItemFastMoving');
+Route::get('/widget/total-items','DashboardController@totalItems');

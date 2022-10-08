@@ -9,13 +9,13 @@ use App\Models\{
 };
 use DB;
 use CRUDBooster;
-
+use Carbon\Carbon;
 interface IGoodReceipt{
     public function automaticReceiptEntry($poId);
     public function updateDetailGoodReceipt($goodReceiptId);
     public function getTotalProcessReceipt();
     public function getTotalDoneReceipt();
-    public function getTotalItemIncoming();
+    public function getTotalItemIncoming($periode);
 }
 class GoodReceiptRepository implements IGoodReceipt {
    
@@ -23,13 +23,26 @@ class GoodReceiptRepository implements IGoodReceipt {
     CONST STATUS_DEFAULT = 'Process';
     CONST STATUS_DONE = 'Done';
 
-    public function getTotalItemIncoming(){
+    public function getTotalItemIncoming($periode){
         $status = OrderStatus::where('name',$this::STATUS_DONE)->first();
 
-        $receive = GoodReceiptDetail::join('goods_receipt','goods_receipt.id','goods_receipt_details.good_receipt_id')
-                                 ->where('goods_receipt.status_id',$status->id)->sum('qty_in');
+        $query = GoodReceiptDetail::join('goods_receipt','goods_receipt.id','goods_receipt_details.good_receipt_id')
+                                 ->where('goods_receipt.status_id',$status->id);
 
-        return $receive;
+        switch($periode){
+            case 'day' :
+                $query->whereDate('goods_receipt.receipt_date','=',Carbon::now()->format('Y-m-d'));
+            break;
+            case 'week':
+                $query->whereBetween('goods_receipt.receipt_date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+            case 'month' :
+                $query->whereMonth('goods_receipt.receipt_date','=', Carbon::now()->format('m'));
+            break;
+            case 'year' :
+            	$query->whereYear('goods_receipt.receipt_date','=', Carbon::now()->format('Y'));
+            break;
+        }
+        return $query->sum('qty_in');
     }
     public function getTotalDoneReceipt(){
         $status = OrderStatus::where('name',$this::STATUS_DONE)->first();

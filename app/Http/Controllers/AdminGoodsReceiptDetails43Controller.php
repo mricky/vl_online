@@ -159,10 +159,10 @@
 	        |
 	        */
 	        $this->index_statistic = array();
-			$this->index_statistic[] = ['label'=>'Barang Terima / Hari','url'=>'goods_receipt_details43?filter=incoming-day','count'=>$this->goodReceiptRepository->getTotalItemIncoming('day'),'icon'=>'fa fa-check','color'=>'danger'];
-			$this->index_statistic[] = ['label'=>'Barang Terima / Minggu','url'=>'goods_receipt_details43?filter=incoming-week','count'=>$this->goodReceiptRepository->getTotalItemIncoming('week'),'icon'=>'fa fa-check','color'=>'danger'];
-			$this->index_statistic[] = ['label'=>'Barang Terima / Bulan','url'=>'goods_receipt_details43?filter=incoming-month','count'=>$this->goodReceiptRepository->getTotalItemIncoming('month'),'icon'=>'fa fa-check','color'=>'danger'];
-			$this->index_statistic[] = ['label'=>'Barang Terima / Tahun','url'=>'goods_receipt_details43?filter=incoming-year','count'=>$this->goodReceiptRepository->getTotalItemIncoming('year'),'icon'=>'fa fa-check','color'=>'danger'];
+			$this->index_statistic[] = ['label'=>'Barang Terima / Hari','url'=>'goods_receipt_details43?filter=incoming-day','count'=>$this->goodReceiptRepository->getTotalItemIncoming('day','done'),'icon'=>'fa fa-check','color'=>'danger'];
+			$this->index_statistic[] = ['label'=>'Barang Terima / Minggu','url'=>'goods_receipt_details43?filter=incoming-week','count'=>$this->goodReceiptRepository->getTotalItemIncoming('week','done'),'icon'=>'fa fa-check','color'=>'danger'];
+			$this->index_statistic[] = ['label'=>'Barang Terima / Bulan','url'=>'goods_receipt_details43?filter=incoming-month','count'=>$this->goodReceiptRepository->getTotalItemIncoming('month','done'),'icon'=>'fa fa-check','color'=>'danger'];
+			$this->index_statistic[] = ['label'=>'Barang Terima / Tahun','url'=>'goods_receipt_details43?filter=incoming-year','count'=>$this->goodReceiptRepository->getTotalItemIncoming('year','done'),'icon'=>'fa fa-check','color'=>'danger'];
 
 	        /*
 	        | ---------------------------------------------------------------------- 
@@ -260,13 +260,6 @@
 	    */
 	    public function hook_query_index(&$query) {
 	        //Your code here
-	        #$m =  Carbon::now()->format('Y');
-			#incoming-day
-			#incoming-week
-			#incoming-month
-			#incoming-year
-					//$query->join('goods_receipt','goods_receipt_details.good_receipt_id','=','goods_receipt.id');
-		
 
 			if(Request::get('filter') == 'incoming-day'){
 				$query->whereDate('goods_receipt.receipt_date','=',Carbon::now()->format('Y-m-d'));
@@ -281,28 +274,7 @@
 				$query->whereYear('goods_receipt.receipt_date','=', Carbon::now()->format('Y'));
 			}
 			$query->where('goods_receipt.status_id',2);
-			// if(Request::get('filter') == 'omset-year'){
-				
-			// } 
-			// if(Request::get('filter') == 'omset-month'){
-				
-			// 	$query->whereMonth('invoices.invoice_date','=',$m);
-			// } 
-			// if(Request::get('filter') == 'invoice-paid'){
-			// 	$query->whereMonth('invoices.invoice_date','=',$m);
-			// 	$query->whereRaw('(SELECT COUNT(*) FROM account_receive WHERE invoice_id = invoices.id) != 0');
-
-			// } 
-			// if(Request::get('filter') == 'invoice-unpaid'){
-
-			// 	$query->whereMonth('invoices.invoice_date','=',$m);
-			// 	$query->whereRaw('(SELECT coalesce(sum(account_receive.amount_paid),0) FROM account_receive where invoice_id = invoices.id) < (SELECT coalesce(sum(invoice_items.total),0) FROM invoice_items where invoice_id = invoices.id)');
-			
-			// } 
-			 
-			// $query->where('invoices.location_id','=',CRUDBooster::myLocation());
-			// $query->where('invoices.service_id','=',6);
-			// $query->where('reservation_type',1);  
+		
 	    }
 
 	    /*

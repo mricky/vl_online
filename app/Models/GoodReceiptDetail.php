@@ -28,5 +28,9 @@ class GoodReceiptDetail extends Model
           
         });
     }
+
+    public function receipt(){
+        return $this->belongsTo(GoodReceipt::class, 'good_receipt_i'); 
+    }
     
 }

@@ -3,6 +3,7 @@ namespace App\Repositories;
 use App\Models\{
     PurchaseOrder,
     GoodReceipt,
+    GoodReceiptDetail,
     WhLocation,
     OrderStatus
 };
@@ -14,6 +15,7 @@ interface IGoodReceipt{
     public function updateDetailGoodReceipt($goodReceiptId);
     public function getTotalProcessReceipt();
     public function getTotalDoneReceipt();
+    public function getTotalItemIncoming();
 }
 class GoodReceiptRepository implements IGoodReceipt {
    
@@ -21,6 +23,14 @@ class GoodReceiptRepository implements IGoodReceipt {
     CONST STATUS_DEFAULT = 'Process';
     CONST STATUS_DONE = 'Done';
 
+    public function getTotalItemIncoming(){
+        $status = OrderStatus::where('name',$this::STATUS_DONE)->first();
+
+        $receive = GoodReceiptDetail::join('goods_receipt','goods_receipt.id','goods_receipt_details.good_receipt_id')
+                                 ->where('goods_receipt.status_id',$status->id)->sum('qty_in');
+
+        return $receive;
+    }
     public function getTotalDoneReceipt(){
         $status = OrderStatus::where('name',$this::STATUS_DONE)->first();
         $receive = GoodReceipt::where('status_id',$status->id)->count();

@@ -186,9 +186,9 @@ use Session;
 	        |
 	        */
 	        //$this->index_statistic = array();
-			$this->index_statistic[] = ['label'=>'Process','count'=>$this->goodReceiptRepository->getTotalProcessReceipt(),'icon'=>'fa fa-file-text','color'=>'warning'];
-			$this->index_statistic[] = ['label'=>'Selesai','count'=>$this->goodReceiptRepository->getTotalDoneReceipt(),'icon'=>'fa fa-file-text','color'=>'success'];
-			$this->index_statistic[] = ['label'=>'Barang Masuk','url'=>'goods_receipt_details43','count'=>$this->goodReceiptRepository->getTotalItemIncoming('year'),'icon'=>'fa fa-shopping-bag','color'=>'warning'];
+			$this->index_statistic[] = ['label'=>'Process','url'=>'goods_receipt','count'=>$this->goodReceiptRepository->getTotalProcessReceipt(),'icon'=>'fa fa-file-text','color'=>'warning'];
+			$this->index_statistic[] = ['label'=>'Selesai', 'url'=>'goods_receipt42', 'count'=>$this->goodReceiptRepository->getTotalDoneReceipt(),'icon'=>'fa fa-file-text','color'=>'success'];
+			$this->index_statistic[] = ['label'=>'Barang Masuk','url'=>'goods_receipt_details43','count'=>$this->goodReceiptRepository->getTotalItemIncoming('month','done'),'icon'=>'fa fa-shopping-bag','color'=>'warning'];
 
 	        /*
 	        | ---------------------------------------------------------------------- 

@@ -690,7 +690,11 @@
 
 			  $data = [];
 			  $data['page_title'] = 'Detail Data';
-
+			  $data['data'] = [
+				'item_incoming' => 100,
+				'item_outgoing' => 100
+			  ];
+			 // echo '<pre>'; print($data['data']['item_incoming']); echo '<pre>'; exit;
 			  $this->cbView('dashboards.statistic',$data);
 		}
 	} 

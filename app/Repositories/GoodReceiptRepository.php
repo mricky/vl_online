@@ -15,7 +15,7 @@ interface IGoodReceipt{
     public function updateDetailGoodReceipt($goodReceiptId);
     public function getTotalProcessReceipt();
     public function getTotalDoneReceipt();
-    public function getTotalItemIncoming($periode);
+    public function getTotalItemIncoming($periode,$status);
 }
 class GoodReceiptRepository implements IGoodReceipt {
    
@@ -23,9 +23,14 @@ class GoodReceiptRepository implements IGoodReceipt {
     CONST STATUS_DEFAULT = 'Process';
     CONST STATUS_DONE = 'Done';
 
-    public function getTotalItemIncoming($periode){
-        $status = OrderStatus::where('name',$this::STATUS_DONE)->first();
+    public function getTotalItemIncoming($periode,$status){
 
+        if($status == 'done'){
+            $status = OrderStatus::where('name',$this::STATUS_DONE)->first();
+        } else {
+            $status = OrderStatus::where('name',$this::STATUS_DEFAULT)->first();
+        }
+    
         $query = GoodReceiptDetail::join('goods_receipt','goods_receipt.id','goods_receipt_details.good_receipt_id')
                                  ->where('goods_receipt.status_id',$status->id);
 
@@ -42,8 +47,16 @@ class GoodReceiptRepository implements IGoodReceipt {
             	$query->whereYear('goods_receipt.receipt_date','=', Carbon::now()->format('Y'));
             break;
         }
-        return $query->sum('qty_in');
+
+        if($status == 'done'){
+            $result = $query->sum('qty_demand');
+        } else {
+            $result =  $query->sum('qty_in');
+        }
+
+        return $result;
     }
+
     public function getTotalDoneReceipt(){
         $status = OrderStatus::where('name',$this::STATUS_DONE)->first();
         $receive = GoodReceipt::where('status_id',$status->id)->count();

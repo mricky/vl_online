@@ -75,6 +75,7 @@ concat('Supplier : No Receive, Lokasi : ',convert(`wh_locations`.`wh_location_na
 FROM ((((`product_locations` join `products` on((`products`.`id` = `product_locations`.`product_id`))) join `wh_locations` on((`wh_locations`.`id` = `product_locations`.`wh_location_id`))) left join `goods_receipt` on((`goods_receipt`.`id` = `product_locations`.`good_receipt_id`))) left join `vendors` on((`goods_receipt`.`vendor_id` = `vendors`.`id`))) ;
 
 # Fix Library 
+## Issue Dropdown parent select
 CBController.php
  public function getDataTable()
     {
@@ -100,3 +101,20 @@ CBController.php
             return response()->json([]);
         }
     }
+## Issue Unah Label ke Link Url 
+vendor/crocodicstudio/crudbooster/src/views/default/index.php
+      <div id='box-statistic' class='row'>
+            @foreach($index_statistic as $stat)
+                <div class="{{ ($stat['width'])?:'col-sm-3' }}">
+                    <div class="small-box bg-{{ $stat['color']?:'red' }}">
+                        <div class="inner">
+                            <h3>{{ $stat['count'] }}</h3>
+                            <a href={{ $stat['url'] }}>{{ $stat['label'] }}</a>
+                        </div>
+                        <div class="icon">
+                            <i class="{{ $stat['icon'] }}"></i>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>

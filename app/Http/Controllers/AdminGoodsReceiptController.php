@@ -5,6 +5,10 @@ use Session;
 	use Request;
 	use DB;
 	use CRUDBooster;
+	use App\Models\{
+		GoodReceipt,
+		GoodReceiptDetail
+	};
     use App\Repositories\{
 		ProductRepository,
 		JournalTransactionRepository,
@@ -49,9 +53,10 @@ use Session;
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
 			$this->col[] = ["label"=>"Kode","name"=>"code"];
+			$this->col[] = ["label"=>"Back Order","name"=>"backorder_of"];
 			$this->col[] = ["label"=>"No PO","name"=>"purchase_order_id","join"=>"purchase_orders,order_number"];
 			$this->col[] = ["label"=>"Supplier","name"=>"vendor_id","join"=>"vendors,name"];
-			$this->col[] = ["label"=>"Tgl Penerimaan","name"=>"receipt_date"];
+			$this->col[] = ["label"=>"Estimasi Terima","name"=>"receipt_date"];
 			//$this->col[] = ["label"=>"No PO Supplier","name"=>"po_vendor"];
 			$this->col[] = ["label"=>"Keterangan","name"=>"description"];
 			$this->col[] = ["label"=>"Dibuat Oleh","name"=>"created_by","join"=>"cms_users,name"];
@@ -87,14 +92,17 @@ use Session;
 			// ,'datamodal_select_to'=>'product_price:price,lot_number:lot_number'];
 			if(CRUDBooster::isCreate()){
 				$columns[] = ["label"=>"Barang Pesan",'required'=>true,"name"=>"qty_demand",'type'=>'number','readonly'=>false];
+			
 			}
 			else 
 			{
 				$columns[] = ["label"=>"Barang Pesan",'required'=>true,"name"=>"qty_demand",'type'=>'number','readonly'=>true];
+				
 			}
 
 		
 			$columns[] = ["label"=>"Barang Masuk",'required'=>true,"name"=>"qty_in",'type'=>'number'];
+			$columns[] = ["label"=>"Sisa",'required'=>true,"name"=>"qty_diferrence",'type'=>'number','type'=>'number','formula'=>"[qty_demand] - [qty_in]", 'readonly'=>true];
 			$columns[] = ["label"=>"Harga","name"=>"price",'type'=>'number','required'=>true];
 			$columns[] = ['label'=>'Lokasi','name'=>'wh_location_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'wh_locations,wh_location_name'];
 			$columns[] = ["label"=>"Lot No","name"=>"lot_number",'type'=>'text','readonly'=>true];
@@ -214,7 +222,42 @@ use Session;
 	        | $this->script_js = "function() { ... }";
 	        |
 	        */
-	        $this->script_js = "";
+	        $this->script_js = "
+				$(function() {
+				
+
+					$('form').submit(function (event) {
+						
+						var qty_demand = 0;
+						var qty_in = 0;
+						
+						$('#table-detailpenerimaan tbody .qty_demand').each(function(){
+							var sub = parseInt($(this).text());
+							qty_demand += sub;
+							
+						});
+	
+						$('#table-detailpenerimaan tbody .qty_in').each(function(){
+							var sub = parseInt($(this).text());
+							qty_in += sub;
+							
+						});
+						
+						// info untuk pembuatan penerimaan sisa
+
+						if(qty_in < qty_demand)
+						{
+							if(confirm('Anda telah memproses lebih sedikit produk daripada permintaan awal, Akan dibuat draft penerimaan untuk memproses sisa produk nanti.')){
+								return true;
+							}
+							else{
+								return false;
+							}
+						}
+						//event.preventDefault();
+					});
+				});
+			";
 
 
             /*
@@ -303,6 +346,7 @@ use Session;
 	    public function hook_query_index(&$query) {
 	        //Your code here
 			$query->where('status_id',1);
+			
 	    }
 
 	    /*
@@ -397,6 +441,15 @@ use Session;
 			DB::table('goods_receipt')->where('id',$id)->update([
 				'status_id' => 2
 			]);
+			// TODO: 
+
+			$goodReceiptDetail = GoodReceiptDetail::where('good_receipt_id',$id)->sum('qty_diferrence');
+			#$test = GoodReceiptDetail::where('good_receipt_id',$id)->get();
+			#echo '<pre>'; print($test); echo '<pre>'; exit;
+			if((int)$goodReceiptDetail > 0){
+				$this->goodReceiptRepository->backorderReceiptEntry($id);
+			}
+			#$this->goodReceipt->automaticReceiptEntry($purchase->id);
 			$this->productRepository->updateStokLocation($id);
 	    }
 
@@ -433,7 +486,26 @@ use Session;
 
 	    }
 
-
+		public function getDifferenceItem($goodReceiptId)
+		{
+			// TODO: Test Repository
+			$receiptDetail = GoodReceiptDetail::where('good_receipt_id',$goodReceiptId)
+						->whereNotNull('qty_diferrence')
+						->get();
+			$detail = $receiptDetail->transform(function ($item) {
+				$item['product_id'] = $item['product_id'];
+                $item['lot_number'] = '-';
+                $item['qty_demand'] = $item['qty_diferrence'];
+                $item['qty_in'] = 0;
+                $item['qty_diferrence'] = 0;
+                $item['price']  = $item['price'];
+                $item['is_store_vendor_location'] = 1;
+                $item['created_by'] = CRUDBooster::myId() ?? 1;
+                return $item;
+            })->toArray();
+						
+			dd($detail);
+		}
 
 	    //By the way, you can still create your own method in here... :) 
 		public function searchItemLinePO($poId)

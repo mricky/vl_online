@@ -16,6 +16,7 @@ interface IGoodReceipt{
     public function getTotalProcessReceipt();
     public function getTotalDoneReceipt();
     public function getTotalItemIncoming($periode,$status);
+    public function backorderReceiptEntry($goodReceiptId);
 }
 class GoodReceiptRepository implements IGoodReceipt {
    
@@ -69,12 +70,55 @@ class GoodReceiptRepository implements IGoodReceipt {
 
         return $receive;
     }
+
+    public function backorderReceiptEntry($goodReceiptId){
+
+        $receive = GoodReceipt::with(['deferences','details'])->find($goodReceiptId);
+        $location = WhLocation::where('wh_location_name',$this::WH_LOCATION_DEFAULT)->first();
+        $status = OrderStatus::where('name',$this::STATUS_DEFAULT)->first();  
+
+         try {
+            $backOrder = new GoodReceipt();
+            $backOrder->vendor_id = $receive->vendor_id;
+            $backOrder->purchase_order_id = $receive->purchase_order_id;
+            $backOrder->po_vendor = $receive->order_number;
+            $backOrder->backorder_of = $receive->code;
+            $backOrder->receipt_date = $receive->receipt_date;
+            $backOrder->status_id = $status->id; // Proces
+            $backOrder->description = 'backorder-'.$receive->code;
+            $backOrder->created_by = CRUDBooster::myId() ?? 1;
+            $backOrder->save();
+           
+            foreach($receive->deferences as $row){ 
+                $itemDetail = new GoodReceiptDetail();
+                $itemDetail->good_receipt_id =  $backOrder->id;
+                $itemDetail->product_id = $row['product_id'];
+                $itemDetail->lot_number = '-';
+                $itemDetail->qty_demand =  $row['qty_diferrence'];
+                $itemDetail->qty_in = 0;
+                $itemDetail->qty_diferrence = 0;
+                $itemDetail->price = $row['price'];
+                $itemDetail->wh_location_id = $location->id;
+                $itemDetail->is_store_vendor_location = $location->id;
+                $itemDetail->created_by =  CRUDBooster::myId() ?? 1;
+                $itemDetail->save();
+            }
+           
+            #GoodReceiptDetail::create($datail);
+            DB::commit();
+         } catch(\Exception $e){
+            DB::rollback();
+            throw $e;
+        }
+        return $receive;
+    }
     public function automaticReceiptEntry($poId){
 
         $purchase = PurchaseOrder::with('details')->find($poId);
         $location = WhLocation::where('wh_location_name',$this::WH_LOCATION_DEFAULT)->first();
         $status = OrderStatus::where('name',$this::STATUS_DEFAULT)->first();
-      
+        
+        
         try {
             DB::beginTransaction();
 

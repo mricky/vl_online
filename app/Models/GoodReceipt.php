@@ -42,6 +42,11 @@ class GoodReceipt extends Model
         return $this->hasMany(GoodReceiptDetail::class,'good_receipt_id');
     }
 
+    public function deferences(){
+        return $this->hasMany(GoodReceiptDetail::class,'good_receipt_id')
+                        ->orWhere('qty_diferrence','>', 0);
+
+    }
     public function generateIdNo(){
         $code = 'GR-';
         $supplier = Vendor::find($this->vendor_id);

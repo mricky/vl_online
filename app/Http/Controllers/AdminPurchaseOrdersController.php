@@ -597,7 +597,7 @@ use Maatwebsite\Excel\Facades\Excel;
 					$incoming_qty = DB::table('goods_receipt_details')->where('product_id',$item->product_id)
 																->where('goods_receipt.purchase_order_id',$item->id)
 																->join('goods_receipt','goods_receipt.id','goods_receipt_details.good_receipt_id')
-																->select(DB::raw('sum(qty_in) as incoming_qty'),DB::raw('COALESCE(sum(qty_diferrence),0) as qty_diferrence'))
+																->select(DB::raw('COALESCE(sum(qty_in),0) as incoming_qty'),DB::raw('COALESCE(sum(qty_diferrence),0) as qty_diferrence'))
 																->first();
 					$left_over = (int)$item_request - (int)$incoming_qty->incoming_qty;
 					#dd($incoming_qty);

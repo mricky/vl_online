@@ -1,5 +1,6 @@
 <?php namespace App\Http\Controllers;
-
+	
+	use App\Repositories\VendorRepository;
 	use Session;
 	use Request;
 	use DB;
@@ -7,6 +8,13 @@
 
 	class AdminVendorsController extends \crocodicstudio\crudbooster\controllers\CBController {
 
+		private $vendorRepository;
+
+		public function __construct(VendorRepository $vendorRepository) 
+        {
+			 $this->vendorRepository = $vendorRepository;
+			
+        }
 	    public function cbInit() {
 
 			# START CONFIGURATION DO NOT REMOVE THIS LINE
@@ -335,7 +343,12 @@
 
 	    }
 
+		public function findVendor(Request $request){
+			$term = trim(Request::get('q'));
 
+			$vendors = $this->vendorRepository->findVendor($term);
+			return response()->json($vendors);
+		}
 
 	    //By the way, you can still create your own method in here... :) 
 

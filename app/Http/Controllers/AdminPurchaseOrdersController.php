@@ -2,11 +2,14 @@
 
 use App\Repositories\GoodReceiptRepository;
 use Session;
-	use Request;
-	use DB;
-	use CRUDBooster;
-    use App\Repositories\PurchaseOrderRepository;
-	use App\Repositories\JournalTransactionRepository;
+use Request;
+use DB;
+use CRUDBooster;
+use App\Repositories\{
+	PurchaseOrderRepository,
+	JournalTransactionRepository
+};
+use Maatwebsite\Excel\Facades\Excel;
 	class AdminPurchaseOrdersController extends \crocodicstudio\crudbooster\controllers\CBController {
 
 		private $purchaseOrder;
@@ -72,6 +75,7 @@ use Session;
 			$this->form[] = ['label'=>'Tgl Order','name'=>'order_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-5'];
 			$this->form[] = ['label'=>'Tgl Estimasi','name'=>'estimated_date','type'=>'date','validation'=>'nullable|date','width'=>'col-sm-5'];
 			//$this->form[] = ['label'=>'Tgl Kirim','name'=>'delivery_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-10'];
+			#$this->form[] = ['label'=>'Mata Uang','name'=>'currency_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'currencies,currency'];
 			$this->form[] = ['label'=>'Keterangan','name'=>'description','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
 	
 			$columns = [];
@@ -524,22 +528,125 @@ use Session;
 			if(!CRUDBooster::isView()) CRUDBooster::redirect(CRUDBooster::adminPath(),trans('crudbooster.denied_access'));
 			//Create your own query 
 			$data = [];
-			$data['Neraca'] ='Laporan Pembelian';
+			$data['title'] ='Laporan Pembelian';
 	
-			$this->cbView('forms.purchase',$data);
+			#$this->cbView('forms.purchase',$data); list pembelian
+			$this->cbView('forms.purchase_new',$data);
+
 		}
 
-		public function postCetakpembelian()
-		{
-			$data['tgl_data']=date('d-M-Y',strtotime($_POST['tgl_awal']) )." s/d ". date('d-M-Y',strtotime($_POST['tgl_akhir']));
+		#OLD METHOD 
+		// public function postCetakpembelian()
+		// {
+		// 	$data['tgl_data']=date('d-M-Y',strtotime($_POST['tgl_awal']) )." s/d ". date('d-M-Y',strtotime($_POST['tgl_akhir']));
 
-			$data['purchase_orders'] = DB::table('purchase_orders as t1')
-													->select('t1.*','t2.name')
-													->leftJoin('vendors as t2','t1.vendor_id','=','t2.id')
-													->get();
+		// 	$data['purchase_orders'] = DB::table('purchase_orders as t1')
+		// 											->select('t1.*','t2.name')
+		// 											->leftJoin('vendors as t2','t1.vendor_id','=','t2.id')
+		// 											->get();
 
-			$this->cbView('prints.purchase',$data);
+		// 	$this->cbView('prints.purchase',$data);
+		// }
+		
+		public function postCetakpembelian(){
+
+			$vendor = Request::get('supplier_list');
+			$category = Request::get('category_list');
+			$brand = Request::get('brand_list');
+			$item = Request::get('item_list');
+						
+			$purchase = DB::table('purchase_orders as t1')
+						->select('t1.*','t2.name','t5.id as product_id','t5.name as product_name','t6.name as category_name','t7.name as brand_name')
+						->leftJoin('vendors as t2','t1.vendor_id','=','t2.id')
+						->join('purchase_order_details as t4','t1.id','=','t4.purchase_order_id')
+						->join('products as t5','t4.product_id','t5.id')
+						->join('product_categories as t6','t6.id','t5.category_id')
+						->join('product_brands as t7','t5.brand_id','t7.id')
+						->join('goods_receipt as t8','t8.purchase_order_id','t4.id');
+					   	// ->join('goods_receipt_details as t9', function($join){
+						// 		$join->on('t9.product_id','t5.id');
+						// 		$join->on('t9.good_receipt_id','t8.id');
+						// });
+						// ->whereIn('t2.id',$customer)
+						// ->orWhereIn('t6.id',$category)
+						// ->get();
+			$purchase = $purchase->when($vendor, function($purchase) use ($vendor){
+				return $purchase->whereIn('t2.id',$vendor);
+			});
+			$purchase = $purchase->when($category, function($purchase) use ($category){
+				return $purchase->whereIn('t6.id',$category);
+			});
+			$purchase = $purchase->when($brand, function($purchase) use ($brand){
+				return $purchase->whereIn('t7.id',$brand);
+			});
+			$purchase = $purchase->when($item, function($purchase) use ($item){
+				return $purchase->whereIn('t5.id',$item);
+			});
+
+			$purchase = $purchase->get();
+				
+			#echo '<pre>'; print_r($purchase); echo '</pre>'; exit;
+			$data['page_title'] = 'Laporan Pembelian Barang';
+
+			$datas = Array();
+			$no=1;
+			if($purchase) {
+				foreach($purchase as $item){
+					$item_request = DB::table('purchase_order_details')->where('product_id',$item->product_id)
+																	  ->where('purchase_order_id',$item->id)->sum('qty');
+					$incoming_qty = DB::table('goods_receipt_details')->where('product_id',$item->product_id)
+																->where('goods_receipt.purchase_order_id',$item->id)
+																->join('goods_receipt','goods_receipt.id','goods_receipt_details.good_receipt_id')
+																->select(DB::raw('sum(qty_in) as incoming_qty'),DB::raw('COALESCE(sum(qty_diferrence),0) as qty_diferrence'))
+																->first();
+					$left_over = (int)$item_request - (int)$incoming_qty->incoming_qty;
+					#dd($incoming_qty);
+					$data_raw = array(
+						$no,
+						$item->order_number,
+						$item->name,
+						$item->order_date,
+						$item->category_name,
+						$item->brand_name,
+						$item->product_name,
+						$item_request,
+						$incoming_qty->incoming_qty,
+						$left_over,
+						#$item->expedition,
+						$item->subtotal,
+						$item->discount,
+						#$item->expedition_cost,
+						$item->total,
+						$item->total_amount,
+						$item->amount_due
+					);
+					array_push($datas,$data_raw);
+					$no++;
+				}
+			}
+			Excel::create("Laporan Pembelian Barang", function($excel) use($datas) {
+				$excel->sheet('Pembelian Barang', function($sheet) use($datas) {
+					$judul=['Laporan Pembelian Barang'];
+					$sheet->appendRow($judul);
+					$sheet->row($sheet->getHighestRow(), function ($row) {
+						$row->setFontSize(14);
+						$row->setFontWeight('bold');
+					});
+					$sheet->mergeCells('A1:N1');
+					
+					// Columns
+					$labels = ['No','No. Order','Supplier','Tgl Order','Kategori','Brand','Item','Total Pesan','Incoming Qty','Left Over','Sub Total', 'Discount','Total','Pelunasan','Sisa'];
+
+					$sheet->appendRow($labels);
+					$sheet->row($sheet->getHighestRow(), function ($row) {
+						$row->setFontWeight('bold');
+					});
+
+					foreach ($datas as $data) {
+						$sheet->appendRow($data);
+					}
+				});
+			})->export('xlsx');
+
 		}
-
-
 	}

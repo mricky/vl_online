@@ -15,6 +15,7 @@
 //     return view('welcome');
 // });
 Route::get('/testItemDiferrence/{id}','AdminGoodsReceiptController@getDifferenceItem');
+Route::get('/find-vendor','AdminVendorsController@findVendor');
 Route::get('/find-customer','AdminCustomersController@findCustomer');
 Route::get('/searchItemLinePO/{po_id}','AdminGoodsReceiptController@searchItemLinePO');
 Route::get('/syncInternalStock','AdminProductsController@syncInternalStock');

@@ -16,7 +16,10 @@ class PurchaseOrder extends Model
         'discount',
         'total',
         'total_amount',
-        'description'
+        'description',
+        'total_qty_request',
+        'total_qty_in',
+        'total_qty_difference'
     ];
 
 

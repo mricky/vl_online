@@ -7,8 +7,9 @@ use Session;
 	use CRUDBooster;
 	use App\Models\{
 		GoodReceipt,
-		GoodReceiptDetail
-	};
+		GoodReceiptDetail,
+    PurchaseOrder
+};
     use App\Repositories\{
 		ProductRepository,
 		JournalTransactionRepository,
@@ -438,11 +439,12 @@ use Session;
 	    public function hook_after_edit($id) {
 	        // Update Stok
 			// Update Lokasi Stok
-			DB::table('goods_receipt')->where('id',$id)->update([
-				'status_id' => 2
-			]);
+			#$receipt = DB::table('goods_receipt')->where('id',$id);
+			$receipt = GoodReceipt::findOrFail($id);
+			$receipt->status_id = 2;
+			$receipt->save();
 			// TODO: 
-
+		
 			$goodReceiptDetail = GoodReceiptDetail::where('good_receipt_id',$id)->sum('qty_diferrence');
 			#$test = GoodReceiptDetail::where('good_receipt_id',$id)->get();
 			#echo '<pre>'; print($test); echo '<pre>'; exit;
@@ -451,6 +453,9 @@ use Session;
 			}
 			#$this->goodReceipt->automaticReceiptEntry($purchase->id);
 			$this->productRepository->updateStokLocation($id);
+			#die('po'.(int)$receipt['purchase_order_id']);
+			
+			$this->goodReceiptRepository->syncPurchaseItemQty((int)$receipt['purchase_order_id']);
 	    }
 
 	    /* 
@@ -483,7 +488,8 @@ use Session;
 	    */
 	    public function hook_after_delete($id) {
 	        //Your code here
-
+			$receipt = GoodReceipt::findOrFail($id);			
+			$this->goodReceiptRepository->syncPurchaseItemQty((int)$receipt['purchase_order_id']);
 	    }
 
 		public function getDifferenceItem($goodReceiptId)
@@ -560,5 +566,16 @@ use Session;
 									->get();
 
 			$this->cbView('prints.stok-iot',$data);
+		
+		}
+
+		public function syncPurchaseItemQty(){
+			$purchase = PurchaseOrder::all();
+
+			foreach($purchase as $item){
+				$this->goodReceiptRepository->syncPurchaseItemQty($item->id);
+			}
+			
+		
 		}
 	}

@@ -11,6 +11,33 @@
     <div class="panel-body" style="padding:10px 0px 0px 0px">
         <form class="form-horizontal" method="post" id="form" enctype="multipart/form-data" action="{{CRUDBooster::mainpath('cetakpenjualan')}}" target="_blank">
              <input name="_token" value=" {{ csrf_token() }}" type="hidden">  
+            
+             <div class='form-group header-group-0 ' id='form-group-equipment_no' style="">
+                    <label class='control-label col-sm-2'>
+                       Tanggal Awal
+                    </label>
+                    <div class="col-sm-8">
+                    <div class="input-group ">
+                            <span class="input-group-addon open-datetimepicker"><a><i class='fa fa-calendar '></i></a></span>
+                            <input type='text' title="Tgl Perolehan" readonly
+                                   class='form-control notfocus input_date' name="start_date" id="start_date"
+                                   />
+                        </div>
+                    </div>
+            </div>
+            <div class='form-group header-group-0 ' id='form-group-equipment_no' style="">
+                    <label class='control-label col-sm-2'>
+                       Tanggal Akhir
+                    </label>
+                    <div class="col-sm-8">
+                    <div class="input-group ">
+                            <span class="input-group-addon open-datetimepicker"><a><i class='fa fa-calendar '></i></a></span>
+                            <input type='text' title="Tgl Akhir" readonly
+                                   class='form-control notfocus input_date' name="end_date" id="end_date"
+                                   />
+                        </div>
+                    </div>
+            </div>
              <div class='form-group header-group-0 ' id='form-group-equipment_no' style="">   
                    <label class='control-label col-sm-2'>
                      Customer
@@ -62,6 +89,19 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js"></script>
     <script>
+         var lang = 'en';
+         $(function () {
+            $('.input_date').datepicker({
+                format: 'yyyy-mm-dd',
+                                language: lang
+            });
+
+            $('.open-datetimepicker').click(function () {
+                $(this).next('.input_date').datepicker('show');
+            });
+
+        });
+      
         $('#customer_list').select2({
             placeholder: "Pilih Customer...",
             minimumInputLength: 2,

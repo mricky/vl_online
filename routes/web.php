@@ -14,6 +14,7 @@
 // Route::get('/', function () {
 //     return view('welcome');
 // });
+Route::get('/sync-purchase-item','AdminGoodsReceiptController@syncPurchaseItemQty');
 Route::get('/testItemDiferrence/{id}','AdminGoodsReceiptController@getDifferenceItem');
 Route::get('/find-vendor','AdminVendorsController@findVendor');
 Route::get('/find-customer','AdminCustomersController@findCustomer');

@@ -49,13 +49,15 @@ use Maatwebsite\Excel\Facades\Excel;
 			$this->col[] = ["label"=>"No Order","name"=>"order_number"];
 			$this->col[] = ["label"=>"Tgl Order","name"=>"order_date"];
 			//$this->col[] = ["label"=>"Tg Pengiriman","name"=>"delivery_date"];
-			$this->col[] = ["label"=>"Barang Pesan","name"=>"(SELECT COALESCE(SUM(purchase_order_details.qty),0) FROM purchase_order_details where purchase_order_details.purchase_order_id = purchase_orders.id) as total_pesan"];
+			#$this->col[] = ["label"=>"Barang Pesan","name"=>"(SELECT COALESCE(SUM(purchase_order_details.qty),0) FROM purchase_order_details where purchase_order_details.purchase_order_id = purchase_orders.id) as total_pesan"];
 			// $this->col[] = ["label"=>"Barang Terima","name"=>"(SELECT COALESCE(SUM(goods_receipt_details.qty_in),0) 
 			// 														FROM purchase_order_details 
 			// 														INNER JOIN goods_receipt on goods_receipt.purchase_order_id = purchase_order_details.purchase_order_id
 			// 														INNER JOIN goods_receipt_details on goods_receipt_details.good_receipt_id = goods_receipt.id
 			// 														WHERE purchase_order_details.purchase_order_id = purchase_orders.id) as total_terima"];
-			
+			$this->col[] = ["label"=>"Total Qty","name"=>"total_qty_request"];
+			$this->col[] = ["label"=>"Qty In","name"=>"total_qty_in"];
+			$this->col[] = ["label"=>"Leave Over","name"=>"total_qty_difference"];
 			# TODO
 			// total pesan
 			// total terima
@@ -137,7 +139,9 @@ use Maatwebsite\Excel\Facades\Excel;
 	        | @showIf 	   = If condition when action show. Use field alias. e.g : [id] == 1
 	        | 
 	        */
-	        $this->addaction[] = ['label'=>'Print PO','icon'=>'fa fa-print','color'=>'primary','url'=>CRUDBooster::mainpath('print').'/[id]','title'=>'Cetak','target'=>'_blank'];
+			$this->addaction[] = ['label'=>'Riwayat','icon'=>'fa fa-history','color'=>'primary','url'=>CRUDBooster::mainpath('history').'/[id]','title'=>'Cetak','target'=>'_blank'];
+	        $this->addaction[] = ['label'=>'Faktur','icon'=>'fa fa-print','color'=>'primary','url'=>CRUDBooster::mainpath('print').'/[id]','title'=>'Cetak','target'=>'_blank'];
+			
 
 
 	        /* 
@@ -431,6 +435,7 @@ use Maatwebsite\Excel\Facades\Excel;
 			];
 			
 			$this->goodReceipt->automaticReceiptEntry($purchase->id);
+			$this->goodReceipt->syncPurchaseItemQty($purchase->id);
 			//$this->journalTransaction->purchaseJournalEntry((object)$data,0); // automatic journal
 
 	    }
@@ -455,7 +460,8 @@ use Maatwebsite\Excel\Facades\Excel;
 			];
 		
 			$this->journalTransaction->updatePurchaseJournalEntry((object)$data);
-	    }
+			
+		}
 
 	    /* 
 	    | ---------------------------------------------------------------------- 
@@ -466,7 +472,7 @@ use Maatwebsite\Excel\Facades\Excel;
 	    */
 	    public function hook_after_edit($id) {
 	        //Your code here 
-
+			$this->goodReceipt->syncPurchaseItemQty($id);
 	    }
 
 	    /* 
@@ -554,7 +560,9 @@ use Maatwebsite\Excel\Facades\Excel;
 			$category = Request::get('category_list');
 			$brand = Request::get('brand_list');
 			$item = Request::get('item_list');
-						
+			$start_date = Request::get('start_date');	
+			$end_date = Request::get('end_date');
+		
 			$purchase = DB::table('purchase_orders as t1')
 						->select('t1.*','t2.name','t5.id as product_id','t5.name as product_name','t6.name as category_name','t7.name as brand_name')
 						->leftJoin('vendors as t2','t1.vendor_id','=','t2.id')
@@ -583,6 +591,7 @@ use Maatwebsite\Excel\Facades\Excel;
 				return $purchase->whereIn('t5.id',$item);
 			});
 
+			$purchase->whereRaw("DATE_FORMAT(t1.order_date, '%Y-%m-%d') >= '" . $start_date . "' AND DATE_FORMAT(t1.order_date, '%Y-%m-%d') <= '" . $end_date . "'");
 			$purchase = $purchase->get();
 				
 			#echo '<pre>'; print_r($purchase); echo '</pre>'; exit;
@@ -649,4 +658,14 @@ use Maatwebsite\Excel\Facades\Excel;
 			})->export('xlsx');
 
 		}
+
+		public function getHistory($id){
+			$data = [];
+			$data['purchase_order'] = $this->purchaseOrder->getPurchaseOrder($id);
+			$data['detail_purchase'] = $this->purchaseOrder->getDetailPurchaseOrder($id);
+			$data['detail_receipt'] = $this->goodReceipt->getDetailItemReceiptByPO($id);
+		
+			$this->cbView('forms/purchase_detail',$data);
+		}
+
 	}

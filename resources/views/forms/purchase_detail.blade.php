@@ -134,6 +134,7 @@
                             <td>{{$detail->product_name}}</td>
                             <td>{{$detail->qty}}</td>
                             <td  style="text-align:right">{{number_format($detail->price)}}</td>
+                            <td  style="text-align:right">{{number_format($detail->downpayment)}}</td>
                             <td  style="text-align:right">{{number_format($detail->paid_off)}}</td>
                             <td  style="text-align:right">{{number_format(($detail->price - $detail->paid_off))}}</td>
                         </tr>

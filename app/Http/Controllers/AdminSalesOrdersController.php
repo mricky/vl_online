@@ -592,7 +592,9 @@
 			$category = Request::get('category_list');
 			$brand = Request::get('brand_list');
 			$item = Request::get('item_list');
-			
+			$start_date = Request::get('start_date');	
+			$end_date = Request::get('end_date');
+		
 			$data = [];
 
 			$sales = DB::table('sales_orders as t1')
@@ -603,9 +605,7 @@
 						->join('product_categories as t6','t6.id','t5.category_id')
 						->join('product_brands as t7','t5.brand_id','t7.id')
 						->leftJoin('expeditions as t3','t1.expedition_id','=','t3.id');
-						// ->whereIn('t2.id',$customer)
-						// ->orWhereIn('t6.id',$category)
-						// ->get();
+						
 			$sales = $sales->when($customer, function($sales) use ($customer){
 				return $sales->whereIn('t2.id',$customer);
 			});
@@ -618,6 +618,8 @@
 			$sales = $sales->when($item, function($sales) use ($item){
 				return $sales->whereIn('t5.id',$item);
 			});
+			
+			$sales->whereRaw("DATE_FORMAT(t1.order_date, '%Y-%m-%d') >= '" . $start_date . "' AND DATE_FORMAT(t1.order_date, '%Y-%m-%d') <= '" . $end_date . "'");
 			$sales = $sales->get();
 			$data['page_title'] = 'Laporan Penjualan Barang';
 

@@ -5,7 +5,8 @@ use App\Models\{
     GoodReceipt,
     GoodReceiptDetail,
     WhLocation,
-    OrderStatus
+    OrderStatus,
+    PurchaseOrderDetail
 };
 use DB;
 use CRUDBooster;
@@ -17,6 +18,8 @@ interface IGoodReceipt{
     public function getTotalDoneReceipt();
     public function getTotalItemIncoming($periode,$status);
     public function backorderReceiptEntry($goodReceiptId);
+    public function syncPurchaseItemQty($purchaseId);
+    public function getDetailItemReceiptByPO($purchaseId);
 }
 class GoodReceiptRepository implements IGoodReceipt {
    
@@ -24,6 +27,58 @@ class GoodReceiptRepository implements IGoodReceipt {
     CONST STATUS_DEFAULT = 'Process';
     CONST STATUS_DONE = 'Done';
 
+    public function getDetailItemReceiptByPO($purchaseId){
+
+        $receipts =  GoodReceiptDetail::select('goods_receipt.*','products.name as product_name','goods_receipt_details.qty_in','wh_locations.wh_location_name','cms_users.name as receipt_by')
+                                    ->join('goods_receipt','goods_receipt.id','goods_receipt_details.good_receipt_id')
+                                    ->join('products','products.id','goods_receipt_details.product_id')
+                                    ->join('wh_locations','wh_locations.id','goods_receipt_details.wh_location_id')
+                                    ->join('cms_users','cms_users.id','goods_receipt.created_by')
+                                    ->where('goods_receipt.purchase_order_id',$purchaseId)
+                                ->get();
+      
+        return $receipts;
+
+    }
+    public function syncPurchaseItemQty($purchaseId){
+       
+        $totalQtyRequest = 0;
+        $totalQtyIn = 0;
+        $totalDifference = 0;
+
+        $receipts =  GoodReceipt::where('purchase_order_id',$purchaseId)->get();
+        $totalQtyRequest = PurchaseOrderDetail::where('purchase_order_id',$purchaseId)
+                                    ->sum('qty'); 
+        #die($purchaseId);
+        foreach($receipts as $items){
+            $total_qty_in = GoodReceiptDetail::where('good_receipt_id',$items->id)
+                                        ->sum('qty_in');
+            $totalQtyIn += $total_qty_in; 
+          
+       }
+      
+       $totalDifference = ((int)$totalQtyRequest - (int) $totalQtyIn);
+      
+       try {
+           DB::beginTransaction();
+            $data = [
+                    'total_qty_request' => $totalQtyRequest,
+                    'total_qty_in' => $totalQtyIn,
+                    'total_qty_difference' => $totalDifference
+            ];
+         
+            $purchaseOrder = PurchaseOrder::findOrFail($purchaseId);
+            $purchaseOrder->total_qty_request =  $totalQtyRequest;
+            $purchaseOrder->total_qty_in = $totalQtyIn;
+            $purchaseOrder->total_qty_difference = $totalDifference;
+            $purchaseOrder->save();
+            DB::commit();
+        } catch(\Exception $e){
+            DB::rollback();
+            throw $e;
+        }
+       # die($totalQtyIn);
+    }
     public function getTotalItemIncoming($periode,$status){
 
         if($status == 'done'){
@@ -147,7 +202,7 @@ class GoodReceiptRepository implements IGoodReceipt {
             })->toArray();
 
             $goodReceipt->details()->createMany($detail);
-
+          
             // Detail Receipt
             DB::commit();
         } catch(\Exception $e){

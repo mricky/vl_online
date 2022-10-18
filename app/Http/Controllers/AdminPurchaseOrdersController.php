@@ -570,7 +570,7 @@ use Maatwebsite\Excel\Facades\Excel;
 						->join('products as t5','t4.product_id','t5.id')
 						->join('product_categories as t6','t6.id','t5.category_id')
 						->join('product_brands as t7','t5.brand_id','t7.id')
-						->join('goods_receipt as t8','t8.purchase_order_id','t4.id');
+						->leftjoin('goods_receipt as t8','t8.purchase_order_id','t4.id');
 			$purchase = $purchase->when($vendor, function($purchase) use ($vendor){
 				return $purchase->whereIn('t2.id',$vendor);
 			});
@@ -585,9 +585,7 @@ use Maatwebsite\Excel\Facades\Excel;
 			});
 
 			if(isset($start_date) && isset($end_date)){
-				
-				#$purchase = $purchase->whereRaw("DATE_FORMAT(t1.order_date, '%Y-%m-%d') >= '" . $start_date . "' AND DATE_FORMAT(t1.order_date, '%Y-%m-%d') <= '" . $end_date . "'");
-			
+				$purchase = $purchase->whereRaw("DATE_FORMAT(t1.order_date, '%Y-%m-%d') >= '" . $start_date . "' AND DATE_FORMAT(t1.order_date, '%Y-%m-%d') <= '" . $end_date . "'");
 			}
 				
 			$purchase = $purchase->get();
@@ -618,10 +616,8 @@ use Maatwebsite\Excel\Facades\Excel;
 						$item_request,
 						$incoming_qty->incoming_qty,
 						$left_over,
-						#$item->expedition,
 						$item->subtotal,
 						$item->discount,
-						#$item->expedition_cost,
 						$item->total,
 						$item->total_amount,
 						$item->amount_due

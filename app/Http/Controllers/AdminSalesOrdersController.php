@@ -594,7 +594,7 @@
 			$item = Request::get('item_list');
 			$start_date = Request::get('start_date');	
 			$end_date = Request::get('end_date');
-		
+			
 			$data = [];
 
 			$sales = DB::table('sales_orders as t1')
@@ -618,9 +618,13 @@
 			$sales = $sales->when($item, function($sales) use ($item){
 				return $sales->whereIn('t5.id',$item);
 			});
-			
-			$sales->whereRaw("DATE_FORMAT(t1.order_date, '%Y-%m-%d') >= '" . $start_date . "' AND DATE_FORMAT(t1.order_date, '%Y-%m-%d') <= '" . $end_date . "'");
+			#var_dump($sales->get()); die;
+			if(isset($start_date) )
+			if(isset($start_date) && isset($end_date)){
+				$sales = $sales->whereRaw("DATE_FORMAT(t1.order_date, '%Y-%m-%d') >= '" . $start_date . "' AND DATE_FORMAT(t1.order_date, '%Y-%m-%d') <= '" . $end_date . "'");
+			}
 			$sales = $sales->get();
+		
 			$data['page_title'] = 'Laporan Penjualan Barang';
 
 			$datas = Array();

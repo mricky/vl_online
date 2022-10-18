@@ -571,13 +571,6 @@ use Maatwebsite\Excel\Facades\Excel;
 						->join('product_categories as t6','t6.id','t5.category_id')
 						->join('product_brands as t7','t5.brand_id','t7.id')
 						->join('goods_receipt as t8','t8.purchase_order_id','t4.id');
-					   	// ->join('goods_receipt_details as t9', function($join){
-						// 		$join->on('t9.product_id','t5.id');
-						// 		$join->on('t9.good_receipt_id','t8.id');
-						// });
-						// ->whereIn('t2.id',$customer)
-						// ->orWhereIn('t6.id',$category)
-						// ->get();
 			$purchase = $purchase->when($vendor, function($purchase) use ($vendor){
 				return $purchase->whereIn('t2.id',$vendor);
 			});
@@ -591,10 +584,14 @@ use Maatwebsite\Excel\Facades\Excel;
 				return $purchase->whereIn('t5.id',$item);
 			});
 
-			$purchase->whereRaw("DATE_FORMAT(t1.order_date, '%Y-%m-%d') >= '" . $start_date . "' AND DATE_FORMAT(t1.order_date, '%Y-%m-%d') <= '" . $end_date . "'");
+			if(isset($start_date) && isset($end_date)){
+				
+				$purchase = $purchase->whereRaw("DATE_FORMAT(t1.order_date, '%Y-%m-%d') >= '" . $start_date . "' AND DATE_FORMAT(t1.order_date, '%Y-%m-%d') <= '" . $end_date . "'");
+			
+			}
+				
 			$purchase = $purchase->get();
 				
-			#echo '<pre>'; print_r($purchase); echo '</pre>'; exit;
 			$data['page_title'] = 'Laporan Pembelian Barang';
 
 			$datas = Array();

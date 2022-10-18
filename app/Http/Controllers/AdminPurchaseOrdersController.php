@@ -586,7 +586,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 			if(isset($start_date) && isset($end_date)){
 				
-				$purchase = $purchase->whereRaw("DATE_FORMAT(t1.order_date, '%Y-%m-%d') >= '" . $start_date . "' AND DATE_FORMAT(t1.order_date, '%Y-%m-%d') <= '" . $end_date . "'");
+				#$purchase = $purchase->whereRaw("DATE_FORMAT(t1.order_date, '%Y-%m-%d') >= '" . $start_date . "' AND DATE_FORMAT(t1.order_date, '%Y-%m-%d') <= '" . $end_date . "'");
 			
 			}
 				

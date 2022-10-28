@@ -4,10 +4,22 @@
 	use Request;
 	use DB;
 	use CRUDBooster;
-
+	use App\Repositories\{
+		StockOpnameRepository
+	};
 	class AdminStockOpnamesController extends \crocodicstudio\crudbooster\controllers\CBController {
 
-	    public function cbInit() {
+	   
+
+		private $opnameRepositoy;
+	
+
+		public function __construct(StockOpnameRepository $opnameRepositoy) 
+        {
+       		 $this->opnameRepositoy = $opnameRepositoy;
+
+        }
+		public function cbInit() {
 
 			# START CONFIGURATION DO NOT REMOVE THIS LINE
 			$this->title_field = "opname_number";
@@ -32,6 +44,9 @@
 			$this->col = [];
 			$this->col[] = ["label"=>"Kode","name"=>"opname_number"];
 			$this->col[] = ["label"=>"Tgl Opname","name"=>"opname_date"];
+			$this->col[] = ["label"=>"Total System","name"=>"total_onhand"];
+			$this->col[] = ["label"=>"Total Aktual","name"=>"total_actual"];
+			$this->col[] = ["label"=>"Total Selisih","name"=>"total_difference"];
 			$this->col[] = ["label"=>"Document","name"=>"document"];
 			$this->col[] = ["label"=>"Alasan","name"=>"opname_type_id","join"=>"stock_opname_type,name"];
 			# END COLUMNS DO NOT REMOVE THIS LINE
@@ -39,21 +54,17 @@
 			# START FORM DO NOT REMOVE THIS LINE
 			$this->form = [];
 			$this->form[] = ['label'=>'Tgl Opname','name'=>'opname_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-5'];
-			$this->form[] = ['label'=>'Alasan','name'=>'opname_type_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'stock_opname_type,name'];
-			$this->form[] = ['label'=>'Dokumen','name'=>'document','type'=>'upload','validation'=>'required|min:1|max:255','width'=>'col-sm-5'];
-			
+			$this->form[] = ['label'=>'Lokasi','name'=>'wh_location_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'wh_locations,wh_location_name'];
+			$this->form[] = ['label'=>'Produk','name'=>'product_filters','type'=>'select2multi','width'=>'col-sm-5','datatable'=>'products,name'];
+			$this->form[] = ['label'=>'Dokumen','name'=>'document','type'=>'upload','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
+			$this->form[] = ['label'=>'Alasan','name'=>'opname_type_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'stock_opname_type,name'];
 			$columns = [];
-			$columns[] = ['label'=>'Product','name'=>'product_id','type'=>'datamodal'
-			,'validation'=>'required|min:1|max:255'
-			,'width'=>'col-sm-2'
-			,'datamodal_table'=>'view_list_products'
-			,'datamodal_columns'=>'code,name,category_name,brand_name,qty_onhand,product_cost, product_price'
-			,'datamodal_size'=>'large','datamodal_columns_alias'=>'SKU,Nama,Kategori,Brand, Qty,Harga Beli, Harga Jual'
-			,'datamodal_select_to'=>'product_cost:adjust_cost,product_price:adjust_price,qty_onhand:adjust_qty'];
-			
-			$columns[] = ["label"=>"Qty","name"=>"adjust_qty",'type'=>'number'];
+			$columns[] = ['label'=>'Produk','name'=>'product_location_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'view_product_location_opname,name'];
+			$columns[] = ["label"=>"Stok Sistem","name"=>"qty_onhand",'type'=>'number','readonly'=>true];
+			$columns[] = ["label"=>"Stok Aktual","name"=>"qty_actual",'type'=>'number'];
+			$columns[] = ["label"=>"Sisa",'required'=>true,"name"=>"qty_difference",'type'=>'number','type'=>'number','formula'=>"[qty_onhand] - [qty_actual]", 'readonly'=>true];
 			$columns[] = ["label"=>"Harga Beli","name"=>"adjust_cost",'type'=>'number'];
-			$columns[] = ["label"=>"Harga Jual","name"=>"adjust_price",'type'=>'number'];
+			#$columns[] = ["label"=>"Harga Jual","name"=>"adjust_price",'type'=>'number'];
 
 			$this->form[] = ['label'=>'Barang','name'=>'stock_opname_details','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'stock_opname_details','foreign_key'=>'stock_opname_id'];
 			
@@ -198,7 +209,7 @@
 	        | $this->load_js[] = asset("myfile.js");
 	        |
 	        */
-	        $this->load_js = array();
+			$this->load_js[] = asset("js/stock_opname.js");
 	        
 	        
 	        
@@ -292,7 +303,7 @@
 	    */
 	    public function hook_after_add($id) {        
 	        //Your code here
-
+			$this->opnameRepositoy->updateActualStock($id);
 	    }
 
 	    /* 
@@ -317,7 +328,7 @@
 	    */
 	    public function hook_after_edit($id) {
 	        //Your code here 
-
+			$this->opnameRepositoy->updateActualStock($id);
 	    }
 
 	    /* 

@@ -40,7 +40,7 @@ class DashboardController extends Controller
        $processReceipt =  $this->goodReceiptRepository->getTotalProcessReceipt();
 
        $data = [
-            'total_incoming' => $receipt,
+            'total_incoming' => $receipt, # barang
             'total_incoming_process' => $processReceipt
        ];
 

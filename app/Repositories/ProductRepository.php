@@ -28,6 +28,7 @@ interface IProduct {
     public function updateStokLocation($receiveId);
     public function updateSalesStokLocation($salesId);
     public function updateStokByProductEntry($id);
+    public function findProductLocationItem($ids,$whLocationId);
 
 }
 class ProductRepository implements IProduct {
@@ -35,6 +36,30 @@ class ProductRepository implements IProduct {
 
     const INTERNAL_LOCATION = "WH/Stock";
 
+    public function findProductLocationItem($ids,$whLocationId){
+        $data = [];
+        
+        $data = ProductLocation::select('product_locations.*')
+                        ->addSelect('products.name as product_name','products.product_price','wh_locations.wh_location_name')
+                        ->addSelect(DB::raw('IFNULL( vendors.name, 0) as vendor_name'))
+                        ->join('products','products.id','product_locations.product_id')
+                        ->join('wh_locations','wh_locations.id','product_locations.wh_location_id')
+                        ->leftJoin('goods_receipt','goods_receipt.id','product_locations.good_receipt_id')
+                        ->leftJoin('vendors','vendors.id','goods_receipt.vendor_id')
+;
+
+        if($whLocationId != null){
+            $data->where('wh_location_id',$whLocationId);
+        }
+		if($ids != null){
+				$data->whereIn('product_id',$ids);
+		}
+
+        $data = $data->get();
+
+        return $data;
+
+    }
     public function findProductItem($term)
     {
     

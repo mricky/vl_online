@@ -385,7 +385,15 @@ use GuzzleHttp\Psr7\Request as Psr7Request;
 		public function syncInternalStock(){
 			$this->product->syncInternalStock();
 		}
+		
+		public function findProductLocationItem(Request $request){
+			$ids = Request::get('q');
+			$whLocationId = Request::get('whLocationId');
 
+			$data = $this->product->findProductLocationItem($ids,$whLocationId);
+		
+			return response()->json($data);
+		}
 		public function findProductItem(Request $request){
 			$term = trim(Request::get('q'));
 

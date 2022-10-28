@@ -118,3 +118,19 @@ vendor/crocodicstudio/crudbooster/src/views/default/index.php
                 </div>
             @endforeach
         </div>
+## Issue filter between advance search
+use Illuminate\Support\Carbon;
+   $value[0]=Carbon::parse($value[0]);
+   $value[1]=Carbon::parse($value[1]);
+   $result->whereBetween($key, $value);
+## Menambahkan select2multi CBCrudbooster
+
+# Trigger Total Pesan, Qty In, Leave Over di Purchase Order
+
+# Sinkronisasi Data Existing
+
+# Purchase Order
+  ## add
+  ## edit
+  ## delete
+# Good Receipt

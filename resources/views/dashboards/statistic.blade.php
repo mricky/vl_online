@@ -51,7 +51,7 @@
                     <div class="small-box bg-green	">
                         <div class="inner inner-box">
                             <h3 id='item-incoming'></h3>
-                            <p>Pernerimaan</p>
+                            <p>Penerimaan Barang</p>
                         </div>
                         <div class="icon">
                             <i class="ion ion-clipboard	"></i>
@@ -128,6 +128,7 @@
                                         alert( "error occured" );
                                         });
                                  }
+
                                  function requestData(days, chart){
                                         $.ajax({
                                             type: "GET",

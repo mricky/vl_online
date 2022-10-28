@@ -20,6 +20,9 @@ Route::get('/find-vendor','AdminVendorsController@findVendor');
 Route::get('/find-customer','AdminCustomersController@findCustomer');
 Route::get('/searchItemLinePO/{po_id}','AdminGoodsReceiptController@searchItemLinePO');
 Route::get('/syncInternalStock','AdminProductsController@syncInternalStock');
+
+# Products
+Route::get('/find-product-location-item','AdminProductsController@findProductLocationItem');
 Route::get('/find-product-item','AdminProductsController@findProductItem');
 Route::get('/find-product-category','AdminProductsController@findProductCategory');
 Route::get('/find-product-brand','AdminProductsController@findProductBrand');

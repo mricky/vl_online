@@ -27,4 +27,5 @@ class StockOpnameDetail extends Model {
     public function opname(){
         return $this->belongsTo(StockOpname::class, 'stock_opname_id'); 
     }
+    
 }

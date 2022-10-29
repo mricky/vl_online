@@ -403,6 +403,10 @@ use Maatwebsite\Excel\Facades\Excel;
 	    |
 	    */
 	    public function hook_before_add(&$postdata) {        
+			if (!Request::get('order_date')){
+				CRUDBooster::redirect(CRUDBooster::mainpath("add"),"Silahkan Isi Tanggal Order","info");
+			}	
+
 	        //Your code here
 			$code = 'PO-';
 			$supplier = DB::table('vendors')->where('id',$postdata['vendor_id'])->first()->code;

@@ -355,6 +355,10 @@
 	    */
 	    public function hook_before_add(&$postdata) {        
 	        //Your code here
+			if (!Request::get('order_date')){
+				CRUDBooster::redirect(CRUDBooster::mainpath("add"),"Silahkan Isi Tanggal Order","info");
+			}	
+
 			$code = 'SO-';
 			$customer = DB::table('customers')->where('id',$postdata['customer_id'])->first()->code;
 		    $sq = DB::table('sales_orders')->max('id'); 
@@ -523,14 +527,20 @@
 		}
 		public function getDelivery($id){
 			$data = [];
+			$detailSales =  $this->salesOrder->getDetailSalesOrder($id);
 			$data['sales_order'] = $this->salesOrder->getSalesOrder($id);
-			$data['detail_sales'] = $this->salesOrder->getDetailSalesOrder($id);
-			
+			$data['detail_sales'] = $detailSales;
+
+			foreach($detailSales as $item){
+				
+				$this->productRepository = $item->product_id;
+			}
+
 			$this->cbView('forms/delivery_order',$data);
 		}
 
 		public function postPayment(){
-			// TODO: Payment next with journal transaction
+	
 			$request = Request::all();
 
 			$amountDue = filter_var($request['val_amount_due'], FILTER_SANITIZE_NUMBER_INT);

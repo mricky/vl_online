@@ -413,5 +413,9 @@ use GuzzleHttp\Psr7\Request as Psr7Request;
 			$brand = $this->product->findProductBrand($term);
 			return response()->json($brand);
 		}
+
+		public function updateTotalStockAllLocation($id){
+			$update = $this->product->updateTotalStockAllLocation($id);
+		}
 	    //By the way, you can still create your own method in here... :) 
 	}

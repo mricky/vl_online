@@ -1,22 +1,25 @@
 <?php namespace App\Http\Controllers;
 
-	use Session;
+use App\Models\StockOpnameDetail;
+use Session;
 	use Request;
 	use DB;
 	use CRUDBooster;
 	use App\Repositories\{
-		StockOpnameRepository
+		StockOpnameRepository,
+		ProductRepository
 	};
 	class AdminStockOpnamesController extends \crocodicstudio\crudbooster\controllers\CBController {
 
 	   
 
 		private $opnameRepositoy;
-	
+		private $productRepository;
 
-		public function __construct(StockOpnameRepository $opnameRepositoy) 
+		public function __construct(StockOpnameRepository $opnameRepositoy,ProductRepository $productRepository) 
         {
        		 $this->opnameRepositoy = $opnameRepositoy;
+			 $this->productRepository = $productRepository;
 
         }
 		public function cbInit() {
@@ -284,6 +287,11 @@
 	    */
 	    public function hook_before_add(&$postdata) {        
 	        //Your code here
+
+			if (!Request::get('opname_date')){
+				CRUDBooster::redirect(CRUDBooster::mainpath("add"),"Silahkan Isi Tanggal Opname","info");
+			}	
+
 			$code = 'OP-';
 
 			$sq = DB::table('stock_opnames')->max('id'); 
@@ -304,6 +312,15 @@
 	    public function hook_after_add($id) {        
 	        //Your code here
 			$this->opnameRepositoy->updateActualStock($id);
+
+			$opnameDetail = StockOpnameDetail::where('stock_opname_id',$id)	
+									->join('product_locations','product_locations.id','product_location_id')
+									->join('products','products.id','product_locations.product_id')
+									->get();
+
+		   foreach($opnameDetail as $item){
+				$this->productRepository->updateTotalStockAllLocation($item['product_id']);
+		   }
 	    }
 
 	    /* 
@@ -329,6 +346,15 @@
 	    public function hook_after_edit($id) {
 	        //Your code here 
 			$this->opnameRepositoy->updateActualStock($id);
+
+			$opnameDetail = StockOpnameDetail::where('stock_opname_id',$id)	
+									->join('product_locations','product_locations.id','product_location_id')
+									->join('products','products.id','product_locations.product_id')
+									->get();
+
+		   foreach($opnameDetail as $item){
+				$this->productRepository->updateTotalStockAllLocation($item['product_id']);
+		   }
 	    }
 
 	    /* 

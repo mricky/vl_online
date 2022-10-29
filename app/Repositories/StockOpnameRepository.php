@@ -43,17 +43,7 @@ class StockOpnameRepository implements IStockOpname {
             $prodLocation->updated_by =  CRUDBooster::myId() ?? 1;
             $prodLocation->save();
             
-            // TOTAL
-            #$totalWhStock = $prodLocation->sum('qty_onhand'); 
-
-            #die($totalWhStock); exit;
-            // PRODUCT WHERE PRODUCT / WL_LOCATION
-            
          }
-
-         // update barang
-         #exit;
-        # 1update total on stokopname
         # update product by product location
     }
 }

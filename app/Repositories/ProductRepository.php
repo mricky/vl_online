@@ -29,6 +29,7 @@ interface IProduct {
     public function updateSalesStokLocation($salesId);
     public function updateStokByProductEntry($id);
     public function findProductLocationItem($ids,$whLocationId);
+    public function updateTotalStockAllLocation($productId);
 
 }
 class ProductRepository implements IProduct {
@@ -103,6 +104,27 @@ class ProductRepository implements IProduct {
         return $formated;
 
     }
+    public function updateTotalStockAllLocation($productId){
+        // next ini di buat di trait
+        $countbyAllLocation = ProductLocation::select(
+            DB::raw('sum(qty_onhand) as total_qty')
+        )->where('product_id',$productId)->first();
+       
+        $product = Product::findOrFail($productId);
+
+        try {
+            DB::beginTransaction();
+
+            $product->qty_onhand = $countbyAllLocation['total_qty'];
+            $product->save();
+            DB::commit();
+        } catch(\Exception $e){
+            DB::rollback();
+            dd($e->getMessage());
+        }
+      
+    }
+    
     public function syncInternalStock(){
         $wh_location = WhLocation::where('wh_location_name',$this::INTERNAL_LOCATION)->first();
 

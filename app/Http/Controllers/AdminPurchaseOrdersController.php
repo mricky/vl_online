@@ -1,5 +1,6 @@
 <?php namespace App\Http\Controllers;
 
+use App\Events\OrderEntryEvent;
 use App\Repositories\GoodReceiptRepository;
 use Session;
 use Request;
@@ -438,10 +439,8 @@ use Maatwebsite\Excel\Facades\Excel;
 				'module' => 'purchase',
 			];
 			
-			$this->goodReceipt->automaticReceiptEntry($purchase->id);
-			$this->goodReceipt->syncPurchaseItemQty($purchase->id);
 			//$this->journalTransaction->purchaseJournalEntry((object)$data,0); // automatic journal
-
+			event(new OrderEntryEvent($purchase)); 
 	    }
 
 	    /* 

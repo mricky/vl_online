@@ -561,7 +561,8 @@ use Session;
 
 			$this->salesOrder->updatePayment((object)$payload);
 
-			CRUDBooster::redirect($_SERVER['HTTP_REFERER'], 'Pembayaran Berhasil', 'success'); 
+			#CRUDBooster::redirect($_SERVER['HTTP_REFERER'], 'Pembayaran Berhasil', 'success'); 
+			CRUDBooster::redirect(CRUDBooster::mainpath("/"),"Berhasil Pembayaran","info");
 		}
 		public function postKirim(){
 			

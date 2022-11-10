@@ -36,8 +36,7 @@ class SynchSalesItemListener
         
         $payload = [
             'id' => $event->sales->id,
-            'delivery_order' => 1,
-            'notes' => 'pengurangan item dari sales'
+            'delivery_order' => 1
         ];
        #var_dump($payload);
         $this->salesRepository->updateDeliveryOrder((object)$payload);

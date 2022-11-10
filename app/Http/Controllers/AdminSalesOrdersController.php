@@ -57,7 +57,7 @@ use Session;
 			$this->col[] = ["label"=>"Total","name"=>"total","callback_php"=>'number_format($row->total)'];
 			$this->col[] = ["label"=>"Bayar","name"=>"total_amount","callback_php"=>'number_format($row->total_amount)'];
 			$this->col[] = ["label"=>"Sisa","name"=>"amount_due","callback_php"=>'number_format($row->amount_due)'];
-			$this->col[] = ["label"=>"Notes","name"=>"notes"];
+			$this->col[] = ["label"=>"Penerima","name"=>"notes"];
 			$this->col[] = ["label"=>"Status","name"=>"delivery_order","callback_php"=>'($row->delivery_order==0)?"<span class=\"label label-default\">PROSES</span>":"<span class=\"label label-danger\">DELIVERY</span>"'];
 			# END COLUMNS DO NOT REMOVE THIS LINE
 
@@ -67,6 +67,7 @@ use Session;
 			$this->form[] = ['label'=>'Tgl Order','name'=>'order_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-5'];
 			$this->form[] = ['label'=>'Expedisi','name'=>'expedition_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'expeditions,name'];
 			$this->form[] = ['label'=>'Keterangan','name'=>'description','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
+			$this->form[] = ['label'=>'Penerima','name'=>'notes','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
 			$columns = [];
 			$columns[] = ['label'=>'Produk','name'=>'product_id','type'=>'select','required'=>true,'width'=>'col-sm-5','datatable'=>'view_product,product_name'];
 			$columns[] = ['label'=>'Lokasi Produk','name'=>'product_location_id','type'=>'select','required'=>true,'width'=>'col-sm-5','datatable'=>'view_product_location,product_location','parent_select'=>'product_id'];

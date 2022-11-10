@@ -614,12 +614,12 @@ use Session;
 
 			$sales = DB::table('sales_orders as t1')
 						->select('t1.*','t2.name', 't3.name as expedition','t5.name as product_name','t6.name as category_name','t7.name as brand_name','t10.name as vendor_name')
-						->leftJoin('customers as t2','t1.customer_id','=','t2.id')
+						->join('customers as t2','t1.customer_id','=','t2.id')
 						->join('sales_order_details as t4','t1.id','=','t4.sales_order_id')
 						->join('products as t5','t4.product_id','t5.id')
 						->join('product_categories as t6','t6.id','t5.category_id')
 						->join('product_brands as t7','t5.brand_id','t7.id')
-						->leftJoin('product_locations as t8','t4.product_id','t8.product_id')
+						->join('product_locations as t8','t4.product_id','t8.product_id')
 						->leftJoin('goods_receipt as t9','t9.id','t8.good_receipt_id')
 						->leftJoin('vendors as t10','t10.id','t9.vendor_id')
 						->leftJoin('expeditions as t3','t1.expedition_id','=','t3.id');

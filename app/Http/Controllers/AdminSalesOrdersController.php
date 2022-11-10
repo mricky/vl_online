@@ -1,6 +1,7 @@
 <?php namespace App\Http\Controllers;
 
-	use Session;
+use App\Events\SalesEntryEvent;
+use Session;
 	use Request;
 	use DB;
 	use CRUDBooster;
@@ -412,7 +413,9 @@
 			}
 			
 			$this->journalTransaction->salesJournalEntry((object)$data,0,$mode);
-	    }
+	   
+			event(new SalesEntryEvent($sales)); 
+		}
 
 	    /* 
 	    | ---------------------------------------------------------------------- 

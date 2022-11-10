@@ -46,7 +46,7 @@ use GuzzleHttp\Psr7\Request as Psr7Request;
 			$this->col[] = ["label"=>"Supplier","name"=>"vendor_id","join"=>"vendors,name"];
 			$this->col[] = ["label"=>"Kode","name"=>"code"];
 			$this->col[] = ["label"=>"Nama","name"=>"name"];
-			$this->col[] = ["label"=>"Supplier","name"=>"vendor_id","join"=>"vendors,name"];
+			#$this->col[] = ["label"=>"Supplier","name"=>"vendor_id","join"=>"vendors,name"];
 			$this->col[] = ["label"=>"Kategori","name"=>"category_id","join"=>"product_categories,name"];
 			$this->col[] = ["label"=>"Brand","name"=>"brand_id","join"=>"product_brands,name"];
 			$this->col[] = ["label"=>"Biaya","name"=>"product_cost"];
@@ -57,7 +57,7 @@ use GuzzleHttp\Psr7\Request as Psr7Request;
 			# START FORM DO NOT REMOVE THIS LINE
 			$this->form = [];
 			$this->form[] = ['label'=>'Nama','name'=>'name','type'=>'text','validation'=>'required|string|min:3|max:70','width'=>'col-sm-10'];
-			$this->form[] = ['label'=>'Supplier','name'=>'vendor_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'vendors,name'];
+			#$this->form[] = ['label'=>'Supplier','name'=>'vendor_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'vendors,name'];
 			$this->form[] = ['label'=>'Kategori','name'=>'category_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'product_categories,name'];
 			$this->form[] = ['label'=>'Brand','name'=>'brand_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'product_brands,name'];
 			$this->form[] = ['label'=>'Biaya','name'=>'product_cost','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
@@ -416,6 +416,31 @@ use GuzzleHttp\Psr7\Request as Psr7Request;
 
 		public function updateTotalStockAllLocation($id){
 			$update = $this->product->updateTotalStockAllLocation($id);
+		}
+		public function getItems(Request $requst){
+			
+			$sort_by 		= Request::get('sortby');
+			$sort_type  	= Request::get('sort_type');
+			$filter      	= Request::get('query');
+			$category      	= Request::get('category');
+			
+			$query = str_replace(" ", "%", $query);
+			$items = DB::table('product_locations as t1')
+				     ->join('products as t2','t2.id','t1.product_id')
+					 ->when($filter, function($query) use ($filter){
+						return $query->where('t2.name','like','%'.$filter.'%');		
+					 })
+					// ->when($category !=null, function($query) use ($category){
+					// 	return $query->where('t1.category_id','=',$category);		
+					// })
+					->where('t1.wh_location_id',3)
+					->where('t1.qty_onhand','>', 0)
+					->paginate(20);
+
+			
+			return response()->json($items);
+			
+	
 		}
 	    //By the way, you can still create your own method in here... :) 
 	}

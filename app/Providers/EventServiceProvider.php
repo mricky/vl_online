@@ -17,6 +17,9 @@ class EventServiceProvider extends ServiceProvider
             'App\Listeners\GoodReceiptListener',
             'App\Listeners\SynchPurchaseItemListener'
         ],
+        'App\Events\SalesEntryEvent' => [
+            'App\Listeners\SynchSalesItemListener'
+        ],
     ];
 
     /**

@@ -148,7 +148,6 @@ class ProductRepository implements IProduct {
     }
     public function updateSalesStokLocation($salesId){
         $salesDetails = SalesOrderDetail::where('sales_order_id',$salesId)->get();
-        //dd($salesId);
         try {
             DB::beginTransaction();
 

@@ -208,8 +208,10 @@ use Session;
 	        |
 	        */
 			$this->index_statistic[] = ['label'=>'Total Order','count'=>$this->salesOrder->getTotalSalesOrder(),'icon'=>'fa fa-file-text','color'=>'warning'];
-			$this->index_statistic[] = ['label'=>'Total Order (Rp)','count'=>number_format($this->salesOrder->getTotalSalesOrderRp()),'icon'=>'fa fa-file-text','color'=>'danger'];
-			$this->index_statistic[] = ['label'=>'Total Piutang (Rp)','count'=>number_format($this->salesOrder->getTotalSalesPiutangRp()),'icon'=>'fa fa-file-text','color'=>'success'];
+			$this->index_statistic[] = ['label'=>'Pending Kirim','count'=>$this->salesOrder->getTotalKirimOrder(),'url'=>'sales_orders?filter=pending-kirim','icon'=>'fa fa-file-text','color'=>'warning'];
+			#$this->index_statistic[] = ['label'=>'Total Order (Rp)','count'=>number_format($this->salesOrder->getTotalSalesOrderRp()),'icon'=>'fa fa-file-text','color'=>'danger'];
+			$this->index_statistic[] = ['label'=>'Total Lunas (Rp)','count'=>number_format($this->salesOrder->getTotalSalesLunasRp()),'url'=>'sales_orders?filter=lunas','icon'=>'fa fa-file-text','color'=>'success'];
+			$this->index_statistic[] = ['label'=>'Total Piutang (Rp)','count'=>number_format($this->salesOrder->getTotalSalesPiutangRp()),'url'=>'sales_orders?filter=piutang','icon'=>'fa fa-file-text','color'=>'success'];
 
 
 
@@ -335,7 +337,16 @@ use Session;
 	    */
 	    public function hook_query_index(&$query) {
 	        //Your code here
-	            
+			if(Request::get('filter') == 'piutang'){
+				$query->where('sales_orders.amount_due','>',0);
+			} 
+			if(Request::get('filter') == 'lunas'){
+				$query->where('sales_orders.amount_due','=',0);
+			} 
+			if(Request::get('filter') == 'pending-kirim'){
+				$query->where('sales_orders.delivery_order','=',0);
+			} 
+		
 	    }
 
 	    /*
@@ -355,7 +366,7 @@ use Session;
 	    | @arr
 	    |
 	    */
-	    public function hook_before_add(&$postdata) {        
+	    public function hook_before_add(&$postdata) {       
 	        //Your code here
 			if (!Request::get('order_date')){
 				CRUDBooster::redirect(CRUDBooster::mainpath("add"),"Silahkan Isi Tanggal Order","info");
@@ -368,6 +379,8 @@ use Session;
 			$month = date("m");
 			$no = str_pad($sq+1,4,"0",STR_PAD_LEFT);
 			$postdata['order_number'] = $code.$customer.$year.$month.$no;
+			$postdata['expedition_cost'] = (int)$postdata['expedition_cost'];
+			$postdata['notes'] = $postdata['notes'];
 			$postdata['order_status_id'] = 1;
 			$postdata['created_by'] = CRUDBooster::myId();
 	  
@@ -639,7 +652,9 @@ use Session;
 			if(isset($start_date) && isset($end_date)){
 				$sales = $sales->whereRaw("DATE_FORMAT(t1.order_date, '%Y-%m-%d') >= '" . $start_date . "' AND DATE_FORMAT(t1.order_date, '%Y-%m-%d') <= '" . $end_date . "'");
 			}
+
 			$sales = $sales->get();
+
 			#echo '<pre>'; print_r($sales); echo '</pre>'; exit;
 			$data['page_title'] = 'Laporan Penjualan Barang';
 

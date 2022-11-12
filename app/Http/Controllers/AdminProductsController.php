@@ -43,7 +43,7 @@ use GuzzleHttp\Psr7\Request as Psr7Request;
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
 			$this->col[] = ["label"=>"Track Lot No","name"=>"is_track_lot_number","callback_php"=>'($row->is_track_lot_number==1)?"<span class=\"label label-success\">YES</span>":"<span class=\"label label-danger\">NO</span>"'];
-			$this->col[] = ["label"=>"Supplier","name"=>"vendor_id","join"=>"vendors,name"];
+			#$this->col[] = ["label"=>"Supplier","name"=>"vendor_id","join"=>"vendors,name"];
 			$this->col[] = ["label"=>"Kode","name"=>"code"];
 			$this->col[] = ["label"=>"Nama","name"=>"name"];
 			#$this->col[] = ["label"=>"Supplier","name"=>"vendor_id","join"=>"vendors,name"];
@@ -59,7 +59,7 @@ use GuzzleHttp\Psr7\Request as Psr7Request;
 			$this->form[] = ['label'=>'Nama','name'=>'name','type'=>'text','validation'=>'required|string|min:3|max:70','width'=>'col-sm-10'];
 			#$this->form[] = ['label'=>'Supplier','name'=>'vendor_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'vendors,name'];
 			$this->form[] = ['label'=>'Kategori','name'=>'category_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'product_categories,name'];
-			$this->form[] = ['label'=>'Brand','name'=>'brand_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'product_brands,name'];
+			$this->form[] = ['label'=>'Brand','name'=>'brand_id','type'=>'select2','validation'=>'nullable|integer|min:0','width'=>'col-sm-10','datatable'=>'product_brands,name'];
 			$this->form[] = ['label'=>'Biaya','name'=>'product_cost','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Harga','name'=>'product_price','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Jumlah','name'=>'qty_onhand','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];

@@ -4,8 +4,10 @@ use DB;
 
 interface ISalesOrder {
     public function getTotalSalesOrder();
+    public function getTotalKirimOrder();
     public function getTotalSalesOrderRp();
     public function getTotalSalesPiutangRp();
+    public function getTotalSalesLunasRp();
     public function getSalesOrder($id);
     public function getDetailSalesOrder($id);
     public function updateDeliveryOrder($data);
@@ -28,12 +30,19 @@ class SalesOrderRepository implements ISalesOrder {
     public function updateDeliveryOrder($data){
 
         $data = DB::table('sales_orders')->where('id',$data->id)->update([
-            'delivery_order' => $data->delivery_order,
-            'notes' => $data->notes
+            'delivery_order' => $data->delivery_order
         ]);
 
         return $data;
 
+    }
+    public function getTotalKirimOrder(){
+        $data = DB::table('sales_orders')
+                ->selectRaw('COUNT(sales_orders.total) as kirim')
+                ->where('sales_orders.delivery_order','=','0')
+                ->get();
+
+        return $data[0]->kirim;
     }
     public function getTotalSalesOrder(){
         $data = DB::table('sales_orders')->count('id');
@@ -46,11 +55,24 @@ class SalesOrderRepository implements ISalesOrder {
 
         return $data;
     }
+    public function getTotalSalesLunasRp()
+    {
+        $data = DB::table('sales_orders')
+                    ->selectRaw('SUM(sales_orders.total) as lunas')
+                    ->where('sales_orders.amount_due','=','0')
+                    ->get();
+       
+         return $data[0]->lunas;
+    }
+
     public function getTotalSalesPiutangRp()
     {
-        $data = DB::table('sales_orders')->sum('sales_orders.amount_due');
+        $data = DB::table('sales_orders')
+                    ->selectRaw('SUM(sales_orders.total) as amount_due')
+                    ->where('sales_orders.amount_due','>','0')
+                    ->get();
        
-         return $data;
+         return $data[0]->amount_due;
     }
     public function getSalesOrder($id)
     {

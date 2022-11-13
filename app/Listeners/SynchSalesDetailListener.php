@@ -10,8 +10,7 @@ use App\Repositories\{
     SalesOrderRepository,
     ProductRepository
 };
-use \stdClass;
-class SynchSalesItemListener
+class SynchSalesDetailListener
 {
    
     /**
@@ -33,9 +32,6 @@ class SynchSalesItemListener
      */
     public function handle(SalesEntryEvent $event)
     {
-             $id = $event->sales->id;
-             $this->salesRepository->updateDeliveryOrder($id);
-             $this->productRepository->updateSalesStokLocation($event->sales->id);
-     
+        $this->salesRepository->updateDetailSalesOrder($event->sales->id); 
     }
 }

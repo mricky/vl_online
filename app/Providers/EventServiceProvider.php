@@ -18,7 +18,8 @@ class EventServiceProvider extends ServiceProvider
             'App\Listeners\SynchPurchaseItemListener'
         ],
         'App\Events\SalesEntryEvent' => [
-            'App\Listeners\SynchSalesItemListener'
+            'App\Listeners\SynchSalesItemListener',
+            'App\Listeners\SynchSalesDetailListener'
         ],
     ];
 

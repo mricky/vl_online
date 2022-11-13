@@ -441,16 +441,16 @@ use Session;
 	    */
 	    public function hook_before_edit(&$postdata,$id) {        
 	        //Your code here
-			$sales = DB::table('sales_orders')->where('id',$id)->first();
+			// $sales = DB::table('sales_orders')->where('id',$id)->first();
+			// $data = [
+			// 	'id' => $sales->id,
+			// 	'order_number' => $sales->order_number,
+			// 	'total_amount' => $postdata['total'],
+			// 	'module' => 'sales',
+			// ];
 		
-			$data = [
-				'id' => $sales->id,
-				'order_number' => $sales->order_number,
-				'total_amount' => $postdata['total'],
-				'module' => 'sales',
-			];
+			#$this->journalTransaction->updatePurchaseJournalEntry((object)$data); // next concern on accounting development
 		
-			$this->journalTransaction->updatePurchaseJournalEntry((object)$data);
 	    }
 
 	    /* 
@@ -462,7 +462,9 @@ use Session;
 	    */
 	    public function hook_after_edit($id) {
 	        //Your code here 
-
+			$sales = DB::table('sales_orders')->where('id',$id)->first();
+		
+			event(new SalesEntryEvent($sales)); 
 	    }
 
 	    /* 
@@ -736,5 +738,35 @@ use Session;
 			  ];
 			 // echo '<pre>'; print($data['data']['item_incoming']); echo '<pre>'; exit;
 			  $this->cbView('dashboards.statistic',$data);
+		}
+
+		// Sync Penjualan langsung delivered, karna fitur delivery include di sales
+
+		public function syncSalesDelivery($id){
+			// local
+			#$sales = DB::table('sales_orders')->where('is_point_of_sales',0)->get();
+			// server
+			$sales = DB::table('sales_orders')->get();
+			foreach($sales as $item){
+				// DO Event Here
+				switch($id){
+					case  1 :
+						// sinkronisasi sales detail 
+						$this->salesOrder->updateDetailSalesOrder($item->id); 
+						echo 'sinkronisasi sales detail';
+					break;
+					case  2 :
+						// delivery jadi terkirim
+						 $this->salesOrder->updateDeliveryOrder($item->id);
+						 echo 'delivery jadi terkirim';
+					break;
+					case 3;
+					    // update onhand berdasarkan sales detail
+						$this->productRepository->updateSalesStokLocation($item->id);
+						echo 'update onhand berdasarkan sales detail';
+					break;
+
+				}
+			}
 		}
 	} 

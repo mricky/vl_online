@@ -55,7 +55,7 @@ class ProductRepository implements IProduct {
 		if($ids != null){
 				$data->whereIn('product_id',$ids);
 		}
-
+        $data->where('product_locations.qty_onhand','!=',0);
         $data = $data->get();
 
         return $data;

@@ -10,12 +10,23 @@ interface ISalesOrder {
     public function getTotalSalesLunasRp();
     public function getSalesOrder($id);
     public function getDetailSalesOrder($id);
-    public function updateDeliveryOrder($data);
+    public function updateDetailSalesOrder($id);
+    public function updateDeliveryOrder($id);
     public function updatePayment($data);
 }
 
 class SalesOrderRepository implements ISalesOrder {
 
+    public function updateDetailSalesOrder($id){
+        $sales = $this->getSalesOrder($id);
+        
+        $detail = DB::table('sales_order_details')->where('sales_order_id',$id)
+                ->update([
+                    'customer_name' => $sales->customer_name,
+                    'expedition_name' => $sales->expedition_name
+                ]);
+        return $detail;
+    }
     public function updatePayment($data){
 
         $data = DB::table('sales_orders')->where('id',$data->id)->update([
@@ -27,10 +38,10 @@ class SalesOrderRepository implements ISalesOrder {
         return $data;
 
     }
-    public function updateDeliveryOrder($data){
+    public function updateDeliveryOrder($id){
 
-        $data = DB::table('sales_orders')->where('id',$data->id)->update([
-            'delivery_order' => $data->delivery_order
+        $data = DB::table('sales_orders')->where('id',$id)->update([
+            'delivery_order' =>1
         ]);
 
         return $data;

@@ -14,6 +14,12 @@
 // Route::get('/', function () {
 //     return view('welcome');
 // });
+# Batch Syncronize
+Route::get('/sync-sales-order/{id}','AdminSalesOrdersController@syncSalesDelivery');
+#POINT OF SALES
+Route::post('/doPrint','AdminSalesOrders47Controller@doPrint');
+Route::post('/save-cashier','AdminSalesOrders47Controller@saveCashier');
+Route::get('/fetchItems/filter','AdminProductsController@getItems');
 
 Route::get('/update-total-qty/{productId}','AdminProductsController@updateTotalStockAllLocation');
 Route::get('/sync-purchase-item','AdminGoodsReceiptController@syncPurchaseItemQty');

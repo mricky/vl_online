@@ -226,6 +226,7 @@ use Session;
 	        $this->script_js = "
 				$(function(){
 					setInterval(function(){
+							console.log('expedition cost');
 							var subTotal = 0;
 							$('#table-ordersdetail tbody .total').each(function(){
 								var sub = parseInt($(this).text());
@@ -284,7 +285,7 @@ use Session;
 	        | $this->load_js[] = asset("myfile.js");
 	        |
 	        */
-			$this->load_js[] = asset("js/sales.js");
+			#$this->load_js[] = asset("js/sales.js");
 	        
 	        
 	        

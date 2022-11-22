@@ -19,6 +19,7 @@ interface IProduct {
     public function findProductItem($term);
     public function findProductCategory($term);
     public function findProductBrand($term);
+    public function syncProductItemReturnPurchase($productLocationId);
     public function syncInternalStock();
     public function getProductById($productId);
     public function getItemLinePO($poId);
@@ -30,13 +31,38 @@ interface IProduct {
     public function updateStokByProductEntry($id);
     public function findProductLocationItem($ids,$whLocationId);
     public function updateTotalStockAllLocation($productId);
-
+    public function findProductItemPurchase($purchaseId);
 }
 class ProductRepository implements IProduct {
 
 
     const INTERNAL_LOCATION = "WH/Stock";
+    public function syncProductItemReturnPurchase($productLocationIds){
+        // update qty product location
+        // ini akan jadi masalah klo ada opname
+        // update on hand product
+        foreach($productLocationIds as $item){
+            $productLocation = ProductLocation::find($item->product_location_id);
+            $detailPurchaseReturn = DB::table('purchase_order_detail_return')->where('id',$item->id)
+                            ->update([
+                                'product_id' => $productLocation->product_id,
+                                'created_by' => CRUDBooster::myId() ?? 1]
+                                
+            );
+           
+            #echo $productLocation->product_id; exit;
 
+
+        }
+    }
+    public function findProductItemPurchase($purchaseId)
+    {
+        $data = DB::table('view_product_purchases')
+                    ->where('purchase_order_id',$purchaseId)->get();
+
+        return $data;
+
+    }
     public function findProductLocationItem($ids,$whLocationId){
         $data = [];
         

@@ -1,0 +1,106 @@
+@media screen {
+    *{
+        /*display: none!important;*/
+    }
+}
+@media print {
+    
+    @page{
+        size:  auto;   /* auto is the initial value */
+        margin: 0;  /* this affects the margin in the printer settings */
+    }    
+
+    html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, font, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td,*{
+        font-family:arial;
+        font-size: 9pt !important;
+        -webkit-text-size-adjust: none!important;
+    }
+
+    html{
+        background-color: #FFFFFF; 
+        margin: 0;  /* this affects the margin on the html before sending to printer */
+    }
+
+    body{
+        margin: 0mm 4mm 0mm 0mm; /* margin you want for the content */
+        /*padding: 30px 0;*/        
+    }
+    
+    mark, .mark {
+        background-color: #000000!important;
+    }
+
+    p{
+        margin: 0;
+    }
+
+    table{
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    table td,table td td,table td td td{
+        vertical-align: top;
+        line-height: 1.15;
+        padding: 0;
+        margin: 0;
+    }
+    
+    table:not(.inner-table) tr td:nth-child(1):not([colspan="3"])
+    {
+        width:37mm!important;
+    }
+    table.inner-table.header tr td:nth-child(1):not([colspan="3"])
+    {
+        width:67mm!important;
+    }
+    
+    hr{
+        border-top:2px dashed #000;
+        margin: 1.75mm 0;
+    }
+
+    .text-center{
+        text-align: center;
+    }
+    .text-right{
+        text-align: right;
+    }
+
+    .bolder
+    {
+        font-weight: 600;
+    }
+
+    .deboard
+    {
+        background-color: #000000!important;
+        color:#ffffff!important;
+        -webkit-print-color-adjust: exact!important; /*Chrome, Safari */
+        color-adjust: exact!important; /*Firefox*/
+    }
+
+    .deboard
+    {
+        color:transparent!important;
+        text-shadow: 0 0 0px #ffffff!important;
+        -webkit-print-color-adjust: exact!important; /*Chrome, Safari */
+        color-adjust: exact!important; /*Firefox*/
+    }
+    
+    /* Chrome Only */
+    @media all and (-webkit-min-device-pixel-ratio:0) and (min-resolution: .001dpcm){
+        img.img-chrome{
+            width: 100%!important;
+        }
+        table:not(.inner-table) tr td:nth-child(1):not([colspan="3"])
+        {
+            width:21mm!important;
+        }
+        table.inner-table.header tr td:nth-child(1):not([colspan="3"])
+        {
+            width:51mm!important;
+        }
+    }
+    
+}     

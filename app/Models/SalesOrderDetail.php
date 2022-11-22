@@ -8,6 +8,7 @@ class SalesOrderDetail extends Model
 {
    protected $fillable = [
         'sales_order_id',
+        'order_date',
         'qty',
         'product_id',
         'product_location_id',

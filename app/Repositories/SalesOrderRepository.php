@@ -23,7 +23,8 @@ class SalesOrderRepository implements ISalesOrder {
         $detail = DB::table('sales_order_details')->where('sales_order_id',$id)
                 ->update([
                     'customer_name' => $sales->customer_name,
-                    'expedition_name' => $sales->expedition_name
+                    'expedition_name' => $sales->expedition_name,
+                    'order_date' => $sales->order_date
                 ]);
         return $detail;
     }

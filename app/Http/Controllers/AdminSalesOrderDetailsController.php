@@ -31,6 +31,7 @@
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
 			$this->col[] = ["label"=>"Sales Order","name"=>"sales_order_id","join"=>"sales_orders,order_number"];
+			$this->col[] = ["label"=>"Tgl Order","name"=>"order_date"];
 			$this->col[] = ["label"=>"Pelanggan","name"=>"customer_name"];
 			$this->col[] = ["label"=>"Expedisi","name"=>"expedition_name"];
 			$this->col[] = ["label"=>"Penerima","name"=>"sales_order_id","join"=>"sales_orders,notes"];

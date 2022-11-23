@@ -521,6 +521,30 @@ class AdminSalesOrders47Controller extends \crocodicstudio\crudbooster\controlle
 			return response()->json($data);
 		}
 
+		public function doPrint(Request $requst){
+
+			$order_id = Request::post('order_id');
+			$data = [];
+			$orders = DB::table('sales_orders')->where('sales_orders.id', $order_id)
+						->select('sales_orders.*','cms_users.name')
+						->join('cms_users','sales_orders.created_by','=','cms_users.id')
+						->first();
+
+			$items =  DB::table('sales_order_details as t1')
+			            ->select('t1.*','t2.name')
+						->join('products as t2','t1.product_id','=','t2.id')
+						->where('t1.sales_order_id',$order_id)->get();
+			
+			$labels = DB::table('setting_receipt')->first();
+		
+			$data['labels'] = $labels;
+			$data['transactions'] = $orders;
+			$data['detail_transaction']  = $items;		
+			
+			$this->cbView('prints.print-struk',$data);
+			#return response()->json(['success'=>'true','data'=>$data,'view'=>view('prints/print-struk')->with($data)->render()], 200, ['Content-Type' => 'application/json']);
+		}
+
 		public function getPrint($id){
 
 			$order_id = $id;

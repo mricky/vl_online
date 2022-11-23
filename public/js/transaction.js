@@ -288,7 +288,7 @@ $(document).ready(function() {
       }
   
       $.ajax({
-          url: '/save-cashier',
+          url: '/mall-ukm/save-cashier',
           type: 'POST',
           data:  {
                     id: transaction.id,
@@ -344,11 +344,13 @@ $(document).ready(function() {
         displayCart();
     });
     function fetch_data(page,sort_type, sort_by, category,query){
-       
+        var base_url = base_url = window.location.origin;
+        var host = window.location.host;
+        console.log(host);
         var tableItems = $('#table-items');
         $('#table-items tbody tr').remove();
         $.ajax({
-            url:"/fetchItems/filter?page="+page+"&sortby="+sort_by+"&sorttype="+sort_type+"&category="+category+"&query="+query,
+            url:"/mall-ukm/fetchItems/filter?page="+page+"&sortby="+sort_by+"&sorttype="+sort_type+"&category="+category+"&query="+query,
             success:function(result)
             {
                 result.data.map(item=>{

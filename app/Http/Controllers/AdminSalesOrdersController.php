@@ -727,17 +727,12 @@ use Session;
 			$this->cbView('prints.sales',$data);
 		}
 		public function getStatus(){
-			if(!CRUDBooster::isRead() && $this->global_privilege==FALSE || $this->button_edit==FALSE) {    
-				CRUDBooster::redirect(CRUDBooster::adminPath(),trans("crudbooster.denied_access"));
-			  }
-
 			  $data = [];
 			  $data['page_title'] = 'Detail Data';
 			  $data['data'] = [
 				'item_incoming' => 100,
 				'item_outgoing' => 100
 			  ];
-			 // echo '<pre>'; print($data['data']['item_incoming']); echo '<pre>'; exit;
 			  $this->cbView('dashboards.statistic',$data);
 		}
 

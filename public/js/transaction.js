@@ -377,7 +377,7 @@ $(document).ready(function() {
             iframes[i].parentNode.removeChild(iframes[i]);
         }
                     
-        var route = "/doPrint";
+        var route = "/mall-ukm/doPrint";
         var formData = {order_id:last_id};
       
         $.post(route, formData, function(data){

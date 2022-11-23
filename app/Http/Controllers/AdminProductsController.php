@@ -438,7 +438,7 @@ use GuzzleHttp\Psr7\Request as Psr7Request;
 								$join->where('t2.wh_location_id',3);
 								$join->where('t2.qty_onhand','>',0);
 							    $join->orderBy('t2.qty_onhand','desc');
-								$join->limit(1);
+						
 					  })
 					  ->join('wh_locations as t3','t3.id','t2.wh_location_id')
 					  ->join('product_categories as t4','t4.id','t1.category_id')
@@ -447,7 +447,7 @@ use GuzzleHttp\Psr7\Request as Psr7Request;
 								 })
 					  ->when($category, function($query) use ($category){
 							if($category != 'all'){
-								return $query->where('t4.name',$category);		
+								return $query->where('t4.id',$category);		
 							}
 							else {
 								return $query;

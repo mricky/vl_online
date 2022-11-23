@@ -20,7 +20,7 @@ Route::get('/sync-sales-order/{id}','AdminSalesOrdersController@syncSalesDeliver
 # 
 
 #POINT OF SALES
-Route::post('/doPrint','AdminSalesOrders47Controller@doPrint');
+Route::post('/doPrint','AdminSalesOrders47Controller@getPrint');
 Route::post('/save-cashier','AdminSalesOrders47Controller@saveCashier');
 Route::get('/fetchItems/filter','AdminProductsController@getItems');
 

@@ -37,6 +37,7 @@ class ProductRepository implements IProduct {
 
 
     const INTERNAL_LOCATION = "WH/Stock";
+    const TOKO_LOCATION = 'Toko';
     public function syncProductItemReturnPurchase($productLocationIds){
         // update qty product location
         // ini akan jadi masalah klo ada opname
@@ -152,7 +153,7 @@ class ProductRepository implements IProduct {
     }
     
     public function syncInternalStock(){
-        $wh_location = WhLocation::where('wh_location_name',$this::INTERNAL_LOCATION)->first();
+        $wh_location = WhLocation::where('wh_location_name',$this::TOKO_LOCATION)->first();
 
         $products = Product::all();
         try {

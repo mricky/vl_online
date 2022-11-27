@@ -1,5 +1,8 @@
 <?php namespace App\Http\Controllers;
 
+
+use App\Events\SalesEntryEvent;
+use App\Models\ProductLocation;
 use Session;
 use Request;
 use DB;
@@ -37,7 +40,7 @@ class AdminSalesOrders47Controller extends \crocodicstudio\crudbooster\controlle
 			$this->button_bulk_action = true;
 			$this->button_action_style = "button_icon";
 			$this->button_add = false;
-			$this->button_edit = true;
+			$this->button_edit = false;
 			$this->button_delete = true;
 			$this->button_detail = true;
 			$this->button_show = true;
@@ -75,6 +78,7 @@ class AdminSalesOrders47Controller extends \crocodicstudio\crudbooster\controlle
 			$columns[] = ["label"=>"Qty","name"=>"qty",'type'=>'number','required'=>true];
 			$columns[] = ["label"=>"Total","name"=>"total",'type'=>'number','readonly'=>true,"callback_php"=>'number_format($row->total)','formula'=>"parseInt([qty]) * parseInt([price])"];
 			$columns[] = ["label"=>"Lot Number","name"=>"lot_number",'type'=>'text','readonly'=>true];
+
 			$this->form[] = ['label'=>'Orders Detail','name'=>'sales_order_details','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'sales_order_details','foreign_key'=>'sales_order_id'];
 			$this->form[] = ['label'=>'Subtotal','name'=>'subtotal','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5','readonly'=>true];
 			$this->form[] = ['label'=>'Discount (-)','name'=>'discount','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
@@ -497,11 +501,14 @@ class AdminSalesOrders47Controller extends \crocodicstudio\crudbooster\controlle
 			 $total = Request::post('total');
 
 			if(!empty($name)){
-				for($i = 0; $i < count($name); $i++){			
+				
+				for($i = 0; $i < count($name); $i++){
+					$productLocation = ProductLocation::find($id[$i]);
 					$vDetail = [];
 					$vDetail['sales_order_id'] =$last_id;
-					$vDetail['product_id'] = $id[$i];
+					$vDetail['product_id'] = $productLocation->product_id;
 					// add product location
+					$vDetail['product_location_id'] = $id[$i];
 					$vDetail['price'] = $price[$i];
 					$vDetail['qty'] = $count[$i];
 					$vDetail['total'] = ((int)$price[$i] * (int)$count[$i]);
@@ -513,11 +520,16 @@ class AdminSalesOrders47Controller extends \crocodicstudio\crudbooster\controlle
 			if($last_id > 0){
 				$data['status'] = true;  
 				$data['last_id'] = $last_id;
+
+				$sales = DB::table('sales_orders')->where('id',$last_id)->first();
+				event(new SalesEntryEvent($sales));
+				 
 			}
 			else
 			{
 				$data['status'] = false;  
 			}
+			
 			return response()->json($data);
 		}
 
@@ -541,7 +553,7 @@ class AdminSalesOrders47Controller extends \crocodicstudio\crudbooster\controlle
 			$data['transactions'] = $orders;
 			$data['detail_transaction']  = $items;		
 			
-			$this->cbView('prints.print-struk',$data);
+			return response()->json(['success'=>'true','data'=>$data,'view'=>view('prints/print-struk')->with($data)->render()], 200, ['Content-Type' => 'application/json']);
 			#return response()->json(['success'=>'true','data'=>$data,'view'=>view('prints/print-struk')->with($data)->render()], 200, ['Content-Type' => 'application/json']);
 		}
 

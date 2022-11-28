@@ -99,6 +99,7 @@
                                  <td style="visibility:hidden">{{$item['product_price']}}</td>
                                  <td>{{$item['product_price_format']}}</td>
                                  <td>{{$item['wh_location_name']}}</td>
+                                 <td  style="visibility:hidden">{{$item['wh_location_id']}}</td>
                                  <td style="text-align: center"><a id="" href="javascript:void(0)"><i data-id="{{$item->name}}" class="fa fa-check check"></i></a></td>
                             </tr>
                          @endforeach
@@ -122,22 +123,6 @@
                         <strong><i class="fa fa-tag"></i> Daftar Order</strong>
                     </div> 
                     <div class="panel-body" style="padding:10px 0px 0px 10px">
-                            <div class=row>
-                                    <div class="col-sm-5">
-                                        <label>Tanggal</label>            
-                                    </div>
-                                    <div class="col-sm-5">
-                                        <label>{{$current}}</label>            
-                                    </div>  
-                            </div>
-                            <div class=row>
-                                    <div class="col-sm-5">
-                                        <label>Nama</label>            
-                                    </div>
-                                    <div class="col-sm-5">
-                                        <label id="order-customer"></label>            
-                                    </div>  
-                            </div>
                             <br>
                             <table class="table table-condensed" id="table-cart-order">
                             <thead>

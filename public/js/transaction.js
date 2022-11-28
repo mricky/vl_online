@@ -4,7 +4,7 @@ $(document).ready(function() {
     var column_name = $('#hidden_column_name').val();
     var sort_type = $('#hidden_sort_type').val();
     var page = $('#hidden_page').val();
-
+    var base_url = "mall-ukm";
     $('#table').val(1);
     sessionStorage.clear();
     var shoppingCart = (function() {
@@ -24,6 +24,7 @@ $(document).ready(function() {
         
         // Save cart
         function saveCart() {
+          // console.log('saveCart',JSON.stringify(cart));
           sessionStorage.setItem('shoppingCart', JSON.stringify(cart));
         }
         
@@ -161,8 +162,14 @@ $(document).ready(function() {
         let id =currentRow.find("td:eq(0)").text();    
         let name =currentRow.find("td:eq(1)").text(); // get current row 3rd TD
         let price =currentRow.find("td:eq(2)").text();
-        let wh_location_id = currentRow.find("td:eq(3)").text(); // location
-        shoppingCart.addItemToCart(id,wh_location_id,name, price, 1);
+        let wh_location_id = currentRow.find("td:eq(5)").text(); // location
+        // console.log('id'+id);
+        // console.log('name'+name);
+        // console.log('price'+price);
+        // console.log('wh_location_id'+wh_location_id);
+        shoppingCart.addItemToCart(id,name,wh_location_id, price, 1);
+
+
         displayCart();
               
     });
@@ -286,9 +293,10 @@ $(document).ready(function() {
         alert('anda belum memilih items');
         return;
       }
-  
+      // TODO: BaseURL
+
       $.ajax({
-          url: '/mall-ukm/save-cashier',
+          url: base_url+'/save-cashier',
           type: 'POST',
           data:  {
                     id: transaction.id,
@@ -344,13 +352,11 @@ $(document).ready(function() {
         displayCart();
     });
     function fetch_data(page,sort_type, sort_by, category,query){
-        var base_url = base_url = window.location.origin;
-        var host = window.location.host;
-        console.log(host);
+       // TODO: BASEURL
         var tableItems = $('#table-items');
         $('#table-items tbody tr').remove();
         $.ajax({
-            url:"/mall-ukm/fetchItems/filter?page="+page+"&sortby="+sort_by+"&sorttype="+sort_type+"&category="+category+"&query="+query,
+            url:base_url+"/fetchItems/filter?page="+page+"&sortby="+sort_by+"&sorttype="+sort_type+"&category="+category+"&query="+query,
             success:function(result)
             {
                 result.data.map(item=>{
@@ -358,8 +364,10 @@ $(document).ready(function() {
                         `<tr>
                             <td class="column_name p-1" style="display: none;" data-column_name="platform" data-id=${item.id}>${item.id}</td>
                             <td class="column_name p-1" data-column_name="platform" data-id=${item.name}>${item.name}</td>
-                            <td class="column_name p-1" data-column_name="platform" data-id=${item.product_price}>${item.product_price}</td>
-                            <td class="column_name p-1" data-column_name="platform" data-id=${item.wh_location_id}>${item.wh_location_id}</td>
+                            <td style="visibility:hidden" class="column_name p-1" data-column_name="platform" data-id=${item.product_price}>${item.product_price}</td>
+                            <td class="column_name p-1" data-column_name="platform" data-id=${item.product_price_format}>${item.product_price_format}</td>
+                            <td class="column_name p-1" data-column_name="platform" data-id=${item.wh_location_name}>${item.wh_location_name}</td>
+                            <td style="visibility:hidden" class="column_name p-1" data-column_name="platform" data-id=${item.wh_location_id}>${item.wh_location_id}</td>
                             <td style="text-align: center"><a id="" href="javascript:void(0)"><i data-id="{{$item->id}}" class="fa fa-check check"></i></a></td>
                         <tr>`
                     )
@@ -372,12 +380,13 @@ $(document).ready(function() {
 
     function initPrint(last_id)
     {
+        //TODO: base url
         var iframes = document.querySelectorAll('iframe');
         for (var i = 0; i < iframes.length; i++) {
             iframes[i].parentNode.removeChild(iframes[i]);
         }
                     
-        var route = "/mall-ukm/doPrint";
+        var route = base_url+"/doPrint";
         var formData = {order_id:last_id};
       
         $.post(route, formData, function(data){

@@ -296,7 +296,7 @@ $(document).ready(function() {
       // TODO: BaseURL
 
       $.ajax({
-          url: base_url+'/save-cashier',
+          url: '/mall-ukm/save-cashier',
           type: 'POST',
           data:  {
                     id: transaction.id,
@@ -356,7 +356,7 @@ $(document).ready(function() {
         var tableItems = $('#table-items');
         $('#table-items tbody tr').remove();
         $.ajax({
-            url:base_url+"/fetchItems/filter?page="+page+"&sortby="+sort_by+"&sorttype="+sort_type+"&category="+category+"&query="+query,
+            url:"/mall-ukm/fetchItems/filter?page="+page+"&sortby="+sort_by+"&sorttype="+sort_type+"&category="+category+"&query="+query,
             success:function(result)
             {
                 result.data.map(item=>{
@@ -386,7 +386,7 @@ $(document).ready(function() {
             iframes[i].parentNode.removeChild(iframes[i]);
         }
                     
-        var route = base_url+"/doPrint";
+        var route = "/mall-ukm/doPrint";
         var formData = {order_id:last_id};
       
         $.post(route, formData, function(data){

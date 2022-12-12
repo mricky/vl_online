@@ -16,6 +16,7 @@ interface IPurchaseOrder {
 
 class PurchaseOrderRepository implements IPurchaseOrder {
 
+
     public function updateDetailPurchaseOrder($id){
         $purchase = $this->getPurchaseOrder($id);
         

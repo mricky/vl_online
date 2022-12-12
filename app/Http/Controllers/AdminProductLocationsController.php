@@ -37,6 +37,7 @@
 
 			# START FORM DO NOT REMOVE THIS LINE
 			$this->form = [];
+			$this->form[] = ['label'=>'Vendor','name'=>'(SELECT vendors.name FROM vendors JOIN goods_receipt on vendors.id = goods_receipt.vendor_id) as vendor_name','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'products,name'];
 			$this->form[] = ['label'=>'Product','name'=>'product_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'products,name'];
 			#$this->form[] = ['label'=>'No Penerimaan','name'=>'good_receipt_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'goods_receipt,code'];
 			$this->form[] = ['label'=>'Lokasi','name'=>'wh_location_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'wh_locations,wh_location_name'];

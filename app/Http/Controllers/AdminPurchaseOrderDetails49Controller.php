@@ -1,12 +1,23 @@
 <?php namespace App\Http\Controllers;
 
-	use Session;
+use App\Models\PurchaseOrder;
+use Session;
 	use Request;
 	use DB;
 	use CRUDBooster;
-
+	use App\Repositories\{
+		PurchaseOrderRepository
+	};
 	class AdminPurchaseOrderDetails49Controller extends \crocodicstudio\crudbooster\controllers\CBController {
 
+
+		private $purchaseRepository;
+
+		public function __construct(PurchaseOrderRepository $purchaseRepository) 
+        {
+			 $this->purchaseRepository = $purchaseRepository;
+	
+        }
 	    public function cbInit() {
 
 			# START CONFIGURATION DO NOT REMOVE THIS LINE
@@ -31,6 +42,8 @@
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
 			$this->col[] = ["label"=>"Purchase Order","name"=>"purchase_order_id","join"=>"purchase_orders,order_number"];
+			$this->col[] = ["label"=>"Tgl Order","name"=>"order_date"];
+			$this->col[] = ["label"=>"Supplier","name"=>"vendor_name"];
 			$this->col[] = ["label"=>"Product","name"=>"product_id","join"=>"products,name"];
 			$this->col[] = ["label"=>"Price","name"=>"price","callback_php"=>'number_format($row->price)'];
 			$this->col[] = ["label"=>"Qty","name"=>"qty"];
@@ -338,5 +351,14 @@
 
 	    //By the way, you can still create your own method in here... :) 
 
+		public function syncPurchaseItemInfo(){
+			
+			$purchase = DB::table('purchase_orders')->get();
 
+			foreach($purchase as $item){
+				$this->purchaseRepository->updateDetailPurchaseOrder($item->id);
+			}
+			
+
+		}
 	}

@@ -10,10 +10,23 @@ interface IPurchaseOrder {
     public function getDetailPurchaseOrder($id);
     public function getPurchaseOrderReturn($id);
     public function getDetailPurchaseOrderReturn($id);
+    public function updateDetailPurchaseOrder($id);
 
 }
 
 class PurchaseOrderRepository implements IPurchaseOrder {
+
+
+    public function updateDetailPurchaseOrder($id){
+        $purchase = $this->getPurchaseOrder($id);
+        
+        $detail = DB::table('purchase_order_details')->where('purchase_order_id',$id)
+            ->update([
+                'order_date' => $purchase->order_date,
+                'vendor_name' => $purchase->vendor_name,
+            ]);
+        return $detail;
+    }
 
     public function getPurchaseOrderReturn($id)
     {

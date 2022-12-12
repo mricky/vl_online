@@ -15,6 +15,7 @@
 //     return view('welcome');
 // });
 # Batch Syncronize
+Route::get('/sync-purchase-order/','AdminPurchaseOrderDetails49Controller@syncPurchaseItemInfo');
 Route::get('/sync-sales-order/{id}','AdminSalesOrdersController@syncSalesDelivery');
 
 # 

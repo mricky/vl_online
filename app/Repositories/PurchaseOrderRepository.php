@@ -8,11 +8,47 @@ interface IPurchaseOrder {
     public function getTotalHutangRp();
     public function getPurchaseOrder($id);
     public function getDetailPurchaseOrder($id);
+    public function getPurchaseOrderReturn($id);
+    public function getDetailPurchaseOrderReturn($id);
+    public function updateDetailPurchaseOrder($id);
 
 }
 
 class PurchaseOrderRepository implements IPurchaseOrder {
 
+    public function updateDetailPurchaseOrder($id){
+        $purchase = $this->getPurchaseOrder($id);
+        
+        $detail = DB::table('purchase_order_details')->where('purchase_order_id',$id)
+            ->update([
+                'order_date' => $purchase->order_date,
+                'vendor_name' => $purchase->vendor_name,
+            ]);
+        return $detail;
+    }
+
+    public function getPurchaseOrderReturn($id)
+    {
+   
+        $data = DB::table('purchase_order_return as t1')
+                ->select('t1.*')
+                ->addSelect('t2.code as vendor_code','t2.name as vendor_name','t2.address as vendor_address','t2.phone as vendor_phone')
+                ->join('vendors as t2','t1.vendor_id','=','t2.id')  
+                ->where('t1.id',$id)      
+            ->first();
+            return $data;
+    }
+    public function getDetailPurchaseOrderReturn($id)
+    {   
+        $data = DB::table('purchase_order_detail_return as t1')
+                 ->select('t1.*')
+                 ->addSelect('t2.code as product_code','t2.name as product_name')
+                 ->join('products as t2','t1.product_id','=','t2.id')
+                 ->where('t1.return_order_id',$id)     
+                 ->get();
+       
+        return $data;
+    }
     public function getPurchaseOrder($id)
     {
         $data = DB::table('purchase_orders as t1')

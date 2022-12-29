@@ -15,6 +15,7 @@ class GoodReceipt extends Model
         'backorder_of',
         'status_id',
         'vendor_id',
+        'vendor_name',
         'purchase_order_id',
         'po_number',
         'receipt_date',

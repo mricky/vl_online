@@ -443,6 +443,12 @@ use Maatwebsite\Excel\Facades\Excel;
 			event(new OrderEntryEvent($purchase)); 
 	    }
 
+		public function manual_good_receive($id){
+			$purchase = DB::table('purchase_orders')->where('id',$id)->first();
+
+			
+			event(new OrderEntryEvent($purchase)); 
+		}
 	    /* 
 	    | ---------------------------------------------------------------------- 
 	    | Hook for manipulate data input before update data is execute

@@ -35,7 +35,7 @@ use Maatwebsite\Excel\Facades\Excel;
 			$this->button_action_style = "button_icon";
 			$this->button_add = true;
 			$this->button_edit = true;
-			$this->button_delete = true;
+			$this->button_delete = false;
 			$this->button_detail = true;
 			$this->button_show = true;
 			$this->button_filter = true;
@@ -443,6 +443,12 @@ use Maatwebsite\Excel\Facades\Excel;
 			event(new OrderEntryEvent($purchase)); 
 	    }
 
+		public function manual_good_receive($id){
+			$purchase = DB::table('purchase_orders')->where('id',$id)->first();
+
+			
+			event(new OrderEntryEvent($purchase)); 
+		}
 	    /* 
 	    | ---------------------------------------------------------------------- 
 	    | Hook for manipulate data input before update data is execute

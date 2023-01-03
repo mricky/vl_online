@@ -26,5 +26,8 @@ class PurchaseOrder extends Model
     public function details(){
         return $this->hasMany(PurchaseOrderDetail::class,'purchase_order_id');
     }
-
+    
+    public function vendor(){
+        return $this->hasOne(Vendor::class,'id','vendor_id');
+    }
 }

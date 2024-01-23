@@ -17,7 +17,7 @@ use Maatwebsite\Excel\Facades\Excel;
 		private $journalTransaction;
 		private $goodReceipt;
 
-		public function __construct(PurchaseOrderRepository $purchaseOrder,JournalTransactionRepository $journalTransaction, GoodReceiptRepository $goodReceipt) 
+		public function __construct(PurchaseOrderRepository $purchaseOrder,JournalTransactionRepository $journalTransaction, GoodReceiptRepository $goodReceipt)
         {
        		 $this->purchaseOrder = $purchaseOrder;
 			 $this->journalTransaction = $journalTransaction;
@@ -51,8 +51,8 @@ use Maatwebsite\Excel\Facades\Excel;
 			$this->col[] = ["label"=>"Tgl Order","name"=>"order_date"];
 			//$this->col[] = ["label"=>"Tg Pengiriman","name"=>"delivery_date"];
 			#$this->col[] = ["label"=>"Barang Pesan","name"=>"(SELECT COALESCE(SUM(purchase_order_details.qty),0) FROM purchase_order_details where purchase_order_details.purchase_order_id = purchase_orders.id) as total_pesan"];
-			// $this->col[] = ["label"=>"Barang Terima","name"=>"(SELECT COALESCE(SUM(goods_receipt_details.qty_in),0) 
-			// 														FROM purchase_order_details 
+			// $this->col[] = ["label"=>"Barang Terima","name"=>"(SELECT COALESCE(SUM(goods_receipt_details.qty_in),0)
+			// 														FROM purchase_order_details
 			// 														INNER JOIN goods_receipt on goods_receipt.purchase_order_id = purchase_order_details.purchase_order_id
 			// 														INNER JOIN goods_receipt_details on goods_receipt_details.good_receipt_id = goods_receipt.id
 			// 														WHERE purchase_order_details.purchase_order_id = purchase_orders.id) as total_terima"];
@@ -80,10 +80,10 @@ use Maatwebsite\Excel\Facades\Excel;
 			//$this->form[] = ['label'=>'Tgl Kirim','name'=>'delivery_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-10'];
 			#$this->form[] = ['label'=>'Mata Uang','name'=>'currency_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'currencies,currency'];
 			$this->form[] = ['label'=>'Keterangan','name'=>'description','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
-	
+
 			$columns = [];
 			$columns[] = ['label'=>'Produk','name'=>'product_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'products,name','datatable_format'=>"id,' - ',name"];
-			
+
 			$columns[] = ["label"=>"Qty","name"=>"qty",'type'=>'number'];
 			$columns[] = ["label"=>"Harga","name"=>"price",'type'=>'number'];
 			$columns[] = ["label"=>"Subtotal","name"=>"subtotal",'type'=>'number',"readonly"=>true,'formula'=>"[qty] * [price]"];
@@ -114,94 +114,95 @@ use Maatwebsite\Excel\Facades\Excel;
 			//$this->form[] = ["label"=>"Created By","name"=>"created_by","type"=>"text","required"=>TRUE,"validation"=>"required|min:1|max:255"];
 			# OLD END FORM
 
-			/* 
-	        | ---------------------------------------------------------------------- 
+			/*
+	        | ----------------------------------------------------------------------
 	        | Sub Module
-	        | ----------------------------------------------------------------------     
-			| @label          = Label of action 
+	        | ----------------------------------------------------------------------
+			| @label          = Label of action
 			| @path           = Path of sub module
 			| @foreign_key 	  = foreign key of sub table/module
 			| @button_color   = Bootstrap Class (primary,success,warning,danger)
-			| @button_icon    = Font Awesome Class  
+			| @button_icon    = Font Awesome Class
 			| @parent_columns = Sparate with comma, e.g : name,created_at
-	        | 
+	        |
 	        */
 	        $this->sub_module = array();
+                $this->sub_module[] = ['label'=>'Pembayaran','path'=>'account_payable','parent_columns'=>'id,order_date,order_number,total,total_amount,description','parent_columns_alias'=>'ID,Tanggal,Order Number,Total Order,Total Bayar,Keterangan','foreign_key'=>'purchase_id','button_color'=>'warning','button_icon'=>'fa fa-money'];
+                #$this->sub_module[] = ['label'=>'Jurnal','path'=>'journal_transactions','parent_columns'=>'id,transaction_date,transaction_number,total_debit,total_credit','foreign_key'=>'ref_id','button_color'=>'warning','button_icon'=>'fa fa-money'];
 
-
-	        /* 
-	        | ---------------------------------------------------------------------- 
+	        /*
+	        | ----------------------------------------------------------------------
 	        | Add More Action Button / Menu
-	        | ----------------------------------------------------------------------     
-	        | @label       = Label of action 
+	        | ----------------------------------------------------------------------
+	        | @label       = Label of action
 	        | @url         = Target URL, you can use field alias. e.g : [id], [name], [title], etc
 	        | @icon        = Font awesome class icon. e.g : fa fa-bars
-	        | @color 	   = Default is primary. (primary, warning, succecss, info)     
+	        | @color 	   = Default is primary. (primary, warning, succecss, info)
 	        | @showIf 	   = If condition when action show. Use field alias. e.g : [id] == 1
-	        | 
+	        |
 	        */
 			$this->addaction[] = ['label'=>'Riwayat','icon'=>'fa fa-history','color'=>'primary','url'=>CRUDBooster::mainpath('history').'/[id]','title'=>'Cetak','target'=>'_blank'];
 	        $this->addaction[] = ['label'=>'Faktur','icon'=>'fa fa-print','color'=>'primary','url'=>CRUDBooster::mainpath('print').'/[id]','title'=>'Cetak','target'=>'_blank'];
-			
 
 
-	        /* 
-	        | ---------------------------------------------------------------------- 
+
+	        /*
+	        | ----------------------------------------------------------------------
 	        | Add More Button Selected
-	        | ----------------------------------------------------------------------     
-	        | @label       = Label of action 
+	        | ----------------------------------------------------------------------
+	        | @label       = Label of action
 	        | @icon 	   = Icon from fontawesome
-	        | @name 	   = Name of button 
-	        | Then about the action, you should code at actionButtonSelected method 
-	        | 
+	        | @name 	   = Name of button
+	        | Then about the action, you should code at actionButtonSelected method
+	        |
 	        */
 	        $this->button_selected = array();
 
-	                
-	        /* 
-	        | ---------------------------------------------------------------------- 
+
+	        /*
+	        | ----------------------------------------------------------------------
 	        | Add alert message to this module at overheader
-	        | ----------------------------------------------------------------------     
-	        | @message = Text of message 
-	        | @type    = warning,success,danger,info        
-	        | 
+	        | ----------------------------------------------------------------------
+	        | @message = Text of message
+	        | @type    = warning,success,danger,info
+	        |
 	        */
 	        $this->alert        = array();
-	                
 
-	        
-	        /* 
-	        | ---------------------------------------------------------------------- 
-	        | Add more button to header button 
-	        | ----------------------------------------------------------------------     
-	        | @label = Name of button 
+
+
+	        /*
+	        | ----------------------------------------------------------------------
+	        | Add more button to header button
+	        | ----------------------------------------------------------------------
+	        | @label = Name of button
 	        | @url   = URL Target
 	        | @icon  = Icon from Awesome.
-	        | 
+	        |
 	        */
 	        $this->index_button = array();
 
 
 
-	        /* 
-	        | ---------------------------------------------------------------------- 
-	        | Customize Table Row Color
-	        | ----------------------------------------------------------------------     
-	        | @condition = If condition. You may use field alias. E.g : [id] == 1
-	        | @color = Default is none. You can use bootstrap success,info,warning,danger,primary.        
-	        | 
-	        */
-	        $this->table_row_color = array();     	          
-
-	        
 	        /*
-	        | ---------------------------------------------------------------------- 
-	        | You may use this bellow array to add statistic at dashboard 
-	        | ---------------------------------------------------------------------- 
-	        | @label, @count, @icon, @color 
+	        | ----------------------------------------------------------------------
+	        | Customize Table Row Color
+	        | ----------------------------------------------------------------------
+	        | @condition = If condition. You may use field alias. E.g : [id] == 1
+	        | @color = Default is none. You can use bootstrap success,info,warning,danger,primary.
 	        |
 	        */
-		
+	        $this->table_row_color = array();
+
+
+	        /*
+	        | ----------------------------------------------------------------------
+	        | You may use this bellow array to add statistic at dashboard
+	        | ----------------------------------------------------------------------
+	        | @label, @count, @icon, @color
+	        |
+	        */
+
 	        //$this->index_statistic = array();
 			$this->index_statistic[] = ['label'=>'Total Order','count'=>$this->purchaseOrder->getTotalOrder(),'icon'=>'fa fa-file-text','color'=>'warning'];
 			$this->index_statistic[] = ['label'=>'Total Order (Rp)','count'=>number_format($this->purchaseOrder->getTotalOrderRp()),'icon'=>'fa fa-file-text','color'=>'danger'];
@@ -212,10 +213,10 @@ use Maatwebsite\Excel\Facades\Excel;
 
 
 	        /*
-	        | ---------------------------------------------------------------------- 
-	        | Add javascript at body 
-	        | ---------------------------------------------------------------------- 
-	        | javascript code in the variable 
+	        | ----------------------------------------------------------------------
+	        | Add javascript at body
+	        | ----------------------------------------------------------------------
+	        | javascript code in the variable
 	        | $this->script_js = "function() { ... }";
 	        |
 	        */
@@ -227,7 +228,7 @@ use Maatwebsite\Excel\Facades\Excel;
 			// 	let downpayment = $('#ordersdetaildownpayment');
 			// 	let paidOff = $('#ordersdetailpaid_off');
 			// 	let total = $('#ordersdetailtotal');
-		
+
 
 			// 	qty.val(0);
 			// 	price.val(0);
@@ -238,13 +239,13 @@ use Maatwebsite\Excel\Facades\Excel;
 
 			// 	let sub = 0;
 			// 	price.change(function() {
-				
+
 			// 		sub = parseInt(qty.val()) * parseInt($(this).val());
 			// 		subtotal.val(sub);
 			// 		total.val(sub);
 			// 	});
 
-				
+
 			// ";
 			$this->script_js = "
 				$(function(){
@@ -259,13 +260,13 @@ use Maatwebsite\Excel\Facades\Excel;
 							$('#table-ordersdetail tbody .subtotal').each(function(){
 								var sub = parseInt($(this).text());
 								subTotal += sub;
-								
+
 							});
 
 							$('#table-ordersdetail tbody .downpayment').each(function(){
 								var sub = parseInt($(this).text());
 								dp += sub;
-								
+
 							});
 
 							$('#table-ordersdetail tbody .paid_off').each(function(){
@@ -277,13 +278,13 @@ use Maatwebsite\Excel\Facades\Excel;
 							$('#table-ordersdetail tbody .total').each(function(){
 								var sub = parseInt($(this).text());
 								total += sub;
-							
+
 							});
 
 							totalAmount = parseInt(dp) + parseInt(paid_off);
 							//alert(totalAmount);
 							//console.log('test test');
-							
+
 							$('#total_amount').val(totalAmount);
 							$('#subtotal').val(subTotal);
 							$('#total').val(subTotal);
@@ -299,119 +300,119 @@ use Maatwebsite\Excel\Facades\Excel;
 			";
 
             /*
-	        | ---------------------------------------------------------------------- 
-	        | Include HTML Code before index table 
-	        | ---------------------------------------------------------------------- 
+	        | ----------------------------------------------------------------------
+	        | Include HTML Code before index table
+	        | ----------------------------------------------------------------------
 	        | html code to display it before index table
 	        | $this->pre_index_html = "<p>test</p>";
 	        |
 	        */
 	        $this->pre_index_html = null;
-	        
-	        
-	        
+
+
+
 	        /*
-	        | ---------------------------------------------------------------------- 
-	        | Include HTML Code after index table 
-	        | ---------------------------------------------------------------------- 
+	        | ----------------------------------------------------------------------
+	        | Include HTML Code after index table
+	        | ----------------------------------------------------------------------
 	        | html code to display it after index table
 	        | $this->post_index_html = "<p>test</p>";
 	        |
 	        */
 	        $this->post_index_html = null;
-	        
-	        
-	        
+
+
+
 	        /*
-	        | ---------------------------------------------------------------------- 
-	        | Include Javascript File 
-	        | ---------------------------------------------------------------------- 
-	        | URL of your javascript each array 
+	        | ----------------------------------------------------------------------
+	        | Include Javascript File
+	        | ----------------------------------------------------------------------
+	        | URL of your javascript each array
 	        | $this->load_js[] = asset("myfile.js");
 	        |
 	        */
 			$this->load_js[] = asset("js/purchase.js");
-	        
-	        
-	        
+
+
+
 	        /*
-	        | ---------------------------------------------------------------------- 
-	        | Add css style at body 
-	        | ---------------------------------------------------------------------- 
-	        | css code in the variable 
+	        | ----------------------------------------------------------------------
+	        | Add css style at body
+	        | ----------------------------------------------------------------------
+	        | css code in the variable
 	        | $this->style_css = ".style{....}";
 	        |
 	        */
 	        $this->style_css = NULL;
-	        
-	        
-	        
+
+
+
 	        /*
-	        | ---------------------------------------------------------------------- 
-	        | Include css File 
-	        | ---------------------------------------------------------------------- 
-	        | URL of your css each array 
+	        | ----------------------------------------------------------------------
+	        | Include css File
+	        | ----------------------------------------------------------------------
+	        | URL of your css each array
 	        | $this->load_css[] = asset("myfile.css");
 	        |
 	        */
 	        $this->load_css = array();
-	        
-	        
+
+
 	    }
 
 
 	    /*
-	    | ---------------------------------------------------------------------- 
+	    | ----------------------------------------------------------------------
 	    | Hook for button selected
-	    | ---------------------------------------------------------------------- 
+	    | ----------------------------------------------------------------------
 	    | @id_selected = the id selected
 	    | @button_name = the name of button
 	    |
 	    */
 	    public function actionButtonSelected($id_selected,$button_name) {
 	        //Your code here
-	            
+
 	    }
 
 
 	    /*
-	    | ---------------------------------------------------------------------- 
-	    | Hook for manipulate query of index result 
-	    | ---------------------------------------------------------------------- 
-	    | @query = current sql query 
+	    | ----------------------------------------------------------------------
+	    | Hook for manipulate query of index result
+	    | ----------------------------------------------------------------------
+	    | @query = current sql query
 	    |
 	    */
 	    public function hook_query_index(&$query) {
 	        //Your code here
-	            
+
 	    }
 
 	    /*
-	    | ---------------------------------------------------------------------- 
-	    | Hook for manipulate row of index table html 
-	    | ---------------------------------------------------------------------- 
+	    | ----------------------------------------------------------------------
+	    | Hook for manipulate row of index table html
+	    | ----------------------------------------------------------------------
 	    |
-	    */    
-	    public function hook_row_index($column_index,&$column_value) {	        
+	    */
+	    public function hook_row_index($column_index,&$column_value) {
 	    	//Your code here
 	    }
 
 	    /*
-	    | ---------------------------------------------------------------------- 
+	    | ----------------------------------------------------------------------
 	    | Hook for manipulate data input before add data is execute
-	    | ---------------------------------------------------------------------- 
+	    | ----------------------------------------------------------------------
 	    | @arr
 	    |
 	    */
-	    public function hook_before_add(&$postdata) {        
+	    public function hook_before_add(&$postdata) {
 			if (!Request::get('order_date')){
 				CRUDBooster::redirect(CRUDBooster::mainpath("add"),"Silahkan Isi Tanggal Order","info");
-			}	
+			}
 
 	        //Your code here
 			$code = 'PO-';
 			$supplier = DB::table('vendors')->where('id',$postdata['vendor_id'])->first()->code;
-		    $sq = DB::table('purchase_orders')->max('id'); 
+		    $sq = DB::table('purchase_orders')->max('id');
 			$year = substr(date("y"),-2);
 			$month = date("m");
 			$no = str_pad($sq+1,4,"0",STR_PAD_LEFT);
@@ -420,70 +421,64 @@ use Maatwebsite\Excel\Facades\Excel;
 			$postdata['created_by'] = CRUDBooster::myId();
 
 		}
-	    /* 
-	    | ---------------------------------------------------------------------- 
-	    | Hook for execute command after add public static function called 
-	    | ---------------------------------------------------------------------- 
+	    /*
+	    | ----------------------------------------------------------------------
+	    | Hook for execute command after add public static function called
+	    | ----------------------------------------------------------------------
 	    | @id = last insert id
-	    | 
+	    |
 	    */
-	    public function hook_after_add($id) {        
+	    public function hook_after_add($id) {
 	        //Your code here
 			$purchase = DB::table('purchase_orders')->where('id',$id)->first();
 
-			$data = [
-				'id' => $purchase->id,
-				'order_number' => $purchase->order_number,
-				'order_date' => $purchase->order_date,
-				'total_amount' => $purchase->total_amount,
-				'module' => 'purchase',
-			];
-			
-			//$this->journalTransaction->purchaseJournalEntry((object)$data,0); // automatic journal
-			event(new OrderEntryEvent($purchase)); 
+            #TODO Insert to table Payable
+            $this->purchaseOrder->entryPayable($id);
+
+			event(new OrderEntryEvent($purchase));
 	    }
 
-	    /* 
-	    | ---------------------------------------------------------------------- 
+	    /*
+	    | ----------------------------------------------------------------------
 	    | Hook for manipulate data input before update data is execute
-	    | ---------------------------------------------------------------------- 
-	    | @postdata = input post data 
-	    | @id       = current id 
-	    | 
+	    | ----------------------------------------------------------------------
+	    | @postdata = input post data
+	    | @id       = current id
+	    |
 	    */
-	    public function hook_before_edit(&$postdata,$id) {        
+	    public function hook_before_edit(&$postdata,$id) {
 	        //Your code here
 			$purchase = DB::table('purchase_orders')->where('id',$id)->first();
-		
+
 			$data = [
 				'id' => $purchase->id,
 				'order_number' => $purchase->order_number,
 				'total_amount' => $postdata['total_amount'],
 				'module' => 'purchase',
 			];
-		
-			$this->journalTransaction->updatePurchaseJournalEntry((object)$data);
-			
+
+			//$this->journalTransaction->updatePurchaseJournalEntry((object)$data);
+
 		}
 
-	    /* 
-	    | ---------------------------------------------------------------------- 
+	    /*
+	    | ----------------------------------------------------------------------
 	    | Hook for execute command after edit public static function called
-	    | ----------------------------------------------------------------------     
-	    | @id       = current id 
-	    | 
+	    | ----------------------------------------------------------------------
+	    | @id       = current id
+	    |
 	    */
 	    public function hook_after_edit($id) {
-	        //Your code here 
+	        //Your code here
 			$this->goodReceipt->syncPurchaseItemQty($id);
 	    }
 
-	    /* 
-	    | ---------------------------------------------------------------------- 
+	    /*
+	    | ----------------------------------------------------------------------
 	    | Hook for execute command before delete public static function called
-	    | ----------------------------------------------------------------------     
-	    | @id       = current id 
-	    | 
+	    | ----------------------------------------------------------------------
+	    | @id       = current id
+	    |
 	    */
 	    public function hook_before_delete($id) {
 	        //Your code here
@@ -495,15 +490,15 @@ use Maatwebsite\Excel\Facades\Excel;
 				'total_amount' => $purchase->total_amount,
 				'module' => 'purchase',
 			];
-			$this->journalTransaction->deletePurchaseJournalEntry((object)$data);
+			//$this->journalTransaction->deletePurchaseJournalEntry((object)$data);
 	    }
 
-	    /* 
-	    | ---------------------------------------------------------------------- 
+	    /*
+	    | ----------------------------------------------------------------------
 	    | Hook for execute command after delete public static function called
-	    | ----------------------------------------------------------------------     
-	    | @id       = current id 
-	    | 
+	    | ----------------------------------------------------------------------
+	    | @id       = current id
+	    |
 	    */
 	    public function hook_after_delete($id) {
 	        //Your code here
@@ -512,7 +507,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 
 		public function getPrint($id){
-			if(!CRUDBooster::isRead() && $this->global_privilege==FALSE || $this->button_add==FALSE) {    
+			if(!CRUDBooster::isRead() && $this->global_privilege==FALSE || $this->button_add==FALSE) {
 				CRUDBooster::redirect(CRUDBooster::adminPath(),trans("crudbooster.denied_access"));
 			  }
 
@@ -520,7 +515,7 @@ use Maatwebsite\Excel\Facades\Excel;
 			$data['page_title'] = 'Sales Order';
 
 			$data['purchase_order'] = $this->purchaseOrder->getPurchaseOrder($id);
-		
+
 			$data['po_detail'] =  $this->purchaseOrder->getDetailPurchaseOrder($id);
 
 			//
@@ -535,16 +530,16 @@ use Maatwebsite\Excel\Facades\Excel;
 
 		public function getFormPurchase(){
 			if(!CRUDBooster::isView()) CRUDBooster::redirect(CRUDBooster::adminPath(),trans('crudbooster.denied_access'));
-			//Create your own query 
+			//Create your own query
 			$data = [];
 			$data['title'] ='Laporan Pembelian';
-	
+
 			#$this->cbView('forms.purchase',$data); list pembelian
 			$this->cbView('forms.purchase_new',$data);
 
 		}
 
-		#OLD METHOD 
+		#OLD METHOD
 		// public function postCetakpembelian()
 		// {
 		// 	$data['tgl_data']=date('d-M-Y',strtotime($_POST['tgl_awal']) )." s/d ". date('d-M-Y',strtotime($_POST['tgl_akhir']));
@@ -556,16 +551,16 @@ use Maatwebsite\Excel\Facades\Excel;
 
 		// 	$this->cbView('prints.purchase',$data);
 		// }
-		
+
 		public function postCetakpembelian(){
 
 			$vendor = Request::get('supplier_list');
 			$category = Request::get('category_list');
 			$brand = Request::get('brand_list');
 			$item = Request::get('item_list');
-			$start_date = Request::get('start_date');	
+			$start_date = Request::get('start_date');
 			$end_date = Request::get('end_date');
-		
+
 			$purchase = DB::table('purchase_orders as t1')
 						->select('t1.*','t2.name','t5.id as product_id','t5.name as product_name','t6.name as category_name','t7.name as brand_name')
 						->leftJoin('vendors as t2','t1.vendor_id','=','t2.id')
@@ -590,9 +585,9 @@ use Maatwebsite\Excel\Facades\Excel;
 			if(isset($start_date) && isset($end_date)){
 				$purchase = $purchase->whereRaw("DATE_FORMAT(t1.order_date, '%Y-%m-%d') >= '" . $start_date . "' AND DATE_FORMAT(t1.order_date, '%Y-%m-%d') <= '" . $end_date . "'");
 			}
-				
+
 			$purchase = $purchase->get();
-				
+
 			$data['page_title'] = 'Laporan Pembelian Barang';
 
 			$datas = Array();
@@ -638,7 +633,7 @@ use Maatwebsite\Excel\Facades\Excel;
 						$row->setFontWeight('bold');
 					});
 					$sheet->mergeCells('A1:N1');
-					
+
 					// Columns
 					$labels = ['No','No. Order','Supplier','Tgl Order','Kategori','Brand','Item','Total Pesan','Incoming Qty','Left Over','Sub Total', 'Discount','Total','Pelunasan','Sisa'];
 
@@ -660,7 +655,7 @@ use Maatwebsite\Excel\Facades\Excel;
 			$data['purchase_order'] = $this->purchaseOrder->getPurchaseOrder($id);
 			$data['detail_purchase'] = $this->purchaseOrder->getDetailPurchaseOrder($id);
 			$data['detail_receipt'] = $this->goodReceipt->getDetailItemReceiptByPO($id);
-		
+
 			$this->cbView('forms/purchase_detail',$data);
 		}
 

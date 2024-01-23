@@ -22,7 +22,7 @@ interface IGoodReceipt{
     public function getDetailItemReceiptByPO($purchaseId);
 }
 class GoodReceiptRepository implements IGoodReceipt {
-   
+
     CONST WH_LOCATION_DEFAULT = 'Partner Location/Vendor';
     CONST STATUS_DEFAULT = 'Process';
     CONST STATUS_DONE = 'Done';
@@ -36,29 +36,29 @@ class GoodReceiptRepository implements IGoodReceipt {
                                     ->join('cms_users','cms_users.id','goods_receipt.created_by')
                                     ->where('goods_receipt.purchase_order_id',$purchaseId)
                                 ->get();
-      
+
         return $receipts;
 
     }
     public function syncPurchaseItemQty($purchaseId){
-       
+
         $totalQtyRequest = 0;
         $totalQtyIn = 0;
         $totalDifference = 0;
 
         $receipts =  GoodReceipt::where('purchase_order_id',$purchaseId)->get();
         $totalQtyRequest = PurchaseOrderDetail::where('purchase_order_id',$purchaseId)
-                                    ->sum('qty'); 
+                                    ->sum('qty');
         #die($purchaseId);
         foreach($receipts as $items){
             $total_qty_in = GoodReceiptDetail::where('good_receipt_id',$items->id)
                                         ->sum('qty_in');
-            $totalQtyIn += $total_qty_in; 
-          
+            $totalQtyIn += $total_qty_in;
+
        }
-      
+
        $totalDifference = ((int)$totalQtyRequest - (int) $totalQtyIn);
-      
+
        try {
            DB::beginTransaction();
             $data = [
@@ -66,7 +66,7 @@ class GoodReceiptRepository implements IGoodReceipt {
                     'total_qty_in' => $totalQtyIn,
                     'total_qty_difference' => $totalDifference
             ];
-         
+
             $purchaseOrder = PurchaseOrder::findOrFail($purchaseId);
             $purchaseOrder->total_qty_request =  $totalQtyRequest;
             $purchaseOrder->total_qty_in = $totalQtyIn;
@@ -86,7 +86,7 @@ class GoodReceiptRepository implements IGoodReceipt {
         } else {
             $status = OrderStatus::where('name',$this::STATUS_DEFAULT)->first();
         }
-    
+
         $query = GoodReceiptDetail::join('goods_receipt','goods_receipt.id','goods_receipt_details.good_receipt_id')
                                  ->where('goods_receipt.status_id',$status->id);
 
@@ -130,7 +130,7 @@ class GoodReceiptRepository implements IGoodReceipt {
 
         $receive = GoodReceipt::with(['deferences','details'])->find($goodReceiptId);
         $location = WhLocation::where('wh_location_name',$this::WH_LOCATION_DEFAULT)->first();
-        $status = OrderStatus::where('name',$this::STATUS_DEFAULT)->first();  
+        $status = OrderStatus::where('name',$this::STATUS_DEFAULT)->first();
 
          try {
             $backOrder = new GoodReceipt();
@@ -143,8 +143,8 @@ class GoodReceiptRepository implements IGoodReceipt {
             $backOrder->description = 'backorder-'.$receive->code;
             $backOrder->created_by = CRUDBooster::myId() ?? 1;
             $backOrder->save();
-           
-            foreach($receive->deferences as $row){ 
+
+            foreach($receive->deferences as $row){
                 $itemDetail = new GoodReceiptDetail();
                 $itemDetail->good_receipt_id =  $backOrder->id;
                 $itemDetail->product_id = $row['product_id'];
@@ -158,7 +158,7 @@ class GoodReceiptRepository implements IGoodReceipt {
                 $itemDetail->created_by =  CRUDBooster::myId() ?? 1;
                 $itemDetail->save();
             }
-           
+
             #GoodReceiptDetail::create($datail);
             DB::commit();
          } catch(\Exception $e){
@@ -172,8 +172,8 @@ class GoodReceiptRepository implements IGoodReceipt {
         $purchase = PurchaseOrder::with('details')->find($poId);
         $location = WhLocation::where('wh_location_name',$this::WH_LOCATION_DEFAULT)->first();
         $status = OrderStatus::where('name',$this::STATUS_DEFAULT)->first();
-        
-        
+
+
         try {
             DB::beginTransaction();
 
@@ -202,7 +202,7 @@ class GoodReceiptRepository implements IGoodReceipt {
             })->toArray();
 
             $goodReceipt->details()->createMany($detail);
-          
+
             // Detail Receipt
             DB::commit();
         } catch(\Exception $e){
@@ -220,18 +220,18 @@ class GoodReceiptRepository implements IGoodReceipt {
           $goodReceipt = DB::table('goods_receipt')->where('id',$goodReceiptId)->first();
 
 
-          $goodReceiptDetail = DB::table('goods_receipt_details')->where('good_receipt_id',$goodReceiptId)->get();
+          $goodReceiptDetail = DB::table('goods_receipt_details')->where('good_receipt_id',$goodReceiptId->id)->get();
 
           foreach ($goodReceiptDetail as $value){
                DB::table('products')->where('id',$value->product_id)
                          ->update([
                                 'vendor_id' => $goodReceipt->vendor_id,
                                 'qty_onhand' =>  $value->qty_in,
-                                'product_price' => $value->price,    
+                                'product_price' => $value->price,
                                 'updated_at' => now()
                      ]);
-                
-          }   
+
+          }
 
           DB::commit();
         } catch(\Exception $e){

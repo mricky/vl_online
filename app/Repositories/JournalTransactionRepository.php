@@ -276,7 +276,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
             $payload = [
                 'transaction_date' => $purchase->order_date,
                 'transaction_number' => $number,
-                'transaction_type' => $transactionType->id,
+                'transaction_type' => 2, // Order Pembelian + Uang Muka
                 'entry_no'  => 0,
                 'ref_id' => $purchase->id,
                 'ref_no' => $purchase->order_number,

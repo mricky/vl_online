@@ -653,7 +653,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
         public function getJurnal($id){
 
-            $journal = $this->journalTransaction->printJurnal($id);
+            $journal = $this->journalTransaction->printJurnal($id,1);
 
             $data = [];
 

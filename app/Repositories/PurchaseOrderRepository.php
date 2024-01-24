@@ -47,15 +47,12 @@ class PurchaseOrderRepository implements IPurchaseOrder {
             DB::table('account_payable')->insert($data);
 
             if($purchase->total != $purchase->total_amount && $purchase->total_amount != 0){
-
+                // perlu dilunasi next pelunasan ada jurnal
                 $this->journalTransaction->purchaseWithDownpaymentJournalEntry($purchase);
             } else {
                 // lunas
                 $this->journalTransaction->purchaseWithoutDownpaymentJouralEntry($purchase);
 
-                // if($purchase->total_amount != 0){
-                //     #todo: klo beli n langsung lunas gmn
-                // }
             }
 
             // call journal uang muka

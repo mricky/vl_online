@@ -4,8 +4,20 @@
 	use Request;
 	use DB;
 	use CRUDBooster;
+	use App\Repositories\{
+		ProductRepository,
+		PurchaseOrderRepository
+	};
 
-	class AdminProductLocationsController extends \crocodicstudio\crudbooster\controllers\CBController {
+	class AdminPurchaseOrderReturnController extends \crocodicstudio\crudbooster\controllers\CBController {
+
+		private $purchaseOrder;
+		private $productRepository;
+		public function __construct(ProductRepository $productRepository,PurchaseOrderRepository $purchaseOrder) 
+        {
+       		 $this->productRepository = $productRepository;
+			 $this->purchaseOrder = $purchaseOrder;
+        }
 
 	    public function cbInit() {
 
@@ -17,41 +29,81 @@
 			$this->button_table_action = true;
 			$this->button_bulk_action = true;
 			$this->button_action_style = "button_icon";
-			$this->button_add = false;
+			$this->button_add = true;
 			$this->button_edit = true;
-			$this->button_delete = false;
+			$this->button_delete = true;
 			$this->button_detail = true;
 			$this->button_show = true;
 			$this->button_filter = true;
 			$this->button_import = false;
 			$this->button_export = false;
-			$this->table = "product_locations";
+			$this->table = "purchase_order_return";
 			# END CONFIGURATION DO NOT REMOVE THIS LINE
 
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
-			$this->col[] = ["label"=>"Produk","name"=>"product_id","join"=>"products,name"];
-			$this->col[] = ["label"=>"Lokasi","name"=>"wh_location_id","join"=>"wh_locations,wh_location_name"];
-			$this->col[] = ["label"=>"Qty Onhand","name"=>"qty_onhand"];
+			#$this->col[] = ["label"=>"Purchase Order Id","name"=>"purchase_order_id","join"=>"purchase_orders,id"];
+			$this->col[] = ["label"=>"No Retur","name"=>"return_order_number"];
+			$this->col[] = ["label"=>"No Pembelian","name"=>"purchase_order_number"];
+			$this->col[] = ["label"=>"Supplier","name"=>"vendor_id","join"=>"vendors,name"];
+			$this->col[] = ["label"=>"Tgl Retur","name"=>"retrun_order_date"];
+			$this->col[] = ["label"=>"Keterangan","name"=>"description"];
+			#$this->col[] = ["label"=>"Echange Rate","name"=>"echange_rate"];
 			# END COLUMNS DO NOT REMOVE THIS LINE
 
 			# START FORM DO NOT REMOVE THIS LINE
 			$this->form = [];
-			$this->form[] = ['label'=>'Vendor','name'=>'(SELECT vendors.name FROM vendors JOIN goods_receipt on vendors.id = goods_receipt.vendor_id) as vendor_name','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'products,name'];
-			$this->form[] = ['label'=>'Product','name'=>'product_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'products,name'];
-			#$this->form[] = ['label'=>'No Penerimaan','name'=>'good_receipt_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'goods_receipt,code'];
-			$this->form[] = ['label'=>'Lokasi','name'=>'wh_location_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'wh_locations,wh_location_name'];
-			$this->form[] = ['label'=>'Qty Onhand','name'=>'qty_onhand','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10','readonly'=>true];
+			#$this->form[] = ['label'=>'Supplier','name'=>'supplier','type'=>'select','validation'=>'required|min:1|max:255','width'=>'col-sm-5','datatable'=>'vendors,name'];
+			$this->form[] = ['label'=>'No Faktur','name'=>'purchase_order_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'purchase_orders,order_number'];
+			#$columns[] = ['label'=>'Lokasi Produk','name'=>'product_location_id','type'=>'select','required'=>true,'width'=>'col-sm-5','datatable'=>'view_product_location,product_location','parent_select'=>'product_id'];
+			#$this->form[] = ['label'=>'Purchase Number','name'=>'purchase_order_number','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
+			#$this->form[] = ['label'=>'Supplier','name'=>'vendor_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'vendors,id'];
+			#$this->form[] = ['label'=>'Retur No','name'=>'return_order_number','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
+			$this->form[] = ['label'=>'Tanggal Retur','name'=>'retrun_order_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-5'];
+			#$this->form[] = ['label'=>'Currency Id','name'=>'currency_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'currency,id'];
+			#$this->form[] = ['label'=>'Echange Rate','name'=>'echange_rate','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
+			
+			$columns = [];
+			#$columns[] = ['label'=>'Produk','name'=>'product_id','type'=>'select','required'=>true,'width'=>'col-sm-5','datatable'=>'view_product,product_name'];
+			$columns[] = ['label'=>'Lokasi & Produk','name'=>'product_location_id','type'=>'select','required'=>true,'width'=>'col-sm-5','datatable'=>'view_product_purchases,product_name'];
+			$columns[] = ["label"=>"Invoice Qty","name"=>"invoice_qty",'type'=>'number',"readonly"=>true];
+			$columns[] = ["label"=>"Harga","name"=>"price",'type'=>'number'];
+			$columns[] = ["label"=>"Retur Qty","name"=>"return_qty",'type'=>'number'];
+			$columns[] = ["label"=>"Subtotal","name"=>"subtotal",'type'=>'number',"readonly"=>true,'formula'=>"[return_qty] * [price]"];
+			
+			$this->form[] = ['label'=>'Orders Detail Return','name'=>'purchase_order_detail_return','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'purchase_order_detail_return','foreign_key'=>'return_order_id'];
+			
+			$this->form[] = ['label'=>'Subtotal','name'=>'subtotal','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
+			// $this->form[] = ['label'=>'Discount','name'=>'discount','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
+			$this->form[] = ['label'=>'Total','name'=>'total','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
+			$this->form[] = ['label'=>'Total Amount','name'=>'total_amount','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
+			$this->form[] = ['label'=>'Description','name'=>'description','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-5'];
+			// $this->form[] = ['label'=>'Total Qty Request','name'=>'total_qty_request','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
+			// $this->form[] = ['label'=>'Total Qty In','name'=>'total_qty_in','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
+			// $this->form[] = ['label'=>'Total Qty Difference','name'=>'total_qty_difference','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
+			// $this->form[] = ['label'=>'Amount Due','name'=>'amount_due','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
+			// $this->form[] = ['label'=>'Created By','name'=>'created_by','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
 			# END FORM DO NOT REMOVE THIS LINE
 
 			# OLD START FORM
 			//$this->form = [];
-			//$this->form[] = ["label"=>"Product Id","name"=>"product_id","type"=>"select2","required"=>TRUE,"validation"=>"required|integer|min:0","datatable"=>"product,id"];
-			//$this->form[] = ["label"=>"Good Receipt Id","name"=>"good_receipt_id","type"=>"select2","required"=>TRUE,"validation"=>"required|integer|min:0","datatable"=>"good_receipt,id"];
-			//$this->form[] = ["label"=>"Wh Location Id","name"=>"wh_location_id","type"=>"select2","required"=>TRUE,"validation"=>"required|integer|min:0","datatable"=>"wh_location,id"];
-			//$this->form[] = ["label"=>"Qty Onhand","name"=>"qty_onhand","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
+			//$this->form[] = ["label"=>"Purchase Order Id","name"=>"purchase_order_id","type"=>"select2","required"=>TRUE,"validation"=>"required|integer|min:0","datatable"=>"purchase_order,id"];
+			//$this->form[] = ["label"=>"Purchase Order Number","name"=>"purchase_order_number","type"=>"text","required"=>TRUE,"validation"=>"required|min:1|max:255"];
+			//$this->form[] = ["label"=>"Vendor Id","name"=>"vendor_id","type"=>"select2","required"=>TRUE,"validation"=>"required|integer|min:0","datatable"=>"vendor,id"];
+			//$this->form[] = ["label"=>"Return Order Number","name"=>"return_order_number","type"=>"text","required"=>TRUE,"validation"=>"required|min:1|max:255"];
+			//$this->form[] = ["label"=>"Retrun Order Date","name"=>"retrun_order_date","type"=>"date","required"=>TRUE,"validation"=>"required|date"];
+			//$this->form[] = ["label"=>"Currency Id","name"=>"currency_id","type"=>"select2","required"=>TRUE,"validation"=>"required|integer|min:0","datatable"=>"currency,id"];
+			//$this->form[] = ["label"=>"Echange Rate","name"=>"echange_rate","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
+			//$this->form[] = ["label"=>"Subtotal","name"=>"subtotal","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
+			//$this->form[] = ["label"=>"Discount","name"=>"discount","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
+			//$this->form[] = ["label"=>"Total","name"=>"total","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
+			//$this->form[] = ["label"=>"Total Amount","name"=>"total_amount","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
+			//$this->form[] = ["label"=>"Description","name"=>"description","type"=>"text","required"=>TRUE,"validation"=>"required|min:1|max:255"];
+			//$this->form[] = ["label"=>"Total Qty Request","name"=>"total_qty_request","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
+			//$this->form[] = ["label"=>"Total Qty In","name"=>"total_qty_in","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
+			//$this->form[] = ["label"=>"Total Qty Difference","name"=>"total_qty_difference","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
+			//$this->form[] = ["label"=>"Amount Due","name"=>"amount_due","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
 			//$this->form[] = ["label"=>"Created By","name"=>"created_by","type"=>"text","required"=>TRUE,"validation"=>"required|min:1|max:255"];
-			//$this->form[] = ["label"=>"Updated By","name"=>"updated_by","type"=>"text","required"=>TRUE,"validation"=>"required|min:1|max:255"];
 			# OLD END FORM
 
 			/* 
@@ -80,7 +132,7 @@
 	        | @showIf 	   = If condition when action show. Use field alias. e.g : [id] == 1
 	        | 
 	        */
-	        $this->addaction = array();
+			$this->addaction[] = ['label'=>'Faktur','icon'=>'fa fa-print','color'=>'primary','url'=>CRUDBooster::mainpath('print').'/[id]','title'=>'Cetak','target'=>'_blank'];
 
 
 	        /* 
@@ -151,7 +203,32 @@
 	        | $this->script_js = "function() { ... }";
 	        |
 	        */
-	        $this->script_js = NULL;
+			$this->script_js = "
+				$(function(){
+					setInterval(function(){
+							var subTotal = 0;
+							var total = 0;
+							var totalAmount = 0;
+
+							$('#table-ordersdetailreturn tbody .subtotal').each(function(){
+								var sub = parseInt($(this).text());
+								subTotal += sub;
+								
+							});
+		
+							$('#subtotal').val(subTotal);
+							$('#total').val(subTotal);
+						
+
+					},500);
+			    });
+				console.log('run total2');
+				// $('#discount').change(function(){
+				// 	//$('#total').val( parseInt($('#subtotal').val()) - parseInt($(this).val()));
+				// 	console.log('test');
+				// });
+			";
+
 
 
             /*
@@ -186,7 +263,7 @@
 	        | $this->load_js[] = asset("myfile.js");
 	        |
 	        */
-	        $this->load_js = array();
+			$this->load_js[] = asset("js/purchase_return.js");
 	        
 	        
 	        
@@ -261,6 +338,22 @@
 	    */
 	    public function hook_before_add(&$postdata) {        
 	        //Your code here
+			if (!Request::get('retrun_order_date')){
+				CRUDBooster::redirect(CRUDBooster::mainpath("add"),"Silahkan Isi Tanggal Retur Order","info");
+			}
+
+			$code = 'PO-RET';
+			$purchase = DB::table('purchase_orders')->where('id',$postdata['purchase_order_id'])->first();
+
+			$supplier = DB::table('vendors')->where('id',$purchase->vendor_id)->first()->code;
+		    $sq = DB::table('purchase_orders')->max('id'); 
+			$year = substr(date("y"),-2);
+			$month = date("m");
+			$no = str_pad($sq+1,4,"0",STR_PAD_LEFT);
+			$postdata['purchase_order_number'] = $purchase->order_number;
+			$postdata['return_order_number'] = $code.$supplier.$year.$month.$no;
+			$postdata['vendor_id'] = $purchase->vendor_id;
+			$postdata['created_by'] = CRUDBooster::myId();
 
 	    }
 
@@ -273,6 +366,9 @@
 	    */
 	    public function hook_after_add($id) {        
 	        //Your code here
+			$returnOrderDetail = DB::table('purchase_order_detail_return')->where('return_order_id',$id)->get();
+
+			$this->productRepository->syncProductItemReturnPurchase($returnOrderDetail);
 
 	    }
 
@@ -322,12 +418,33 @@
 	    */
 	    public function hook_after_delete($id) {
 	        //Your code here
-
+			DB::table('purchase_order_detail_return')->where('return_order_id',$id)->delete();
 	    }
 
 
 
 	    //By the way, you can still create your own method in here... :) 
+		public function getPrint($id){
+			if(!CRUDBooster::isRead() && $this->global_privilege==FALSE || $this->button_add==FALSE) {    
+				CRUDBooster::redirect(CRUDBooster::adminPath(),trans("crudbooster.denied_access"));
+			  }
+			
+			$data = [];
+			$data['page_title'] = 'Retur Order';
+			// $test =  $this->purchaseOrder->getPurchaseOrderReturn($id);
+			// dd($test);
+			$data['purchase_order'] = $this->purchaseOrder->getPurchaseOrderReturn($id);
+		
+			$data['po_detail'] =  $this->purchaseOrder->getDetailPurchaseOrderReturn($id);
 
+		
+			$data['print'] = (object)[
+				'print_at' => date('Y-m-d H:i:s'),
+				'print_by' => CRUDBooster::me()
+			];
+	
+			$this->cbView('prints.purchase_order_return',$data);
+
+		}
 
 	}

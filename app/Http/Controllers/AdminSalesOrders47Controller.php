@@ -1,18 +1,23 @@
 <?php namespace App\Http\Controllers;
 
+
 use App\Events\SalesEntryEvent;
+use App\Models\ProductLocation;
 use Session;
-	use Request;
-	use DB;
-	use CRUDBooster;
-	use App\Repositories\JournalTransactionRepository;
-	use App\Repositories\{
+use Request;
+use DB;
+use CRUDBooster;
+use App\Repositories\JournalTransactionRepository;
+use App\Repositories\{
 		SalesOrderRepository,
 		ProductRepository
-	};
-	use Maatwebsite\Excel\Facades\Excel;
-	use Illuminate\Support\Str;
-	class AdminSalesOrdersController extends \crocodicstudio\crudbooster\controllers\CBController {
+};
+use Carbon\Carbon;
+use GuzzleHttp\Psr7\Request as Psr7Request;
+use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Str;
+
+class AdminSalesOrders47Controller extends \crocodicstudio\crudbooster\controllers\CBController {
 
 		private $journalTransaction;
 		private $salesOrder;
@@ -34,8 +39,8 @@ use Session;
 			$this->button_table_action = true;
 			$this->button_bulk_action = true;
 			$this->button_action_style = "button_icon";
-			$this->button_add = true;
-			$this->button_edit = true;
+			$this->button_add = false;
+			$this->button_edit = false;
 			$this->button_delete = true;
 			$this->button_detail = true;
 			$this->button_show = true;
@@ -47,18 +52,14 @@ use Session;
 
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
-			$this->col[] = ["label"=>"Pelanggan","name"=>"customer_id","join"=>"customers,name"];
+
 			$this->col[] = ["label"=>"No Order","name"=>"order_number"];
 			$this->col[] = ["label"=>"Tgl Order","name"=>"order_date"];
-			$this->col[] = ["label"=>"Expedisi","name"=>"expedition_id","join"=>"expeditions,name"];
 			$this->col[] = ["label"=>"Subtotal","name"=>"subtotal","callback_php"=>'number_format($row->subtotal)'];
 			$this->col[] = ["label"=>"Discount","name"=>"discount","callback_php"=>'number_format($row->discount)'];
-			$this->col[] = ["label"=>"Biaya Expedisi","name"=>"expedition_cost","callback_php"=>'number_format($row->expedition_cost)'];
 			$this->col[] = ["label"=>"Total","name"=>"total","callback_php"=>'number_format($row->total)'];
 			$this->col[] = ["label"=>"Bayar","name"=>"total_amount","callback_php"=>'number_format($row->total_amount)'];
-			$this->col[] = ["label"=>"Sisa","name"=>"amount_due","callback_php"=>'number_format($row->amount_due)'];
-			$this->col[] = ["label"=>"Penerima","name"=>"notes"];
-			$this->col[] = ["label"=>"Status","name"=>"delivery_order","callback_php"=>'($row->delivery_order==0)?"<span class=\"label label-default\">PROSES</span>":"<span class=\"label label-danger\">DELIVERY</span>"'];
+			#$this->col[] = ["label"=>"Status","name"=>"delivery_order","callback_php"=>'($row->delivery_order==0)?"<span class=\"label label-default\">PROSES</span>":"<span class=\"label label-danger\">DELIVERY</span>"'];
 			# END COLUMNS DO NOT REMOVE THIS LINE
 
 			# START FORM DO NOT REMOVE THIS LINE
@@ -67,7 +68,6 @@ use Session;
 			$this->form[] = ['label'=>'Tgl Order','name'=>'order_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-5'];
 			$this->form[] = ['label'=>'Expedisi','name'=>'expedition_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'expeditions,name'];
 			$this->form[] = ['label'=>'Keterangan','name'=>'description','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
-			$this->form[] = ['label'=>'Penerima','name'=>'notes','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
 			$columns = [];
 			$columns[] = ['label'=>'Produk','name'=>'product_id','type'=>'select','required'=>true,'width'=>'col-sm-5','datatable'=>'view_product,product_name'];
 			$columns[] = ['label'=>'Lokasi Produk','name'=>'product_location_id','type'=>'select','required'=>true,'width'=>'col-sm-5','datatable'=>'view_product_location,product_location','parent_select'=>'product_id'];
@@ -78,6 +78,7 @@ use Session;
 			$columns[] = ["label"=>"Qty","name"=>"qty",'type'=>'number','required'=>true];
 			$columns[] = ["label"=>"Total","name"=>"total",'type'=>'number','readonly'=>true,"callback_php"=>'number_format($row->total)','formula'=>"parseInt([qty]) * parseInt([price])"];
 			$columns[] = ["label"=>"Lot Number","name"=>"lot_number",'type'=>'text','readonly'=>true];
+
 			$this->form[] = ['label'=>'Orders Detail','name'=>'sales_order_details','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'sales_order_details','foreign_key'=>'sales_order_id'];
 			$this->form[] = ['label'=>'Subtotal','name'=>'subtotal','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5','readonly'=>true];
 			$this->form[] = ['label'=>'Discount (-)','name'=>'discount','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
@@ -136,21 +137,9 @@ use Session;
 			// 	'url'=>CRUDBooster::mainpath('delivery').'/[id]','title'=>'Cetak','target'=>'_blank',
 			// 	'showIf'=>"[delivery_order]==0"];
 
-			$this->addaction[] = [
-				'label' => 'Kirim',
-				'icon'=>'fa fa-success',
-				'color'=>'success',
-				'url'=>CRUDBooster::mainpath('delivery').'/[id]','title'=>'Cetak','target'=>'_blank',
-				'showIf'=>"[delivery_order]==0"];
 
 			$this->addaction[] = ['label'=>'Faktur','icon'=>'fa fa-print','color'=>'primary','url'=>CRUDBooster::mainpath('print').'/[id]','title'=>'Cetak','target'=>'_blank'];
-			$this->addaction[] = [
-				'label' => 'Bayar',
-				'icon'=>'fa fa-money',
-				'color'=>'success',
-				'url'=>CRUDBooster::mainpath('payment').'/[id]','title'=>'Cetak','target'=>'_blank',
-				'showIf'=>"[amount_due]!=0"
-			];
+
 			/*
 	        | ----------------------------------------------------------------------
 	        | Add More Button Selected
@@ -208,10 +197,8 @@ use Session;
 	        |
 	        */
 			$this->index_statistic[] = ['label'=>'Total Order','count'=>$this->salesOrder->getTotalSalesOrder(),'icon'=>'fa fa-file-text','color'=>'warning'];
-			$this->index_statistic[] = ['label'=>'Pending Kirim','count'=>$this->salesOrder->getTotalKirimOrder(),'url'=>'sales_orders?filter=pending-kirim','icon'=>'fa fa-file-text','color'=>'warning'];
-			#$this->index_statistic[] = ['label'=>'Total Order (Rp)','count'=>number_format($this->salesOrder->getTotalSalesOrderRp()),'icon'=>'fa fa-file-text','color'=>'danger'];
-			$this->index_statistic[] = ['label'=>'Total Lunas (Rp)','count'=>number_format($this->salesOrder->getTotalSalesLunasRp()),'url'=>'sales_orders?filter=lunas','icon'=>'fa fa-file-text','color'=>'success'];
-			$this->index_statistic[] = ['label'=>'Total Piutang (Rp)','count'=>number_format($this->salesOrder->getTotalSalesPiutangRp()),'url'=>'sales_orders?filter=piutang','icon'=>'fa fa-file-text','color'=>'success'];
+			$this->index_statistic[] = ['label'=>'Total Order (Rp)','count'=>number_format($this->salesOrder->getTotalSalesOrderRp()),'icon'=>'fa fa-file-text','color'=>'danger'];
+			$this->index_statistic[] = ['label'=>'Total Piutang (Rp)','count'=>number_format($this->salesOrder->getTotalSalesPiutangRp()),'icon'=>'fa fa-file-text','color'=>'success'];
 
 
 
@@ -226,7 +213,6 @@ use Session;
 	        $this->script_js = "
 				$(function(){
 					setInterval(function(){
-							console.log('expedition cost');
 							var subTotal = 0;
 							$('#table-ordersdetail tbody .total').each(function(){
 								var sub = parseInt($(this).text());
@@ -285,7 +271,7 @@ use Session;
 	        | $this->load_js[] = asset("myfile.js");
 	        |
 	        */
-			#$this->load_js[] = asset("js/sales.js");
+			$this->load_js[] = asset("js/sales.js");
 
 
 
@@ -338,16 +324,7 @@ use Session;
 	    */
 	    public function hook_query_index(&$query) {
 	        //Your code here
-			if(Request::get('filter') == 'piutang'){
-				$query->where('sales_orders.amount_due','>',0);
-			}
-			if(Request::get('filter') == 'lunas'){
-				$query->where('sales_orders.amount_due','=',0);
-			}
-			if(Request::get('filter') == 'pending-kirim'){
-				$query->where('sales_orders.delivery_order','=',0);
-			}
-
+	        $query->where('is_point_of_sales',1);
 	    }
 
 	    /*
@@ -380,8 +357,6 @@ use Session;
 			$month = date("m");
 			$no = str_pad($sq+1,4,"0",STR_PAD_LEFT);
 			$postdata['order_number'] = $code.$customer.$year.$month.$no;
-			$postdata['expedition_cost'] = (int)$postdata['expedition_cost'];
-			$postdata['notes'] = $postdata['notes'];
 			$postdata['order_status_id'] = 1;
 			$postdata['created_by'] = CRUDBooster::myId();
 
@@ -401,12 +376,11 @@ use Session;
 	        //Your code here
 			$sales = DB::table('sales_orders')->where('id',$id)->first();
 
-			$total = ((int)$sales->subtotal + (int)$sales->expedition_cost);
+			$total = ($sales->subtotal + $sales->expedition_cost);
 			// hitung modal
 			// $sales_detail = DB::table('sales_order_detail')
 			// 				->join('productsx`')
-
-			$data = (object)[
+			$data = [
 				'id' => $sales->id,
 				'order_number' => $sales->order_number,
 				'order_date' => $sales->order_date,
@@ -428,10 +402,8 @@ use Session;
 				$mode = 'no-journal';
 			}
 
-			$this->journalTransaction->salesJournalEntry($data,0,$mode);
-
-			event(new SalesEntryEvent($sales));
-		}
+			$this->journalTransaction->salesJournalEntry((object)$data,0,$mode);
+	    }
 
 	    /*
 	    | ----------------------------------------------------------------------
@@ -443,16 +415,16 @@ use Session;
 	    */
 	    public function hook_before_edit(&$postdata,$id) {
 	        //Your code here
-			// $sales = DB::table('sales_orders')->where('id',$id)->first();
-			// $data = [
-			// 	'id' => $sales->id,
-			// 	'order_number' => $sales->order_number,
-			// 	'total_amount' => $postdata['total'],
-			// 	'module' => 'sales',
-			// ];
+			$sales = DB::table('sales_orders')->where('id',$id)->first();
 
-			#$this->journalTransaction->updatePurchaseJournalEntry((object)$data); // next concern on accounting development
+			$data = [
+				'id' => $sales->id,
+				'order_number' => $sales->order_number,
+				'total_amount' => $postdata['total'],
+				'module' => 'sales',
+			];
 
+			$this->journalTransaction->updatePurchaseJournalEntry((object)$data);
 	    }
 
 	    /*
@@ -464,9 +436,7 @@ use Session;
 	    */
 	    public function hook_after_edit($id) {
 	        //Your code here
-			$sales = DB::table('sales_orders')->where('id',$id)->first();
 
-			event(new SalesEntryEvent($sales));
 	    }
 
 	    /*
@@ -500,6 +470,160 @@ use Session;
 	        //Your code here
 
 	    }
+		public function saveCashier(Request $request){
+
+			// Check Barang Tidak boleh kosong
+			$code = "TR";
+			$sq = DB::table('sales_orders')->max('id');
+
+			$year = substr(date("y"),-2);
+			$month = date("m");
+			$no = str_pad($sq+1,4,"0",STR_PAD_LEFT);
+
+			 $vTransaction['order_number'] = $code.$year.$month.$no;
+			// $vTransaction['customer'] = Request::post('customer');
+			 $vTransaction['order_date'] = date('Y-m-d');
+			 $vTransaction['order_status_id'] = 1;
+			 $vTransaction['subtotal'] = Request::post('subtotal');
+			 $vTransaction['discount'] = 0;
+			 $vTransaction['total'] = Request::post('total');
+			 $vTransaction['total_amount'] = Request::post('total');
+			 $vTransaction['is_point_of_sales'] = 1;
+			 $vTransaction['created_by'] = CRUDBooster::myId();
+			 $vTransaction['created_at'] = Carbon::now();
+			 $vTransaction['delivery_order'] = 1;
+		     $last_id = DB::table('sales_orders')->insertGetId($vTransaction);
+
+			 $id = Request::post('id');
+			 $name = Request::post('name');
+			 $price = Request::post('price');
+			 $count = Request::post('count');
+			 $total = Request::post('total');
+
+			if(!empty($name)){
+
+				for($i = 0; $i < count($name); $i++){
+					$productLocation = ProductLocation::find($id[$i]);
+					$vDetail = [];
+					$vDetail['sales_order_id'] =$last_id;
+					$vDetail['product_id'] = $productLocation->product_id;
+					// add product location
+					$vDetail['product_location_id'] = $id[$i];
+					$vDetail['price'] = $price[$i];
+					$vDetail['qty'] = $count[$i];
+					$vDetail['total'] = ((int)$price[$i] * (int)$count[$i]);
+					$vDetail['created_by'] =  CRUDBooster::myId();
+					$vDetail['created_at'] = Carbon::now();
+					DB::table('sales_order_details')->insert($vDetail);
+				}
+			}
+			if($last_id > 0){
+				$data['status'] = true;
+				$data['last_id'] = $last_id;
+
+				$sales = DB::table('sales_orders')->where('id',$last_id)->first();
+				event(new SalesEntryEvent($sales));
+
+			}
+			else
+			{
+				$data['status'] = false;
+			}
+
+			return response()->json($data);
+		}
+
+		public function doPrint(Request $requst){
+
+			$order_id = Request::post('order_id');
+			$data = [];
+			$orders = DB::table('sales_orders')->where('sales_orders.id', $order_id)
+						->select('sales_orders.*','cms_users.name')
+						->join('cms_users','sales_orders.created_by','=','cms_users.id')
+						->first();
+
+			$items =  DB::table('sales_order_details as t1')
+			            ->select('t1.*','t2.name')
+						->join('products as t2','t1.product_id','=','t2.id')
+						->where('t1.sales_order_id',$order_id)->get();
+
+			$labels = DB::table('setting_receipt')->first();
+
+			$data['labels'] = $labels;
+			$data['transactions'] = $orders;
+			$data['detail_transaction']  = $items;
+
+			return response()->json(['success'=>'true','data'=>$data,'view'=>view('prints/print-struk')->with($data)->render()], 200, ['Content-Type' => 'application/json']);
+			#return response()->json(['success'=>'true','data'=>$data,'view'=>view('prints/print-struk')->with($data)->render()], 200, ['Content-Type' => 'application/json']);
+		}
+
+		public function getPrint($id){
+
+			$order_id = $id;
+			$data = [];
+			$orders = DB::table('sales_orders')->where('sales_orders.id', $order_id)
+						->select('sales_orders.*','cms_users.name')
+						->join('cms_users','sales_orders.created_by','=','cms_users.id')
+						->first();
+
+			$items =  DB::table('sales_order_details as t1')
+			            ->select('t1.*','t2.name')
+						->join('products as t2','t1.product_id','=','t2.id')
+						->where('t1.sales_order_id',$order_id)->get();
+
+			$labels = DB::table('setting_receipt')->first();
+
+			$data['labels'] = $labels;
+			$data['transactions'] = $orders;
+			$data['detail_transaction']  = $items;
+
+			$this->cbView('prints.print-struk',$data);
+			#return response()->json(['success'=>'true','data'=>$data,'view'=>view('prints/print-struk')->with($data)->render()], 200, ['Content-Type' => 'application/json']);
+		}
+
+		public function getCashier(){
+			if(!CRUDBooster::isRead() && $this->global_privilege==FALSE || $this->button_add==FALSE) {
+				CRUDBooster::redirect(CRUDBooster::adminPath(),trans("crudbooster.denied_access"));
+			  }
+
+			  $sort_by 		= Request::get('sortby');
+			  $sort_type  	= Request::get('sort_type');
+		      $filter      	= Request::get('query');
+
+			  $data = [];
+			  $data['page_title'] = 'Transaksi Penjualan';
+
+			  $date = date('Y-m-d'); //Carbon::now()->setTimezone('UTC');
+			  $data['current'] = $date;
+
+			  $data = DB::table('products as t1')
+			          ->select('t2.id as id','t2.product_id','t1.name','t1.product_price','t2.wh_location_id')
+					  ->addSelect('t3.wh_location_name')
+					  ->join(DB::raw('(SELECT id, product_id, wh_location_id,qty_onhand FROM product_locations) t2'), function($join) {
+								$join->on('t1.id','=','t2.product_id');
+								$join->where('t2.wh_location_id',3);
+								$join->where('t2.qty_onhand','>',0);
+							    $join->orderBy('t2.qty_onhand','desc');
+								$join->limit(1);
+					  })
+					  ->join('wh_locations as t3','t3.id','t2.wh_location_id')
+					  ->groupBy('t2.id')
+			  		  ->take(20)->get();
+						//dd(DB::getQueryLog());
+			    $items = $data->map(function($product) {
+				return [
+				   'id' => $product->id,
+				   'name'=> $product->name,
+				   'product_price' => $product->product_price,
+				   'wh_location_id' => $product->wh_location_id,
+				   'wh_location_name' => $product->wh_location_name,
+				   'product_price_format' => 'Rp. '.number_format($product->product_price)
+				];
+			 });
+			  $data['items'] = $items;
+			  $this->cbView('forms.cashier',$data);
+		}
+
 		public function getPayment($id)
 		{
 			$data = [];
@@ -507,27 +631,6 @@ use Session;
 			$data['detail_sales'] = $this->salesOrder->getDetailSalesOrder($id);
 		//	dd($data);
 			$this->cbView('forms/payment',$data);
-		}
-		public function getPrint($id){
-			if(!CRUDBooster::isRead() && $this->global_privilege==FALSE || $this->button_add==FALSE) {
-				CRUDBooster::redirect(CRUDBooster::adminPath(),trans("crudbooster.denied_access"));
-			  }
-
-			$data = [];
-			$data['page_title'] = 'Sales Order';
-
-			$data['sales_order'] = $this->salesOrder->getSalesOrder($id);
-
-			$data['sales_detail'] =  $this->salesOrder->getDetailSalesOrder($id);
-
-			//
-			$data['print'] = (object)[
-				'print_at' => date('Y-m-d H:i:s'),
-				'print_by' => CRUDBooster::me()
-			];
-			//dd($data);
-			$this->cbView('prints.sales_order',$data);
-
 		}
 
 		public function getFormSales(){
@@ -579,8 +682,7 @@ use Session;
 
 			$this->salesOrder->updatePayment((object)$payload);
 
-			#CRUDBooster::redirect($_SERVER['HTTP_REFERER'], 'Pembayaran Berhasil', 'success');
-			CRUDBooster::redirect(CRUDBooster::mainpath("/"),"Berhasil Pembayaran","info");
+			CRUDBooster::redirect($_SERVER['HTTP_REFERER'], 'Pembayaran Berhasil', 'success');
 		}
 		public function postKirim(){
 
@@ -630,15 +732,16 @@ use Session;
 			$data = [];
 
 			$sales = DB::table('sales_orders as t1')
-						->select('t1.*','t2.name', 't3.name as expedition','t5.name as product_name','t6.name as category_name','t7.name as brand_name')
-						->selectRaw("(SELECT vendors.name from vendors join goods_receipt as gr on (vendors.id = gr.vendor_id) where t8.good_receipt_id = gr.id) vendor_name")
-						->join('customers as t2','t1.customer_id','=','t2.id')
+						->select('t1.*','t2.name', 't3.name as expedition','t5.name as product_name','t6.name as category_name','t7.name as brand_name','t10.name as vendor_name')
+						->leftJoin('customers as t2','t1.customer_id','=','t2.id')
 						->join('sales_order_details as t4','t1.id','=','t4.sales_order_id')
 						->join('products as t5','t4.product_id','t5.id')
 						->join('product_categories as t6','t6.id','t5.category_id')
 						->join('product_brands as t7','t5.brand_id','t7.id')
-						->join('product_locations as t8','t4.product_location_id','t8.id')  // key join
-						->join('expeditions as t3','t1.expedition_id','=','t3.id');
+						->leftJoin('product_locations as t8','t4.product_id','t8.product_id')
+						->leftJoin('goods_receipt as t9','t9.id','t8.good_receipt_id')
+						->leftJoin('vendors as t10','t10.id','t9.vendor_id')
+						->leftJoin('expeditions as t3','t1.expedition_id','=','t3.id');
 
 			$sales = $sales->when($customer, function($sales) use ($customer){
 				return $sales->whereIn('t2.id',$customer);
@@ -652,14 +755,12 @@ use Session;
 			$sales = $sales->when($item, function($sales) use ($item){
 				return $sales->whereIn('t5.id',$item);
 			});
-
+			#var_dump($sales->get()); die;
 			if(isset($start_date) && isset($end_date)){
 				$sales = $sales->whereRaw("DATE_FORMAT(t1.order_date, '%Y-%m-%d') >= '" . $start_date . "' AND DATE_FORMAT(t1.order_date, '%Y-%m-%d') <= '" . $end_date . "'");
 			}
-
 			$sales = $sales->get();
 
-			#echo '<pre>'; print_r($sales); echo '</pre>'; exit;
 			$data['page_title'] = 'Laporan Penjualan Barang';
 
 			$datas = Array();
@@ -670,7 +771,6 @@ use Session;
 						$no,
 						$item->order_number,
 						$item->name,
-						$item->notes,
 						$item->order_date,
 						$item->vendor_name,
 						$item->category_name,
@@ -699,8 +799,7 @@ use Session;
 					$sheet->mergeCells('A1:N1');
 
 					// Columns
-					// $labels = ['No','No. Order','Pelanggan','Tgl Order','Kategori','Brand','Item','Expedisi','Sub Total', 'Discount','Biaya Expedisi','Total','Pelunasan','Sisa'];
-					$labels = ['No','No. Order','Pelanggan','Penerima','Tgl Order','Supplier','Kategori','Brand','Item','Expedisi','Sub Total', 'Discount','Biaya Expedisi','Total','Pelunasan','Sisa'];
+					$labels = ['No','No. Order','Pelanggan','Tgl Order','Supplier','Kategori','Brand','Item','Expedisi','Sub Total', 'Discount','Biaya Expedisi','Total','Pelunasan','Sisa'];
 
 					$sheet->appendRow($labels);
 					$sheet->row($sheet->getHighestRow(), function ($row) {
@@ -728,42 +827,17 @@ use Session;
 			$this->cbView('prints.sales',$data);
 		}
 		public function getStatus(){
+			if(!CRUDBooster::isRead() && $this->global_privilege==FALSE || $this->button_edit==FALSE) {
+				CRUDBooster::redirect(CRUDBooster::adminPath(),trans("crudbooster.denied_access"));
+			  }
+
 			  $data = [];
 			  $data['page_title'] = 'Detail Data';
 			  $data['data'] = [
 				'item_incoming' => 100,
 				'item_outgoing' => 100
 			  ];
+			 // echo '<pre>'; print($data['data']['item_incoming']); echo '<pre>'; exit;
 			  $this->cbView('dashboards.statistic',$data);
-		}
-
-		// Sync Penjualan langsung delivered, karna fitur delivery include di sales
-
-		public function syncSalesDelivery($id){
-			// local
-			#$sales = DB::table('sales_orders')->where('is_point_of_sales',0)->get();
-			// server
-			$sales = DB::table('sales_orders')->get();
-			foreach($sales as $item){
-				// DO Event Here
-				switch($id){
-					case  1 :
-						// sinkronisasi sales detail
-						$this->salesOrder->updateDetailSalesOrder($item->id);
-						echo 'sinkronisasi sales detail';
-					break;
-					case  2 :
-						// delivery jadi terkirim
-						 $this->salesOrder->updateDeliveryOrder($item->id);
-						 echo 'delivery jadi terkirim';
-					break;
-					case 3;
-					    // update onhand berdasarkan sales detail
-						$this->productRepository->updateSalesStokLocation($item->id);
-						echo 'update onhand berdasarkan sales detail';
-					break;
-
-				}
-			}
 		}
 	}

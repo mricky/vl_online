@@ -5,46 +5,44 @@
 	use DB;
 	use CRUDBooster;
 
-	class AdminTransactionTypesController extends \crocodicstudio\crudbooster\controllers\CBController {
+	class AdminItemTypesController extends \crocodicstudio\crudbooster\controllers\CBController {
 
 	    public function cbInit() {
-
-			# START CONFIGURATION DO NOT REMOVE THIS LINE
-			$this->title_field = "name";
-			$this->limit = "20";
-			$this->orderby = "id,desc";
-			$this->global_privilege = false;
-			$this->button_table_action = true;
-			$this->button_bulk_action = true;
-			$this->button_action_style = "button_icon";
-			$this->button_add = true;
-			$this->button_edit = false;
-			$this->button_delete = true;
-			$this->button_detail = true;
-			$this->button_show = true;
-			$this->button_filter = true;
-			$this->button_import = false;
-			$this->button_export = false;
-			$this->table = "transaction_types";
-			# END CONFIGURATION DO NOT REMOVE THIS LINE
+	    	# START CONFIGURATION DO NOT REMOVE THIS LINE
+			$this->table 			   = "item_types";	        
+			$this->title_field         = "name";
+			$this->limit               = 20;
+			$this->orderby             = "id,desc";
+			$this->show_numbering      = FALSE;
+			$this->global_privilege    = FALSE;	        
+			$this->button_table_action = TRUE;   
+			$this->button_action_style = "button_icon";     
+			$this->button_add          = TRUE;
+			$this->button_delete       = TRUE;
+			$this->button_edit         = TRUE;
+			$this->button_detail       = TRUE;
+			$this->button_show         = TRUE;
+			$this->button_filter       = TRUE;        
+			$this->button_export       = FALSE;	        
+			$this->button_import       = FALSE;
+			$this->button_bulk_action  = TRUE;	
+			$this->sidebar_mode		   = "normal"; //normal,mini,collapse,collapse-mini
+			# END CONFIGURATION DO NOT REMOVE THIS LINE						      
 
 			# START COLUMNS DO NOT REMOVE THIS LINE
-			$this->col = [];
-			$this->col[] = ["label"=>"Kode","name"=>"code"];
-			$this->col[] = ["label"=>"Nama","name"=>"name"];
+	        $this->col = [];
+			$this->col[] = array("label"=>"Name","name"=>"name" );
+		$this->col[] = array("label"=>"Created By","name"=>"created_by" );
+		$this->col[] = array("label"=>"Updated By","name"=>"updated_by" );
+
 			# END COLUMNS DO NOT REMOVE THIS LINE
-
 			# START FORM DO NOT REMOVE THIS LINE
-			$this->form = [];
-			$this->form[] = ['label'=>'Kode','name'=>'code','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
-			$this->form[] = ['label'=>'Nama','name'=>'name','type'=>'text','validation'=>'required|string|min:3|max:70','width'=>'col-sm-10','placeholder'=>'You can only enter the letter only'];
-			# END FORM DO NOT REMOVE THIS LINE
+		$this->form = [];
+		$this->form[] = ["label"=>"Name","name"=>"name","type"=>"text","required"=>TRUE,"validation"=>"required|string|min:3|max:70","placeholder"=>"Anda hanya dapat memasukkan huruf saja"];
+		$this->form[] = ["label"=>"Created By","name"=>"created_by","type"=>"text","required"=>TRUE,"validation"=>"required|min:1|max:255"];
+		$this->form[] = ["label"=>"Updated By","name"=>"updated_by","type"=>"text","required"=>TRUE,"validation"=>"required|min:1|max:255"];
 
-			# OLD START FORM
-			//$this->form = [];
-			//$this->form[] = ['label'=>'Kode','name'=>'code','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
-			//$this->form[] = ['label'=>'Nama','name'=>'name','type'=>'text','validation'=>'required|string|min:3|max:70','width'=>'col-sm-10','placeholder'=>'You can only enter the letter only'];
-			# OLD END FORM
+			# END FORM DO NOT REMOVE THIS LINE     
 
 			/* 
 	        | ---------------------------------------------------------------------- 

@@ -36,7 +36,7 @@ use GuzzleHttp\Psr7\Request as Psr7Request;
 			$this->button_show = true;
 			$this->button_filter = true;
 			$this->button_import = false;
-			$this->button_export = false;
+			$this->button_export = true;
 			$this->table = "products";
 			# END CONFIGURATION DO NOT REMOVE THIS LINE
 
@@ -385,7 +385,11 @@ use GuzzleHttp\Psr7\Request as Psr7Request;
 		public function syncInternalStock(){
 			$this->product->syncInternalStock();
 		}
-		
+		public function findProductItemPurchase($purchaseId){
+			$data = $this->product->findProductItemPurchase($purchaseId);
+
+			return response()->json($data);
+		}
 		public function findProductLocationItem(Request $request){
 			$ids = Request::get('q');
 			$whLocationId = Request::get('whLocationId');
@@ -425,20 +429,49 @@ use GuzzleHttp\Psr7\Request as Psr7Request;
 			$category      	= Request::get('category');
 			
 			$query = str_replace(" ", "%", $query);
-			$items = DB::table('product_locations as t1')
-				     ->join('products as t2','t2.id','t1.product_id')
-					 ->when($filter, function($query) use ($filter){
-						return $query->where('t2.name','like','%'.$filter.'%');		
-					 })
-					// ->when($category !=null, function($query) use ($category){
-					// 	return $query->where('t1.category_id','=',$category);		
-					// })
-					->where('t1.wh_location_id',3)
-					->where('t1.qty_onhand','>', 0)
-					->paginate(20);
 
+			$data = DB::table('products as t1')
+			          ->select('t2.id as id','t2.product_id','t1.name','t1.category_id','t1.product_price','t2.wh_location_id')
+					  ->addSelect('t3.wh_location_name','t4.name as caregory_name') 
+					  ->join(DB::raw('(SELECT id, product_id, wh_location_id,qty_onhand FROM product_locations) t2'), function($join) {
+								$join->on('t1.id','=','t2.product_id');
+								$join->where('t2.wh_location_id',3);
+								$join->where('t2.qty_onhand','>',0);
+							    $join->orderBy('t2.qty_onhand','desc');
+						
+					  })
+					  ->join('wh_locations as t3','t3.id','t2.wh_location_id')
+					  ->join('product_categories as t4','t4.id','t1.category_id')
+					  ->when($filter, function($query) use ($filter){
+									return $query->where('t1.name','like','%'.$filter.'%');		
+								 })
+					  ->when($category, function($query) use ($category){
+							if($category != 'all'){
+								return $query->where('t4.id',$category);		
+							}
+							else {
+								return $query;
+							}
+					   })
+					  ->groupBy('t2.id')->get();
 			
-			return response()->json($items);
+			$items = $data->map(function($product) {
+				return [
+				   'id' => $product->id, 
+				   'name'=> $product->name,
+				   'category_id' => $product->category_id,
+				   'category_name' => $product->category_name,
+				   'product_price' => $product->product_price,
+				   'wh_location_id' => $product->wh_location_id,
+				   'wh_location_name' => $product->wh_location_name,
+				   'product_price_format' => 'Rp. '.number_format($product->product_price)	
+				];
+			 });
+
+			$data = [
+				'data' => $items
+			];
+			return response()->json($data);
 			
 	
 		}

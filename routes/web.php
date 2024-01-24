@@ -15,12 +15,10 @@
 //     return view('welcome');
 // });
 # Batch Syncronize
-// Manual Buat Good Receive
-Route::get('/manual-good-receive/{id}','AdminPurchaseOrdersController@manual_good_receive');
 Route::get('/sync-purchase-order/','AdminPurchaseOrderDetails49Controller@syncPurchaseItemInfo');
 Route::get('/sync-sales-order/{id}','AdminSalesOrdersController@syncSalesDelivery');
 
-# 
+#
 
 #POINT OF SALES
 Route::post('/doPrint','AdminSalesOrders47Controller@doPrint');

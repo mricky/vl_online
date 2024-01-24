@@ -32,10 +32,10 @@ jobs:
 
       runs-on: ubuntu-latest
 
-      steps: 
+      steps:
       - name:  VL Online Production'
         uses: appleboy/ssh-action@master
-        with: 
+        with:
           host: ${{secrets.PROD_HOST}}
           username: ${{secrets.PROD_USERNAME}}
           password: ${{secrets.PROD_PASSWORD}}
@@ -43,5 +43,7 @@ jobs:
           script: |
             cd /var/www/html/vl_online
             git pull origin production
-           
-        
+            composer dump-autoload
+            php artisan config:clear
+            php artisan db:seed --class=JournalTypeSeeder
+

@@ -49,8 +49,11 @@ class JournalTypeSeeder extends Seeder
             foreach($type as $item) {
                 DB::table('journal_type')->updateOrInsert(
                     ['id' => $item['id']],
-                    ['journal_scope' => $item['journal_scope']],
-                    ['journal_type' => $item['journal_type']]
+                    [
+                     'journal_scope' => $item['journal_scope'],
+                     'journal_type' => $item['journal_type']
+                    ],
+
                 );
             }
         });

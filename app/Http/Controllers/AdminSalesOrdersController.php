@@ -135,7 +135,7 @@ use Session;
 			// 	'color'=>'success',
 			// 	'url'=>CRUDBooster::mainpath('delivery').'/[id]','title'=>'Cetak','target'=>'_blank',
 			// 	'showIf'=>"[delivery_order]==0"];
-
+            $this->addaction[] = ['label'=>'Jurnal','icon'=>'fa fa-history','color'=>'primary','url'=>CRUDBooster::mainpath('jurnal').'/[id]','title'=>'Jurnal','target'=>'_blank'];
 			$this->addaction[] = [
 				'label' => 'Kirim',
 				'icon'=>'fa fa-success',
@@ -766,4 +766,16 @@ use Session;
 				}
 			}
 		}
+
+        public function getJurnal($id){
+
+            $journal = $this->journalTransaction->printJurnal($id,1);
+
+            $data = [];
+
+            $data['journal'] = $journal;
+
+            $this->cbView('prints/print-journal',$data);
+
+        }
 	}

@@ -9,7 +9,7 @@ interface IJournalTransaction {
     public function generateNeracaRugiLaba($data,$reportType);
 
     // purchase
-    public function printJurnal($id);
+    public function printJurnal($id,$type);
     public function goodReceiveJournalEntry($receive);
     public function paidPurchase($purchase,$payment);
     public function purchaseWithDownpaymentJournalEntry($purchaseOrder);
@@ -50,7 +50,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
 
     }
 
-    public function printJurnal($id){
+    public function printJurnal($id,$type){
 
        $noRef = DB::table('purchase_orders')->where('id',$id)->first()->order_number;
 
@@ -61,7 +61,12 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                 ->addSelect(DB::raw("null as AmountKredit"))
                 ->addSelect("t.ref_no AS Reference")
                 ->addSelect(DB::raw("null as IsLine"))
-                ->where('t.ref_id', $id);
+                ->join('transaction_types as type','t.transaction_type','type.id')
+                ->where(function ($query) use ($id,$type){
+                    $query->where('t.ref_id', $id);
+                    $query->where('type.scope', $type);
+                 });
+
 
         $detail = DB::table('journal_transactions as t')
                 ->select('t.id')
@@ -71,11 +76,16 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                 ->addSelect(DB::raw("null as IsLine"))
                 ->join('journal_details as detail','detail.journal_id','t.id')
                 ->join("chart_of_accounts as coa",'coa.id','detail.account_id')
-                ->where('t.ref_id', $id);
+                ->join('transaction_types as type','t.transaction_type','type.id')
+                ->where(function ($query) use ($id,$type){
+                    $query->where('t.ref_id', $id);
+                    $query->where('type.scope', $type);
+                 });
 
 
-       $data = $header->union($detail)->get();
+       $unionWithJoin  = $header->unionAll($detail);
 
+       $data = DB::query()->fromSub($unionWithJoin, 'union_join')->get();
 
 
       return $data;
@@ -149,6 +159,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
     public function goodReceiveJournalEntry($receive)
     {
 
+
         $goodReceiptDetail = DB::table('goods_receipt_details')->where('good_receipt_id',$receive->id)->get();
 
         $inventoryValue = 0;
@@ -172,9 +183,9 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                 'transaction_number' => $number,
                 'transaction_type' => $transactionType->id,
                 'entry_no'  => 0,
-                'ref_id' => $receive->id,
+                'ref_id' => $receive->purchase_order_id, // order id
                 'ref_no' => $receive->code,
-                'memo' => 'Penerimaan Barang',
+                'memo' => $transactionType->name,
                 'total_debit' => $inventoryValue,
                 'is_manual' => 0,
                 'total_credit' => $inventoryValue
@@ -185,7 +196,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
             $dataTransaction = [
                 [
                     'journal_id' => $id,
-                    'account_id' => $this->accPersediaanInternal,
+                    'account_id' => $this->accPersediaanInternal->id,
                     'debit'    => $inventoryValue,
                     'credit' =>  0,
                     'is_manual' => 0,
@@ -193,7 +204,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                 ],
                 [
                     'journal_id' => $id,
-                    'account_id' => $this->accPersediaanExternal,
+                    'account_id' => $this->accPersediaanExternal->id,
                     'debit'    => 0,
                     'credit' => $inventoryValue,
                     'is_manual' => 0,
@@ -227,7 +238,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                 'entry_no'  => 0,
                 'ref_id' => $purchase->id,
                 'ref_no' => $purchase->order_number,
-                'memo' => 'Pelunasan Uang Muka',
+                'memo' => $transactionType->name,
                 'total_debit' => $payment->amount,
                 'is_manual' => 0,
                 'total_credit' => $payment->amount
@@ -276,11 +287,11 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
             $payload = [
                 'transaction_date' => $purchase->order_date,
                 'transaction_number' => $number,
-                'transaction_type' => 2, // Order Pembelian + Uang Muka
+                'transaction_type' => $transactionType->id, // Order Pembelian + Uang Muka
                 'entry_no'  => 0,
                 'ref_id' => $purchase->id,
                 'ref_no' => $purchase->order_number,
-                'memo' => 'Order Pembelian + Uang Muka',
+                'memo' => $transactionType->name,
                 'total_debit' => $purchase->total,
                 'is_manual' => 0,
                 'total_credit' => $purchase->total
@@ -291,7 +302,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
             $dataTransaction = [
                 [
                     'journal_id' => $id,
-                    'account_id' => $this->accPersediaanExternal,
+                    'account_id' => $this->accPersediaanExternal->id,
                     'debit'    => $purchase->total,
                     'credit' => 0,
                     'is_manual' => 0,
@@ -331,7 +342,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
 
             DB::beginTransaction();
 
-            $transactionType =  DB::table('transaction_types')->where('code','02')->first();
+            $transactionType =  DB::table('transaction_types')->where('code','01')->first();
             $payload = [
                 'transaction_date' => $purchase->order_date,
                 'transaction_number' => $number,
@@ -339,7 +350,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                 'entry_no'  => 0,
                 'ref_id' => $purchase->id,
                 'ref_no' => $purchase->order_number,
-                'memo' => 'Order Pembelian + Uang Muka',
+                'memo' => $transactionType->name,
                 'total_debit' => $purchase->total,
                 'is_manual' => 0,
                 'total_credit' => $purchase->total

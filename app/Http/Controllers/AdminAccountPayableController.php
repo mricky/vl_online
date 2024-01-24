@@ -331,6 +331,8 @@
             ];
 
             DB::table('purchase_orders')->where('id',$payment->purchase_id)->update($payload);
+
+            // TODO: Pelunasan
 	    }
 
 	    /*

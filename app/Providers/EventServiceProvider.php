@@ -14,8 +14,7 @@ class EventServiceProvider extends ServiceProvider
      */
     protected $listen = [
         'App\Events\OrderEntryEvent' => [
-            'App\Listeners\GoodReceiptListener',
-            'App\Listeners\SynchPurchaseItemListener'
+            'App\Listeners\GoodReceiptListener'
         ],
         'App\Events\SalesEntryEvent' => [
             'App\Listeners\SynchSalesItemListener',

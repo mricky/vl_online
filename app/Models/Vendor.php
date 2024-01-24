@@ -15,4 +15,8 @@ class Vendor extends Model
         'instagram',
         'description'
     ];
+    
+    public function purchase(){
+        return $this->belongsTo(PurchaseOrder::class, 'vendor_id'); 
+    }
 }

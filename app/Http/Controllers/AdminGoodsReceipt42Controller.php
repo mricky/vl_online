@@ -60,25 +60,16 @@ use Session;
 
 			# START FORM DO NOT REMOVE THIS LINE
 			$this->form = [];
-			$this->form[] = ['label'=>'Supplier','name'=>'vendor_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'vendors,name'];
-			$this->form[] = ['label'=>'No Penerimaan','name'=>'code','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
+			$this->form[] = ['label'=>'Vendor Name','name'=>'vendor_name','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5','readonly'=>true];
+			$this->form[] = ['label'=>'Purchase Order','name'=>'po_vendor','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5','readonly'=>true];
 			$this->form[] = ['label'=>'Tgl Penerimaan','name'=>'receipt_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-5'];
-			$this->form[] = ['label'=>'PO','name'=>'purchase_order_id','type'=>'select','required'=>true,'width'=>'col-sm-5','datatable'=>'view_orders,order_number'];
-
 		
 			//$this->form[] = ['label'=>'PO','name'=>'purchase_order_id','type'=>'select','width'=>'col-sm-4','datatable'=>'purchase_orders,order_number,vendor_id,description','datatable_format'=>'order_number,\' - \',description','parent_select'=>'vendor_id'];
 			
 			$columns = [];
-			$columns[] = ['label'=>'Produk','name'=>'product_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'products,name','datatable_format'=>"id,' - ',name"];
-			// $columns[] = ['label'=>'Product','name'=>'product_id','type'=>'datamodal'
-			// ,'validation'=>'required|min:1|max:255'
-			// ,'width'=>'col-sm-2'
-			// ,'datamodal_table'=>'view_list_product_sales'
-			// ,'datamodal_columns'=>'name,category_name,brand_name,product_price,qty_onhand,lot_number'
-			// ,'datamodal_size'=>'large','datamodal_columns_alias'=>'Name, Kategori, Brand, Harga, Stok, Lot Number'
-			// ,'datamodal_select_to'=>'product_price:price,lot_number:lot_number'];
-			$columns[] = ["label"=>"Barang Pesan",'required'=>true,"name"=>"qty_demand",'type'=>'number','readonly'=>false];
-			$columns[] = ["label"=>"Barang Masuk",'required'=>true,"name"=>"qty_in",'type'=>'number'];
+
+			$columns[] = ["label"=>"Barang Pesan",'required'=>true,"name"=>"qty_demand",'type'=>'number','readonly'=>true];
+			$columns[] = ["label"=>"Barang Masuk",'required'=>true,"name"=>"qty_in",'type'=>'number','readonly'=>true];
 			$columns[] = ["label"=>"Harga","name"=>"price",'type'=>'number','required'=>true];
 			$columns[] = ['label'=>'Lokasi','name'=>'wh_location_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'wh_locations,wh_location_name'];
 			$columns[] = ["label"=>"Lot No","name"=>"lot_number",'type'=>'text','readonly'=>true];

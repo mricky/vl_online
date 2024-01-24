@@ -18,7 +18,7 @@
 Route::get('/sync-purchase-order/','AdminPurchaseOrderDetails49Controller@syncPurchaseItemInfo');
 Route::get('/sync-sales-order/{id}','AdminSalesOrdersController@syncSalesDelivery');
 
-# 
+#
 
 #POINT OF SALES
 Route::post('/doPrint','AdminSalesOrders47Controller@doPrint');

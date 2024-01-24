@@ -32,16 +32,15 @@ jobs:
 
       runs-on: ubuntu-latest
 
-      steps: 
-      - name: 'SSH to VL Online'
+      steps:
+      - name:  VL Online Production'
         uses: appleboy/ssh-action@master
-        with: 
-          host: ${{secrets.HOST}}
-          username: ${{secrets.USERNAME}}
-          password: ${{secrets.PASSWORD}}
-          port: ${{secrets.PORT}}
+        with:
+          host: ${{secrets.PROD_HOST}}
+          username: ${{secrets.PROD_USERNAME}}
+          password: ${{secrets.PROD_PASSWORD}}
+          port: ${{secrets.PROD_PORT}}
           script: |
             cd /var/www/html/vl_online
-            git pull origin main
-           
-        
+            git pull origin production
+

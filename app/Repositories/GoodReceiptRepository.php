@@ -169,7 +169,7 @@ class GoodReceiptRepository implements IGoodReceipt {
     }
     public function automaticReceiptEntry($poId){
 
-        $purchase = PurchaseOrder::with('details')->find($poId);
+        $purchase = PurchaseOrder::with(['details','vendor'])->find($poId);
         $location = WhLocation::where('wh_location_name',$this::WH_LOCATION_DEFAULT)->first();
         $status = OrderStatus::where('name',$this::STATUS_DEFAULT)->first();
 
@@ -179,6 +179,7 @@ class GoodReceiptRepository implements IGoodReceipt {
 
             $goodReceipt = new GoodReceipt();
             $goodReceipt->vendor_id = $purchase->vendor_id;
+            $goodReceipt->vendor_name = $purchase->vendor->name;
             $goodReceipt->purchase_order_id = $purchase->id;
             $goodReceipt->po_vendor = $purchase->order_number;
             $goodReceipt->receipt_date = $purchase->estimated_date; // estimate

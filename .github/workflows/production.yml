@@ -45,5 +45,5 @@ jobs:
             git pull origin production
             composer dump-autoload
             php artisan config:clear
-            php artisan db:seed --class=JournalTypeSeeder
+
 

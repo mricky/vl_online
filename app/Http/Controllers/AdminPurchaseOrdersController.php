@@ -141,6 +141,7 @@ use Maatwebsite\Excel\Facades\Excel;
 	        | @showIf 	   = If condition when action show. Use field alias. e.g : [id] == 1
 	        |
 	        */
+            $this->addaction[] = ['label'=>'Jurnal','icon'=>'fa fa-history','color'=>'primary','url'=>CRUDBooster::mainpath('jurnal').'/[id]','title'=>'Jurnal','target'=>'_blank'];
 			$this->addaction[] = ['label'=>'Riwayat','icon'=>'fa fa-history','color'=>'primary','url'=>CRUDBooster::mainpath('history').'/[id]','title'=>'Cetak','target'=>'_blank'];
 	        $this->addaction[] = ['label'=>'Faktur','icon'=>'fa fa-print','color'=>'primary','url'=>CRUDBooster::mainpath('print').'/[id]','title'=>'Cetak','target'=>'_blank'];
 
@@ -650,6 +651,17 @@ use Maatwebsite\Excel\Facades\Excel;
 
 		}
 
+        public function getJurnal($id){
+
+            $journal = $this->journalTransaction->printJurnal($id);
+
+            $data = [];
+
+            $data['journal'] = $journal;
+
+            $this->cbView('prints/print-journal',$data);
+
+        }
 		public function getHistory($id){
 			$data = [];
 			$data['purchase_order'] = $this->purchaseOrder->getPurchaseOrder($id);

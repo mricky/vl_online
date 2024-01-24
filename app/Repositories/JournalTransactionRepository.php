@@ -9,6 +9,7 @@ interface IJournalTransaction {
     public function generateNeracaRugiLaba($data,$reportType);
 
     // purchase
+    public function printJurnal($id);
     public function goodReceiveJournalEntry($receive);
     public function paidPurchase($purchase,$payment);
     public function purchaseWithDownpaymentJournalEntry($purchaseOrder);
@@ -49,6 +50,36 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
 
     }
 
+    public function printJurnal($id){
+
+       $noRef = DB::table('purchase_orders')->where('id',$id)->first()->order_number;
+
+       $header = DB::table('journal_transactions as t')
+                ->select('t.id')
+                ->addSelect('t.transaction_date as Date','t.memo as DescriptionOrAccountTitle')
+                ->addSelect(DB::raw("null as AmountDebit"))
+                ->addSelect(DB::raw("null as AmountKredit"))
+                ->addSelect("t.ref_no AS Reference")
+                ->addSelect(DB::raw("null as IsLine"))
+                ->where('t.ref_id', $id);
+
+        $detail = DB::table('journal_transactions as t')
+                ->select('t.id')
+                ->addSelect(DB::raw("null as Date"))
+                ->addSelect('coa.account as DescriptionOrAccountTitle','detail.debit as AmountDebit','detail.credit as AmountKredit')
+                ->addSelect("t.ref_no AS Reference")
+                ->addSelect(DB::raw("null as IsLine"))
+                ->join('journal_details as detail','detail.journal_id','t.id')
+                ->join("chart_of_accounts as coa",'coa.id','detail.account_id')
+                ->where('t.ref_id', $id);
+
+
+       $data = $header->union($detail)->get();
+
+
+
+      return $data;
+    }
     public function generateJournalNumber() : string
     {
         $sq = DB::table('journal_transactions')->max('id');

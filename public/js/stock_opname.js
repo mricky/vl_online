@@ -3,8 +3,8 @@ var items = null;
 var whLocationId = null;
 
 $("#wh_location_id").on("select2:select select2:unselect", function (e) {
-     whLocationId = $(this).val(); 
-
+     whLocationId = $(this).val();
+     console.log(items);
      renderProductLocation(items,whLocationId);
 });
 
@@ -12,7 +12,8 @@ $("#wh_location_id").on("select2:select select2:unselect", function (e) {
 $("#product_filters").on("select2:select select2:unselect", function (e) {
 
     //this returns all the selected item
-    items= $(this).val();       
+    items= $(this).val();
+    console.log(items);
 
     renderProductLocation(items,whLocationId);
 
@@ -21,14 +22,14 @@ $("#product_filters").on("select2:select select2:unselect", function (e) {
 const renderProductLocation = (items, whLocationId) => {
     const containerTable =   $('#table-barang');
 
-    $('#table-barang tbody').remove();	
+    $('#table-barang tbody').remove();
     $.ajax({
         url: '/find-product-location-item',
         dataType: 'json',
         data: {q : items,whLocationId: whLocationId},
         success: (data)=>{
             data.map(function(item){
-               
+
                 containerTable.append(`<tr>
                 <td class="product_location_id">Supplier : ${item.vendor_name} ${item.product_name}<input type="hidden" name="barang-product_location_id[]" value=${item.id}></td>\
                 <td class="qty_onhand">${item.qty_onhand}<input type="hidden" name="barang-qty_onhand[]" value=${item.qty_onhand}></td>\
@@ -39,6 +40,6 @@ const renderProductLocation = (items, whLocationId) => {
                 </tr>`)
             });
         }
-        
+
     })
 }

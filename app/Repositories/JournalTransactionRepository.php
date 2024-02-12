@@ -36,6 +36,11 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
     private $accPersediaanExternal;
     private $accPersediaanInternal;
 
+    // Expedisi and Diskon
+    private $accDiskon;
+    private $accExpedisi;
+
+
     function __construct()
     {
          $this->bca = DB::table('chart_of_accounts')->where('code','101-2001')->first(); // BCA
@@ -48,6 +53,9 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
          $this->accPersediaanExternal = DB::table('chart_of_accounts')->where('code','103-1002')->first(); // 103-1002
          $this->accPersediaanInternal = DB::table('chart_of_accounts')->where('account','Persediaan Internal')->first(); // 103-1003
 
+         $this->accDiskon =  DB::table('chart_of_accounts')->where('code','501-2001')->first();
+         $this->accExpedisi = DB::table('chart_of_accounts')->where('code','401-2001')->first();
+         // 501-2001
     }
 
     public function printJurnal($id,$type){
@@ -119,7 +127,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                 'entry_no'  => 0,
                 'ref_id' => $sales->id,
                 'ref_no' => $sales->order_number,
-                'memo' => 'Pembayaran Piutang',
+                'memo' => $transactionType->name,
                 'total_debit' => $payment->total_amount,
                 'is_manual' => 0,
                 'total_credit' => $payment->total_amount
@@ -483,8 +491,9 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                     'transaction_number' => 'GL-'.$year.$month.'-'.$no,
                     'transaction_type' => $transactionType->id,
                     'ref_no' => $data->order_number,
+                    'ref_id' => $data->id,
                     'entry_no' => 0,
-                    'memo' => 'Order Penjualan',
+                    'memo' => $transactionType->name,
                     'total_debit' => $data->total_amount,
                     'is_manual' => $is_manual,
                     'total_credit' => $data->total_amount
@@ -492,53 +501,81 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
 
                 $id = DB::table('journal_transactions')->insertGetId($payload);
                 //$dataTransaction = [];
+                $dataTransaction = [
+                    [
+                        'journal_id' => $id,
+                        'account_id' => $this->piutangDagang->id,
+                        'debit'    => $data->total_amount,
+                        'credit' => 0,
+                        'is_manual' => $is_manual,
+                        'created_at' => now(),
+                    ],
+                    [
+                        'journal_id' => $id,
+                        'account_id' => $this->pendapatanDagang->id,
+                        'debit'    => 0,
+                        'credit' => $data->total_amount,
+                        'is_manual' => $is_manual,
+                        'created_at' => now(),
+                    ],
+                    [
+                        'journal_id' => $id,
+                        'account_id' => $this->HPP->id,
+                        'debit'    => $data->total_hpp,
+                        'credit' => 0,
+                        'is_manual' => $is_manual,
+                        'created_at' => now(),
+                    ],
+                    [
+                        'journal_id' => $id,
+                        'account_id' => $this->accPersediaanInternal->id, // TODO:
+                        'debit'    => 0,
+                        'credit' => $data->total_hpp,
+                        'is_manual' => $is_manual,
+                        'created_at' => now(),
+                    ],
+
+                 ];
+
+                ## Jika ada diskon dan expedisi
+                if($data->expedisi != 0){
+                    $dataExpedisi = [
+                        [
+                            'journal_id' => $id,
+                            'account_id' => $this->accExpedisi->id,
+                            'debit'    => 0,
+                            'credit' => $data->expedisi,
+                            'is_manual' => $is_manual,
+                            'created_at' => now(),
+                        ]
+                    ];
+
+                    $dataTransaction = array_merge($dataTransaction,$dataExpedisi);
+
+
+                }
+                if($data->diskon != 0){
+                    $dataDiskon =[
+                        [
+                            'journal_id' => $id,
+                            'account_id' => $this->accDiskon->id,
+                            'debit'    => $data->diskon,
+                            'credit' => 0,
+                            'is_manual' => $is_manual,
+                            'created_at' => now(),
+                        ]
+                    ];
+
+                    $dataTransaction = array_merge($dataTransaction,$dataDiskon);
+                };
+
+                DB::table('journal_details')->insert($dataTransaction);
+
                 if($mode == 'paid'){
-                    // Journal Order Penjualan
-                    $dataTransaction = [
-                        [
-                            'journal_id' => $id,
-                            'account_id' => $this->piutangDagang->id,
-                            'debit'    => $data->total_amount,
-                            'credit' => 0,
-                            'is_manual' => $is_manual,
-                            'created_at' => now(),
-                        ],
-                        [
-                            'journal_id' => $id,
-                            'account_id' => $this->pendapatanDagang->id,
-                            'debit'    => 0,
-                            'credit' => $data->total_amount,
-                            'is_manual' => $is_manual,
-                            'created_at' => now(),
-                        ],
-                        [
-                            'journal_id' => $id,
-                            'account_id' => $this->HPP->id,
-                            'debit'    => $data->total_amount,
-                            'credit' => 0,
-                            'is_manual' => $is_manual,
-                            'created_at' => now(),
-                        ],
-                        [
-                            'journal_id' => $id,
-                            'account_id' => $this->accPersediaanInternal->id,
-                            'debit'    => 0,
-                            'credit' => $data->total_amount,
-                            'is_manual' => $is_manual,
-                            'created_at' => now(),
-                        ],
-
-                     ];
-
-                     // TODO: Include Pembayaran Piutang
-                     // Journal Pembayaran Piutang
-
                      $this->paidSales((object)$data,(object)$data);
                 } else {
                     // TODO:
                 }
-
-                DB::table('journal_details')->insert($dataTransaction);
 
                 DB::commit();
             } catch(\Exception $e){
@@ -691,6 +728,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
         try {
             DB::beginTransaction();
             $neraca = DB::table('table_neraca')->where('report_type',$reportType)->get();
+            #dd($neraca);
             DB::table('table_neraca')->update([
                     'debit' => 0,
                     'credit' => 0
@@ -698,16 +736,34 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
 
             foreach($neraca as $key=>$value){
                 if($value->account_id != 0){
-                    $trans = DB::table('journal_transactions')
-                                ->where('account_id',$value->account_id)
-                                ->where('d_k','D')
-                                // ->whereBetween('transaction_date',[$tgl_awal,$tgl_akhir])
-                                ->sum('total');
+
+                    $debit = DB::table('journal_transactions as trans')
+                                ->join('journal_details as detail','detail.journal_id','trans.id')
+                                ->where('detail.account_id',$value->account_id)
+                                #->whereBetween('trans.transaction_date',[$tgl_awal,$tgl_akhir])
+                                ->whereDate('trans.transaction_date', '>=', $tgl_awal)
+                                ->whereDate('trans.transaction_date', '<=', $tgl_akhir)
+                                ->groupBy('detail.account_id')
+                                ->sum('debit');
+
+
+                   $credit = DB::table('journal_transactions as trans')
+                                ->join('journal_details as detail','detail.journal_id','trans.id')
+                                ->where('detail.account_id',$value->account_id)
+                                #->whereBetween('trans.transaction_date',[$tgl_awal,$tgl_akhir])
+                                ->whereDate('trans.transaction_date', '>=', $tgl_awal)
+                                ->whereDate('trans.transaction_date', '<=', $tgl_akhir)
+                                ->groupBy('detail.account_id')
+                                ->sum('credit');
+
+                    // pake switch untuk ending balance
 
                     $neraca = DB::table('table_neraca')
                                 ->where('account_id',$value->account_id)
                                 ->update([
-                                    'debit' => $trans
+                                    'debit' => $debit,
+                                    'credit' => $credit,
+                                    'ending_balance' => (int)$debit - (int)$credit
                                 ]);
                 } // end if
             } // end foreach

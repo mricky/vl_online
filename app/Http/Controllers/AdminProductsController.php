@@ -397,11 +397,13 @@ class AdminProductsController extends \crocodicstudio\crudbooster\controllers\CB
             if($product){
                 $price = (int)$product->price == 0 ? 0 : (int)$product->price;
                 $totalProduct = (int)$product->totalProduct == 0 ? 0 : (int)$product->totalProduct;
-                $avergae =(int)$product->totalProduct == 0 ? 0 : (int)$product->price / (int)$product->totalProduct;
+                $average =(int)$product->totalProduct == 0 ? 0 : (int)$product->price / (int)$product->totalProduct;
+
+
                 $response = [
-                    'totalProduct' => $price,
-                    'cost' => $totalProduct,
-                    'average' => $avergae
+                    'totalProduct' => $totalProduct,
+                    'cost' => $price,
+                    'average' => $product->average
 
                 ];
             }

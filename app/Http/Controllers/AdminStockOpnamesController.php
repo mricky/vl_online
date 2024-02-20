@@ -1,5 +1,6 @@
 <?php namespace App\Http\Controllers;
 
+use App\Models\StockOpname;
 use App\Models\StockOpnameDetail;
 use Session;
 	use Request;
@@ -7,7 +8,8 @@ use Session;
 	use CRUDBooster;
 	use App\Repositories\{
 		StockOpnameRepository,
-		ProductRepository
+		ProductRepository,
+        JournalTransactionRepository
 	};
 	class AdminStockOpnamesController extends \crocodicstudio\crudbooster\controllers\CBController {
 
@@ -15,11 +17,12 @@ use Session;
 
 		private $opnameRepositoy;
 		private $productRepository;
-
-		public function __construct(StockOpnameRepository $opnameRepositoy,ProductRepository $productRepository)
+        private $journalTransaction;
+		public function __construct(StockOpnameRepository $opnameRepositoy,ProductRepository $productRepository,JournalTransactionRepository $journalTransaction)
         {
        		 $this->opnameRepositoy = $opnameRepositoy;
 			 $this->productRepository = $productRepository;
+             $this->journalTransaction = $journalTransaction;
 
         }
 		public function cbInit() {
@@ -63,19 +66,22 @@ use Session;
 			$this->form[] = ['label'=>'Alasan','name'=>'opname_type_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'stock_opname_type,name'];
             $this->form[]  = ['label'=>'Akun Biaya','name'=>'account_cost','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'chart_of_accounts,account','datatable_where'=>'id IN (17,32,33,34)'];
             $columns = [];
-			$columns[] = ['label'=>'Produk','name'=>'product_location_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'products,name'];
+			$columns[] = ['label'=>'Produk','name'=>'product_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'products,name'];
 			$columns[] = ["label"=>"Origin Qty","name"=>"qty_onhand",'type'=>'number','readonly'=>true];
 			$columns[] = ["label"=>"Ajusted Qty","name"=>"qty_actual",'type'=>'number'];
-			$columns[] = ["label"=>"Sisa",'required'=>true,"name"=>"qty_difference",'type'=>'number','type'=>'number','formula'=>"[qty_onhand] - [qty_actual]", 'readonly'=>true];
+			$columns[] = ["label"=>"Sisa",'required'=>true,"name"=>"qty_difference",'type'=>'number','type'=>'number', 'readonly'=>true];
 			$columns[] = ["label"=>"Harga Beli (Avg)","name"=>"adjust_cost",'type'=>'number','readonly'=>true];
-            $columns[] = ["label"=>"Total","name"=>"total",'type'=>'text','readonly'=>true,'formula'=>'[qty_actual]*[adjust_cost]'];
+            $columns[] = ["label"=>"Total","name"=>"total",'type'=>'text','readonly'=>true];
 
 			# END FORM DO NOT REMOVE THIS LINE
             #$columns[] = ["label"=>"Harga Jual","name"=>"adjust_price",'type'=>'number'];
 
 			$this->form[] = ['label'=>'Barang','name'=>'stock_opname_details','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'stock_opname_details','foreign_key'=>'stock_opname_id'];
+            $this->form[] = ['label'=>'Total Origin','name'=>'total_onhand','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5',"readonly"=>true];
+			$this->form[] = ['label'=>'Total Adjust','name'=>'total_actual','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5',"readonly"=>true];
+            $this->form[] = ['label'=>'Total Difference','name'=>'total_difference','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5',"readonly"=>true];
 
-			# END FORM DO NOT REMOVE THIS LINE
+            # END FORM DO NOT REMOVE THIS LINE
 
 			# OLD START FORM
 			//$this->form = [];
@@ -110,7 +116,7 @@ use Session;
 	        | @showIf 	   = If condition when action show. Use field alias. e.g : [id] == 1
 	        |
 	        */
-	        $this->addaction = array();
+            $this->addaction[] = ['label'=>'Jurnal','icon'=>'fa fa-history','color'=>'primary','url'=>CRUDBooster::mainpath('jurnal').'/[id]','title'=>'Jurnal','target'=>'_blank'];
 
 
 	        /*
@@ -183,9 +189,43 @@ use Session;
 	        */
 	        $this->script_js = " $(function() {
 
+
+
                 let locationId = 1; // default wh location
                 let productId = 0;
 
+                setInterval(function(){
+
+                    let origin = 0;
+                    let actual = 0;
+                    let difference = 0;
+
+                    $('#total_onhand').val(origin);
+                    $('#total_actual').val(actual);
+                    $('#total_difference').val(difference);
+
+                    $('#table-barang tbody .qty_onhand').each(function(){
+                        var sub = parseInt($(this).text());
+                        origin += sub;
+
+                    });
+
+                    $('#table-barang tbody .qty_actual').each(function(){
+                        var sub = parseInt($(this).text());
+                        actual += sub;
+
+                    });
+
+                    $('#table-barang tbody .qty_actual').each(function(){
+                        var sub = parseInt($(this).text());
+                        difference += sub;
+
+                    });
+
+                    $('#total_onhand').val(origin);
+                    $('#total_actual').val(actual);
+                    $('#total_difference').val(difference);
+                });
                 document.getElementById('wh_location_id').onchange = function(e){
 					const select = e.target;
 					locationId = document.getElementById('wh_location_id').value;
@@ -194,9 +234,9 @@ use Session;
 				}
 
                 // TODO:
-				document.getElementById('barangproduct_location_id').onchange = function(e){
+				document.getElementById('barangproduct_id').onchange = function(e){
 					const select = e.target;
-					productId = document.getElementById('barangproduct_location_id').value;
+					productId = document.getElementById('barangproduct_id').value;
 
                     checkProductLocation(locationId,productId);
 				}
@@ -213,11 +253,21 @@ use Session;
                             },
                             success: function(data) {
                                 if(data){
-                                    let cost = data.cost;
+                                    console.log(data);
+                                    let cost = Math.round(data.average);
                                     let originQty = data.totalProduct;
 
                                     $('#barangqty_onhand').val(originQty);
                                     $('#barangadjust_cost').val(cost);
+                                    $('#barangqty_actual').val(0);
+                                    $('#barangqty_difference').val(0);
+                                    $('#barangtotal').val(0);
+                                    //first state
+                                    if(originQty === 0){
+                                        $('#barangqty_difference').val(0);                                    $('#barangqty_actual').val(0);
+                                        $('#barangtotal').val(0);
+                                    }
+
                                 }
                             }
                         });
@@ -226,17 +276,32 @@ use Session;
 
                 document.getElementById('barangqty_actual').onchange = function(e){
 					let  select = e.target;
+                    let cost = document.getElementById('barangadjust_cost').value;
                     let origin = document.getElementById('barangqty_onhand').value;
 					let adjusted = document.getElementById('barangqty_actual').value;
 
                     let difference = origin - adjusted;
 
-                    if(difference < 0){
-
-                        $('#barangadjust_cost').prop('readonly', false);
-                    } else {
+                    if(difference < 0 && origin != 0){
                         $('#barangadjust_cost').prop('readonly', true);
+                        $('#barangqty_difference').val(difference);
+                    } else if(origin === adjusted)  {
+                        $('#barangadjust_cost').prop('readonly', false);
+                        $('#barangqty_difference').val(0);
+                    } else {
+                        $('#barangadjust_cost').prop('readonly', false);
+                        $('#barangqty_difference').val(adjusted);
                     }
+
+                    let total = cost * difference;
+                    if(difference == 0)
+                    {
+                        total = cost * 1;
+                        $('#barangtotal').val(total);
+                    } else {
+                        $('#barangtotal').val(total);
+                    }
+
 				}
 
 			})";
@@ -373,18 +438,36 @@ use Session;
 	    */
 	    public function hook_after_add($id) {
 	        //Your code here
-			$this->opnameRepositoy->updateActualStock($id);
+            #FIXME: kenapa blank, depreciate not used
+			#$this->opnameRepositoy->updateActualStock($id);
 
-			$opnameDetail = StockOpnameDetail::where('stock_opname_id',$id)
-									->join('product_locations','product_locations.id','product_location_id')
-									->join('products','products.id','product_locations.product_id')
-									->get();
+            $opnameHeader = StockOpname::where('id',$id)->first();
 
-		   foreach($opnameDetail as $item){
-				$this->productRepository->updateTotalStockAllLocation($item['product_id']);
-		   }
+            // 1. Update WH Location ID stock opname detail
+            DB::table('stock_opname_details')->where('stock_opname_id',$id)->update([
+                'wh_location_id' => $opnameHeader->wh_location_id
+            ]);
 
-           // Journal
+            // 2. Update / Insert Product Location Tanya sansan
+            // 3.
+            $opnameDetail = StockOpnameDetail::where('stock_opname_id',$id)
+                                                ->where('wh_location_id',$opnameHeader->wh_location_id)
+                                                ->get();
+
+            // foreach($opnameDetail as $item){
+            //         $this->productRepository->updateTotalStockAllLocation($item['product_id']);
+            // }
+
+			// $opnameDetail = StockOpnameDetail::where('stock_opname_id',$id)
+			// 						->join('product_locations','product_locations.id','product_id')
+			// 						->join('products','products.id','product_locations.product_id')
+			// 						->get();
+
+             // Journal
+            $this->journalTransaction->stockOpname($opnameHeader);
+
+
+
 	    }
 
 	    /*
@@ -409,16 +492,16 @@ use Session;
 	    */
 	    public function hook_after_edit($id) {
 	        //Your code here
-			$this->opnameRepositoy->updateActualStock($id);
+		// 	$this->opnameRepositoy->updateActualStock($id);
 
-			$opnameDetail = StockOpnameDetail::where('stock_opname_id',$id)
-									->join('product_locations','product_locations.id','product_location_id')
-									->join('products','products.id','product_locations.product_id')
-									->get();
+		// 	$opnameDetail = StockOpnameDetail::where('stock_opname_id',$id)
+		// 							->join('product_locations','product_locations.id','product_location_id')
+		// 							->join('products','products.id','product_locations.product_id')
+		// 							->get();
 
-		   foreach($opnameDetail as $item){
-				$this->productRepository->updateTotalStockAllLocation($item['product_id']);
-		   }
+		//    foreach($opnameDetail as $item){
+		// 		$this->productRepository->updateTotalStockAllLocation($item['product_id']);
+		//    }
 	    }
 
 	    /*
@@ -445,7 +528,17 @@ use Session;
 
 	    }
 
+        public function getJurnal($id){
 
+            $journal = $this->journalTransaction->printJurnal($id,2);
+
+            $data = [];
+
+            $data['journal'] = $journal;
+
+            $this->cbView('prints/print-journal',$data);
+
+        }
 
 	    //By the way, you can still create your own method in here... :)
 

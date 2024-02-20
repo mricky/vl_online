@@ -2,8 +2,11 @@
 namespace App\Repositories;
 
 use App\Models\PurchaseOrder;
+use App\Models\StockOpname;
+use App\Models\StockOpnameDetail;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use crocodicstudio\crudbooster\helpers\CRUDBooster;
 use Exception;
 interface IJournalTransaction {
     public function generateNeracaRugiLaba($data,$reportType);
@@ -33,6 +36,8 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
     // NEw
     private $accKas;
     private $accHutang;
+    private $saldoAwal;
+    private $biayaSelisih;
     private $accPersediaanExternal;
     private $accPersediaanInternal;
 
@@ -50,6 +55,10 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
          $this->HPP =  DB::table('chart_of_accounts')->where('code','501-1001')->first(); // HPP
          $this->accKas = DB::table('chart_of_accounts')->where('code','101-1000')->first(); // KAS
          $this->accHutang = DB::table('chart_of_accounts')->where('code','201-1001')->first(); // Hutang
+
+
+         $this->saldoAwal =  DB::table('chart_of_accounts')->where('code','301-1001')->first();
+         $this->biayaSelisih =  DB::table('chart_of_accounts')->where('code','601-1006')->first();
          $this->accPersediaanExternal = DB::table('chart_of_accounts')->where('code','103-1002')->first(); // 103-1002
          $this->accPersediaanInternal = DB::table('chart_of_accounts')->where('account','Persediaan Internal')->first(); // 103-1003
 
@@ -58,6 +67,131 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
          // 501-2001
     }
 
+    public function stockOpname($opname){
+        $number = $this->generateJournalNumber();
+
+        try {
+
+            DB::beginTransaction();
+
+            $transactionType =  DB::table('transaction_types')->where('code','08')->first();
+
+            $payload = [
+                'transaction_date' =>now(),
+                'transaction_number' => $number,
+                'transaction_type' => $transactionType->id,
+                'entry_no'  => 0,
+                'ref_id' => $opname->id,
+                'ref_no' => $opname->opname_number,
+                'memo' => $transactionType->name,
+                'total_debit' => 0,
+                'is_manual' => 0,
+                'total_credit' =>0
+            ];
+
+            $id = DB::table('journal_transactions')->insertGetId($payload);
+
+            $detail = StockOpnameDetail::where('stock_opname_id',$id)
+                    ->where('wh_location_id',$opname->wh_location_id)
+                    ->get();
+
+
+            // INSERT to Product Location
+            foreach($detail as $item){
+                 // Update Product location tobe 0, and only from stock opname have
+
+                DB::table('product_locations')->where('product_id',$item->product_id)
+                                            ->where('wh_location_id',$opname->wh_location_id)
+                                            ->update(
+                                                [
+                                                    'qty_onhand' => 0
+                                                ]);
+                DB::table('product_locations')->insert([
+                    'product_id' => $item->product_id, // change to product_id
+                    'wh_location_id' =>  $opname->wh_location_id,
+                    'qty_onhand' => $item->qty_difference,
+                    'product_price' => $item->adjust_cost,
+                    'total' => (int)$item->adjust_cost * (int)$item->qty_difference,
+                    'created_by' => CRUDBooster::myId(),
+                    'created_at' => date('Y-m-d H:i:s')
+                ]);
+            }
+
+            foreach($detail as $item) {
+                $dataTransaction = [];
+
+                if($item->qty_onhand == 0 && $item->qty_difference > 0){
+                    // Saldo Awal
+                    $dataTransaction = [
+                        [
+                            'journal_id' => $id,
+                            'account_id' => $this->accPersediaanInternal->id,
+                            'debit'    => $item->total,
+                            'credit' =>  0,
+                            'is_manual' => 0,
+                            'created_at' => now(),
+                        ],
+                        [
+                            'journal_id' => $id,
+                            'account_id' => $this->saldoAwal->id,
+                            'debit'    => 0,
+                            'credit' => $item->total,
+                            'is_manual' => 0,
+                            'created_at' => now(),
+                        ]
+                    ];
+                } else if($item->qty_onhand != 0 && $item->qty_difference > 0){
+                    $dataTransaction = [
+                        [
+                            'journal_id' => $id,
+                            'account_id' => $this->accPersediaanInternal->id,
+                            'debit'    => $item->total,
+                            'credit' =>  0,
+                            'is_manual' => 0,
+                            'created_at' => now(),
+                        ],
+                        [
+                            'journal_id' => $id,
+                            'account_id' => $this->biayaSelisih->id, // atau biaya selisih stock
+                            'debit'    => 0,
+                            'credit' => $item->total,
+                            'is_manual' => 0,
+                            'created_at' => now(),
+                        ]
+                    ];
+                } else {
+                    // minus
+                    $dataTransaction = [
+                        [
+                            'journal_id' => $id,
+                            'account_id' => $this->biayaSelisih->id,
+                            'debit'    => $item->total,
+                            'credit' =>  0,
+                            'is_manual' => 0,
+                            'created_at' => now(),
+                        ],
+                        [
+                            'journal_id' => $id,
+                            'account_id' => $this->accPersediaanInternal->id, // atau biaya selisih stock
+                            'debit'    => 0,
+                            'credit' => $item->total,
+                            'is_manual' => 0,
+                            'created_at' => now(),
+                        ]
+                    ];
+                }
+
+                DB::table('journal_details')->insert($dataTransaction);
+            }
+
+            DB::commit();
+
+            } catch(\Exception $e){
+                throw $e;
+                DB::rollback();
+                throw $e;
+            }
+    }
     public function printJurnal($id,$type){
 
        $noRef = DB::table('purchase_orders')->where('id',$id)->first()->order_number;

@@ -51,6 +51,10 @@
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover"
+        ],
+        "reset-jurnal" : [
+            "php artisan config:clear",
+            "php artisan db:seed --class=TruncateJurnalSeeder"
         ]
     },
     "config": {

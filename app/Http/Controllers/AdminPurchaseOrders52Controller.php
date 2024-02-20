@@ -4,8 +4,22 @@
 	use Request;
 	use DB;
 	use CRUDBooster;
+    use App\Repositories\{
+        PurchaseOrderRepository,
+        JournalTransactionRepository
+    };
 
-	class AdminJournalTransactionsController extends \crocodicstudio\crudbooster\controllers\CBController {
+	class AdminPurchaseOrders52Controller extends \crocodicstudio\crudbooster\controllers\CBController {
+
+        private $purchaseOrder;
+        private $journalTransaction;
+
+
+        public function __construct(PurchaseOrderRepository $purchaseOrder,JournalTransactionRepository $journalTransaction)
+        {
+       		 $this->purchaseOrder = $purchaseOrder;
+			 $this->journalTransaction = $journalTransaction;
+        }
 
 	    public function cbInit() {
 
@@ -24,59 +38,57 @@
 			$this->button_show = true;
 			$this->button_filter = true;
 			$this->button_import = false;
-			$this->button_export = true;
-			$this->table = "journal_transactions";
+			$this->button_export = false;
+			$this->table = "purchase_orders";
 			# END CONFIGURATION DO NOT REMOVE THIS LINE
 
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
-			$this->col[] = ["label"=>"Tgl Transaksi","name"=>"transaction_date"];
-            #$this->col[] = ["label"=>"Jenis","name"=>"transaction_type","join"=>"transaction_types,name"];
-			$this->col[] = ["label"=>"No Transaksi","name"=>"transaction_number"];
-			$this->col[] = ["label"=>"Ref No","name"=>"ref_no"];
-			$this->col[] = ["label"=>"Debit","name"=>"total_debit"];
-			$this->col[] = ["label"=>"Kredit","name"=>"total_credit"];
-			$this->col[] = ["label"=>"Memo","name"=>"memo"];
+			$this->col[] = ["label"=>"Supplier","name"=>"vendor_id","join"=>"vendors,name"];
+			$this->col[] = ["label"=>"No Order","name"=>"order_number"];
+			$this->col[] = ["label"=>"Tgl Order","name"=>"order_date"];
+            $this->col[] = ["label"=>"Discount","name"=>"discount","callback_php"=>'number_format($row->discount)'];
+			$this->col[] = ["label"=>"Total Bayar","name"=>"total_amount","callback_php"=>'number_format($row->total_amount)'];
+			$this->col[] = ["label"=>"Total Hutang","name"=>"amount_due","callback_php"=>'number_format($row->amount_due)'];
 			# END COLUMNS DO NOT REMOVE THIS LINE
 
 			# START FORM DO NOT REMOVE THIS LINE
 			$this->form = [];
-			$this->form[] = ['label'=>'Tgl Transaksi','name'=>'transaction_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-5'];
-			$this->form[] = ['label'=>'Ref No','name'=>'ref_no','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
-			// $this->form[] = [
-			// 	'label'=>'Akun','name'=>'account_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'chart_of_accounts,account,id','datatable_format' => 'code,\' - \',account'
-			// ];
-			// $this->form[] = [
-			// 	'label'=>'Akun','name'=>'account_reverse_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'chart_of_accounts,account,id','datatable_format' => 'code,\' - \',account'
-			// ];
-			$columns = [];
+			$this->form[] = ['label'=>'Supplier','name'=>'vendor_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'vendors,name'];
+			$this->form[] = ['label'=>'No Order','name'=>'order_number','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5','readonly'=>true];
+			$this->form[] = ['label'=>'Tgl Order','name'=>'order_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-5'];
+			$this->form[] = ['label'=>'Tgl Estimasi','name'=>'estimated_date','type'=>'date','validation'=>'nullable|date','width'=>'col-sm-5'];
 
-			$columns[] = ['label'=>'Akun','name'=>'account_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'chart_of_accounts,account,id'];
-			$columns[] = ["label"=>"Debit","name"=>"debit",'type'=>'number'];
-			$columns[] = ["label"=>"Kredit","name"=>"credit",'type'=>'number'];
+            $columns = [];
 
-			$this->form[] = ['label'=>'Detail Jurnal','name'=>'journal_details','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'journal_details','foreign_key'=>'journal_id'];
+            // $columns[] = ['label'=>'Akun Debet','name'=>'account_debet','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'chart_of_accounts,account','datatable_format'=>"id,' - ',account"];
+            // $columns[] = ['label'=>'Akun Kredit','name'=>'account_credit','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'chart_of_accounts,account'];
+            $columns[] = ["label"=>"Tanggal","name"=>"transaction_date",'type'=>'date'];
+            $columns[] = ["label"=>"Jumlah","name"=>"amount",'type'=>'number'];
 
+            //$columns[] = ['label'=>'Akun Kredit','name'=>'account_credit','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'chart_of_accounts as account_credit,account_credit.account','datatable_format'=>"id,' - ',account_credit.account"];
+            //$columns[] = ['label'=>'Akun Kredit','name'=>'account_credit','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'chart_of_accounts,account','datatable_format'=>"id,' - ',account"];
 
-			$this->form[] = ['label'=>'Total Debit','name'=>'total_debit','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
-			$this->form[] = ['label'=>'Total Kredit','name'=>'total_credit','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
-
-			$this->form[] = ['label'=>'Memo','name'=>'memo','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
+            $this->form[] = ['label'=>'Detail Pembayaran','name'=>'account_payable','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'account_payable','foreign_key'=>'purchase_id'];
 			# END FORM DO NOT REMOVE THIS LINE
 
 			# OLD START FORM
 			//$this->form = [];
-			//$this->form[] = ["label"=>"Transaction Type Id","name"=>"transaction_type_id","type"=>"select2","required"=>TRUE,"validation"=>"required|integer|min:0","datatable"=>"transaction_type,id"];
-			//$this->form[] = ["label"=>"Transaction Date","name"=>"transaction_date","type"=>"date","required"=>TRUE,"validation"=>"required|date"];
-			//$this->form[] = ["label"=>"Transaction Number","name"=>"transaction_number","type"=>"text","required"=>TRUE,"validation"=>"required|min:1|max:255"];
-			//$this->form[] = ["label"=>"Entry No","name"=>"entry_no","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
-			//$this->form[] = ["label"=>"Ref No","name"=>"ref_no","type"=>"text","required"=>TRUE,"validation"=>"required|min:1|max:255"];
-			//$this->form[] = ["label"=>"Account Id","name"=>"account_id","type"=>"select2","required"=>TRUE,"validation"=>"required|integer|min:0","datatable"=>"account,id"];
-			//$this->form[] = ["label"=>"D K","name"=>"d_k","type"=>"text","required"=>TRUE,"validation"=>"required|min:1|max:255"];
-			//$this->form[] = ["label"=>"Account Reverse Id","name"=>"account_reverse_id","type"=>"select2","required"=>TRUE,"validation"=>"required|integer|min:0","datatable"=>"account_reverse,id"];
-			//$this->form[] = ["label"=>"Total","name"=>"total","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
-			//$this->form[] = ["label"=>"Memo","name"=>"memo","type"=>"text","required"=>TRUE,"validation"=>"required|min:1|max:255"];
+			//$this->form[] = ["label"=>"Amount Due","name"=>"amount_due","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
 			//$this->form[] = ["label"=>"Created By","name"=>"created_by","type"=>"text","required"=>TRUE,"validation"=>"required|min:1|max:255"];
+			//$this->form[] = ["label"=>"Description","name"=>"description","type"=>"text","required"=>TRUE,"validation"=>"required|min:1|max:255"];
+			//$this->form[] = ["label"=>"Discount","name"=>"discount","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
+			//$this->form[] = ["label"=>"Estimated Date","name"=>"estimated_date","type"=>"date","required"=>TRUE,"validation"=>"required|date"];
+			//$this->form[] = ["label"=>"Order Date","name"=>"order_date","type"=>"date","required"=>TRUE,"validation"=>"required|date"];
+			//$this->form[] = ["label"=>"Order Number","name"=>"order_number","type"=>"text","required"=>TRUE,"validation"=>"required|min:1|max:255"];
+			//$this->form[] = ["label"=>"Order Status Id","name"=>"order_status_id","type"=>"select2","required"=>TRUE,"validation"=>"required|integer|min:0","datatable"=>"order_status,id"];
+			//$this->form[] = ["label"=>"Subtotal","name"=>"subtotal","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
+			//$this->form[] = ["label"=>"Total","name"=>"total","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
+			//$this->form[] = ["label"=>"Total Amount","name"=>"total_amount","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
+			//$this->form[] = ["label"=>"Total Qty Difference","name"=>"total_qty_difference","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
+			//$this->form[] = ["label"=>"Total Qty In","name"=>"total_qty_in","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
+			//$this->form[] = ["label"=>"Total Qty Request","name"=>"total_qty_request","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
+			//$this->form[] = ["label"=>"Vendor Id","name"=>"vendor_id","type"=>"select2","required"=>TRUE,"validation"=>"required|integer|min:0","datatable"=>"vendor,id"];
 			# OLD END FORM
 
 			/*
@@ -176,29 +188,7 @@
 	        | $this->script_js = "function() { ... }";
 	        |
 	        */
-	        $this->script_js =  "
-			$(function(){
-				setInterval(function(){
-						var totalDebit = 0;
-						var totalKredit = 0;
-
-						$('#table-detailjurnal tbody .debit').each(function(){
-							var debit = parseInt($(this).text());
-							totalDebit += debit;
-
-						});
-
-						$('#table-detailjurnal tbody .credit').each(function(){
-							var kredit = parseInt($(this).text());
-							totalKredit += kredit;
-
-						});
-
-						$('#total_debit').val(totalDebit);
-						$('#total_credit').val(totalKredit);
-				},500);
-			});
-		";
+	        $this->script_js = NULL;
 
 
             /*
@@ -286,8 +276,7 @@
 	    */
 	    public function hook_query_index(&$query) {
 	        //Your code here
-			$query->where('transaction_type', 7);
-            #$query->groupBy('transaction_type');
+
 	    }
 
 	    /*
@@ -310,24 +299,6 @@
 	    public function hook_before_add(&$postdata) {
 	        //Your code here
 
-			if($postdata['total_debit'] != $postdata['total_credit']){
-				CRUDBooster::redirect(CRUDBooster::mainpath('add'),"Total Debit Kredit tidak balance","warning");
-			}
-            $transactionType =  DB::table('transaction_types')->where('code','07')->first();
-
-		    $sq = DB::table('journal_transactions')->max('id');
-
-			$year = substr(date("y"),-2);
-			$month = date("m");
-			$no = str_pad($sq+1,4,"0",STR_PAD_LEFT);
-            $postdata['transaction_type'] = $transactionType->id;
-			$postdata['entry_no'] = $no;
-			$postdata['transaction_date'] = now();
-			$postdata['transaction_number'] = 'GL-'.$year.$month.'-'.$no;
-			$postdata['memo'] = 'Jurnal Manual';
-            $postdata['is_manual'] = 1;
-            $postdata['transaction_type'] = 7;
-			$postdata['created_by'] = CRUDBooster::myId();
 	    }
 
 	    /*
@@ -339,7 +310,6 @@
 	    */
 	    public function hook_after_add($id) {
 	        //Your code here
-
 
 	    }
 
@@ -389,7 +359,7 @@
 	    */
 	    public function hook_after_delete($id) {
 	        //Your code here
-			DB::table('journal_details')->where('journal_id',$id)->delete();
+
 	    }
 
 

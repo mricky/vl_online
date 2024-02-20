@@ -15,12 +15,10 @@
 //     return view('welcome');
 // });
 # Batch Syncronize
-// Manual Buat Good Receive
-Route::get('/manual-good-receive/{id}','AdminPurchaseOrdersController@manual_good_receive');
 Route::get('/sync-purchase-order/','AdminPurchaseOrderDetails49Controller@syncPurchaseItemInfo');
 Route::get('/sync-sales-order/{id}','AdminSalesOrdersController@syncSalesDelivery');
 
-# 
+#
 
 #POINT OF SALES
 Route::post('/doPrint','AdminSalesOrders47Controller@doPrint');
@@ -41,7 +39,7 @@ Route::get('/find-product-location-item','AdminProductsController@findProductLoc
 Route::get('/find-product-item','AdminProductsController@findProductItem');
 Route::get('/find-product-category','AdminProductsController@findProductCategory');
 Route::get('/find-product-brand','AdminProductsController@findProductBrand');
-
+Route::post('/find-product-by-location','AdminProductsController@findProductByLocation');
 #Dashboard
 Route::get('/charts/penjualan','DashboardController@indexPenjualan');
 Route::get('/charts/pembelian','DashboardController@indexPembelian');

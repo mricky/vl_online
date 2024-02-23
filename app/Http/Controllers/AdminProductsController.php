@@ -386,24 +386,20 @@ class AdminProductsController extends \crocodicstudio\crudbooster\controllers\CB
 
         public function findProductByLocation(Request $request){
             $locationId = $request->locationId;
-            $productId = $request->productId;
+            $productLocationId = $request->productLocationId;
 
             $product = DB::table('product_locations')
-                            ->selectRaw('count(product_id) as totalProduct, coalesce(SUM(product_price),0) as cost, AVG(product_price) as average')
-                            ->where('product_id',$productId)
-                            ->where('wh_location_id',$locationId)->first();
+                            //->selectRaw('coalesce(SUM(qty_onhand),0) as totalProduct, coalesce(SUM(product_price),0) as cost, AVG(product_price) as average,product_price as price')
+                            ->select('qty_onhand','product_price')
+							->where('id',$productLocationId)->first();
             $response = [];
 
             if($product){
-                $price = (int)$product->price == 0 ? 0 : (int)$product->price;
-                $totalProduct = (int)$product->totalProduct == 0 ? 0 : (int)$product->totalProduct;
-                $average =(int)$product->totalProduct == 0 ? 0 : (int)$product->price / (int)$product->totalProduct;
-
-
                 $response = [
-                    'totalProduct' => $totalProduct,
-                    'cost' => $price,
-                    'average' => $product->average
+					'lot' => $product,
+                    'totalProduct' => $product->qty_onhand,
+                    'cost' => $product->product_price,
+                    
 
                 ];
             }

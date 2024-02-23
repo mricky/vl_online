@@ -27,7 +27,7 @@
                         </div>
                     </div>
                 </div>
-                <div class='form-group header-group-0 ' id='form-group-equipment_no' style="">
+                <!-- <div class='form-group header-group-0 ' id='form-group-equipment_no' style="">
                     <label class='control-label col-sm-2'>
                      s/d  Tanggal Akhir
                     </label>
@@ -39,7 +39,7 @@
                                    />
                         </div>
                     </div>
-                </div
+                </div -->
             </div> <!-- end box -->
             <div class="box-footer" style="background: #F5F5F5">
                 <div class="form-group">

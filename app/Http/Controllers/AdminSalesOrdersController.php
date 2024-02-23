@@ -70,7 +70,7 @@ use Session;
 			$this->form[] = ['label'=>'Penerima','name'=>'notes','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
 			$columns = [];
 			$columns[] = ['label'=>'Produk','name'=>'product_id','type'=>'select','required'=>true,'width'=>'col-sm-5','datatable'=>'view_product,product_name'];
-			$columns[] = ['label'=>'Lokasi Produk','name'=>'product_location_id','type'=>'select','required'=>true,'width'=>'col-sm-5','datatable'=>'view_product_location,product_location','parent_select'=>'product_id'];
+			$columns[] = ['label'=>'Lokasi Produk (Lot)','name'=>'product_location_id','type'=>'select','required'=>true,'width'=>'col-sm-5','datatable'=>'view_product_location,product_location','parent_select'=>'product_id'];
 			// sample more than 1
 			//$columns[] = ['label'=>'Product','name'=>'product_id','type'=>'select2','datatable'=>'products,name','datatable_format'=>"id,' - ',name"];
 			//$columns[] = ['label'=>'Product Lot','name'=>'product_item_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'product_items,lot_number','parent_select'=>'product_id','datatable_where'=>'lot_number is not null'];

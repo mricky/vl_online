@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use crocodicstudio\crudbooster\helpers\CRUDBooster;
 
 class TruncateJurnalSeeder extends Seeder
 {
@@ -12,6 +13,30 @@ class TruncateJurnalSeeder extends Seeder
      */
     public function run()
     {
+      $this->emptyData();
+      $this->setupProductLocation();
+    }
+
+    protected function setupProductLocation(){
+        $products = DB::table('products')->get();
+
+        foreach($products as $item) {
+            $this->command->info('Please wait updating the data...');
+            $price = 1000;
+            DB::table('product_locations')->insert(
+                [
+                    'product_id' => $item->id,
+                    'wh_location_id' => 1,
+                    'qty_onhand' => 0,
+                    'product_price' => $price++,
+                    'created_by' => 'seed',
+                    'created_at' => date('Y-m-d H:i:s')
+                ]
+            );
+            $this->command->info("Insert Product Lot {$item->name}");
+        }
+    }
+    protected function emptyData(){
         try {
             $this->command->info("Please Updating Data");
 

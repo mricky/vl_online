@@ -6,7 +6,7 @@
 	use CRUDBooster;
     use App\Repositories\JournalTransactionRepository
 	;
-	class AdminTableNeracaController extends \crocodicstudio\crudbooster\controllers\CBController {
+	class AdminTableNeraca54Controller extends \crocodicstudio\crudbooster\controllers\CBController {
 
 		private $journalTransaction;
 
@@ -256,7 +256,7 @@
 	    */
 	    public function hook_query_index(&$query) {
 	        //Your code here
-			$query->where('table_neraca.report_type','N');
+			$query->where('table_neraca.report_type','L');
 	    }
 
 	    /*
@@ -364,24 +364,20 @@
 				CRUDBooster::redirect(CRUDBooster::adminPath(),trans("crudbooster.denied_access"));
 			}
 
-			$this->journalTransaction->generateNeraca($_POST,'N');
+			$data['tgl_data']=date('d-M-Y',strtotime($_POST['tgl_awal']) )." s/d ". date('d-M-Y',strtotime($_POST['tgl_akhir']));
 
-			$data['neraca'] = DB::table('table_neraca as nr')
-			->select('coa.account', 'nr.code','nr.position','nr.account_label','nr.debit', 'nr.credit','nr.begining_balance')
-			->leftJoin('chart_of_accounts as coa','coa.id','nr.account_id')
-			->where([
-				['nr.report_type','=','N'],
-				['nr.column_position','=','LEFT'],
-			])->orderBy('nr.id','asc')->get();
+			$data['neraca'] = DB::table('table_neraca')->where([
+				['report_type','=','N'],
+				['column_position','=','LEFT'],
+			])->orderBy('id','asc')->get();
 
-			$data['neraca_right'] = DB::table('table_neraca as nr')
-			->select('coa.account', 'nr.code','nr.position','nr.account_label','nr.debit', 'nr.credit','nr.begining_balance')
-			->leftJoin('chart_of_accounts as coa','coa.id','nr.account_id')
-			->where([
-				['nr.report_type','=','N'],
-				['nr.column_position','=','RIGH'],
-			])->orderBy('nr.id','asc')->get();
+			$data['neraca_right'] = DB::table('table_neraca')->where([
+				['report_type','=','N'],
+				['column_position','=','RIGH'],
+			])->orderBy('id','asc')->get();
 
+
+			$this->journalTransaction->generateNeracaRugiLaba($_POST,'N');
 
 			$this->cbView('prints.neraca',$data);
 		}
@@ -389,20 +385,14 @@
 		public function postCetaklaba()
 		{
 			$data['tgl_data']=date('d-M-Y',strtotime($_POST['tgl_awal']) )." s/d ". date('d-M-Y',strtotime($_POST['tgl_akhir']));
-		
-			
-			$this->journalTransaction->generateRugiLaba($_POST,'L');
-		
-	
-			$data['neraca'] = DB::table('table_neraca as nr')
-				->select('coa.account', 'nr.code','nr.position','nr.account_label','nr.debit', 'nr.credit','nr.ending_balance')
-				->leftJoin('chart_of_accounts as coa','coa.id','nr.account_id')
-				->where([
-					['nr.report_type','=','L'],
-					['nr.column_position','=','LEFT'],
-				])->orderBy('nr.id','asc')->get();
-			
-            //dd($data['neraca']);
+			$data['neraca'] = DB::table('table_neraca')->where([
+				['report_type','=','L'],
+				['column_position','=','LEFT'],
+			])->orderBy('id','asc')->get();
+
+            $this->journalTransaction->generateNeracaRugiLaba($_POST,'L');
+
+            #dd($data['neraca']);
 			$this->cbView('prints.lostprofit',$data);
 		}
 

@@ -31,6 +31,7 @@
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
 			$this->col[] = ["label"=>"Kode","name"=>"code"];
+			$this->col[] = ["label"=>"Kode Neraca R/L","name"=>"neraca_code","join"=>"table_neraca,code"];
 			$this->col[] = ["label"=>"Akun Tipe","name"=>"coa_type_id","join"=>"coa_type,name"];
 			$this->col[] = ["label"=>"Nama Akun","name"=>"account"];
 			$this->col[] = ["label"=>"Debit","name"=>"debit"];
@@ -43,6 +44,7 @@
 			# START FORM DO NOT REMOVE THIS LINE
 			$this->form = [];
 			$this->form[] = ['label'=>'Kode','name'=>'code','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-5'];
+			$this->form[] = ['label'=>'Kode Neraca','name'=>'neraca_code','type'=>'select2','validation'=>'required','width'=>'col-sm-5','datatable'=>'table_neraca,code','datatable_format' => 'report_type,\' - \',code,\' - \',account_label'];
 			$this->form[] = ['label'=>'Akun Tipe','name'=>'coa_type_id','type'=>'select2','validation'=>'required','width'=>'col-sm-5','datatable'=>'coa_type,name'];
 			$this->form[] = ['label'=>'Nama Akun','name'=>'account','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-5'];
 			$this->form[] = ['label'=>'Debit','name'=>'debit','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5'];

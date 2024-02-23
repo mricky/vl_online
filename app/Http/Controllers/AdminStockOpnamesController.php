@@ -66,10 +66,13 @@ use Session;
 			$this->form[] = ['label'=>'Alasan','name'=>'opname_type_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'stock_opname_type,name'];
             $this->form[]  = ['label'=>'Akun Biaya','name'=>'account_cost','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'chart_of_accounts,account','datatable_where'=>'id IN (17,32,33,34)'];
             $columns = [];
-			$columns[] = ['label'=>'Produk','name'=>'product_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'products,name'];
+			#$columns[] = ['label'=>'Produk','name'=>'product_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'products,name'];
+			$columns[] = ['label'=>'Produk','name'=>'product_id','type'=>'select','required'=>true,'width'=>'col-sm-5','datatable'=>'view_product,product_name'];
+			$columns[] = ['label'=>'Lokasi Produk (Lot)','name'=>'product_location_id','type'=>'select','required'=>true,'width'=>'col-sm-5','datatable'=>'view_product_location,product_location','parent_select'=>'product_id'];
 			$columns[] = ["label"=>"Origin Qty","name"=>"qty_onhand",'type'=>'number','readonly'=>true];
 			$columns[] = ["label"=>"Ajusted Qty","name"=>"qty_actual",'type'=>'number'];
-			$columns[] = ["label"=>"Sisa",'required'=>true,"name"=>"qty_difference",'type'=>'number','type'=>'number', 'readonly'=>true];
+			$columns[] = ["label"=>"Sisa","name"=>"qty_difference",'type'=>'number','readonly'=>true];
+			// #$columns[] = ["label"=>"Sisa",'required'=>false,"name"=>"qty_difference",'type'=>'number','type'=>'number', 'readonly'=>false];
 			$columns[] = ["label"=>"Harga Beli (Avg)","name"=>"adjust_cost",'type'=>'number','readonly'=>true];
             $columns[] = ["label"=>"Total","name"=>"total",'type'=>'text','readonly'=>true];
 
@@ -216,7 +219,7 @@ use Session;
 
                     });
 
-                    $('#table-barang tbody .qty_actual').each(function(){
+                    $('#table-barang tbody .qty_difference').each(function(){
                         var sub = parseInt($(this).text());
                         difference += sub;
 
@@ -234,40 +237,35 @@ use Session;
 				}
 
                 // TODO:
-				document.getElementById('barangproduct_id').onchange = function(e){
+				document.getElementById('barangproduct_location_id').onchange = function(e){
 					const select = e.target;
-					productId = document.getElementById('barangproduct_id').value;
+					productLocationId = document.getElementById('barangproduct_location_id').value;
 
-                    checkProductLocation(locationId,productId);
+                    checkProductLocation(productLocationId);
 				}
 
-                function checkProductLocation(location,productId) {
-                    if(productId != 0)
+                function checkProductLocation(productLocationId) {
+                    if(productLocationId != 0)
                     {
                         $.ajax({
                             type: \"POST\",
                             url: '/find-product-by-location',
                             data: {
-                                'locationId' : location,
-                                'productId' : productId
+                                'productLocationId' : productLocationId
                             },
                             success: function(data) {
                                 if(data){
                                     console.log(data);
-                                    let cost = Math.round(data.average);
-                                    let originQty = data.totalProduct;
+                                     let cost = Math.round(data.cost);
+                                     let originQty = data.totalProduct;
 
+									// new init after choose production location
                                     $('#barangqty_onhand').val(originQty);
                                     $('#barangadjust_cost').val(cost);
                                     $('#barangqty_actual').val(0);
-                                    $('#barangqty_difference').val(0);
-                                    $('#barangtotal').val(0);
-                                    //first state
-                                    if(originQty === 0){
-                                        $('#barangqty_difference').val(0);                                    $('#barangqty_actual').val(0);
-                                        $('#barangtotal').val(0);
-                                    }
-
+									$('#barangqty_difference').val(0);
+									$('#barangtotal').val(0);
+        
                                 }
                             }
                         });
@@ -275,6 +273,7 @@ use Session;
                 }
 
                 document.getElementById('barangqty_actual').onchange = function(e){
+
 					let  select = e.target;
                     let cost = document.getElementById('barangadjust_cost').value;
                     let origin = document.getElementById('barangqty_onhand').value;
@@ -282,26 +281,49 @@ use Session;
 
                     let difference = origin - adjusted;
 
-                    if(difference < 0 && origin != 0){
-                        $('#barangadjust_cost').prop('readonly', true);
-                        $('#barangqty_difference').val(difference);
-                    } else if(origin === adjusted)  {
-                        $('#barangadjust_cost').prop('readonly', false);
-                        $('#barangqty_difference').val(0);
-                    } else {
-                        $('#barangadjust_cost').prop('readonly', false);
-                        $('#barangqty_difference').val(adjusted);
-                    }
+                    // if(difference < 0 && origin != 0){
+                    //     $('#barangadjust_cost').prop('readonly', true);
+                    //     $('#barangqty_difference').val(difference);
+                    // } else if(origin === adjusted)  {
+                    //     $('#barangadjust_cost').prop('readonly', false);
+                    //     $('#barangqty_difference').val(0);
+                    // } else {
+                    //     $('#barangadjust_cost').prop('readonly', false);
+                    //     $('#barangqty_difference').val(adjusted);
+                    // }
+				
+					if(origin == 0)
+					{
+						$('#barangadjust_cost').prop('readonly', true);
+						$('#barangqty_difference').val(0);
+					} else {
+						$('#barangqty_difference').val(difference);
+					}
 
-                    let total = cost * difference;
+					if(origin < 0)
+					{
+						$('#barangadjust_cost').prop('readonly', false);
+					}
+
+					if(difference < 0)
+					{
+						$('#barangadjust_cost').prop('readonly', false);
+					}
+
+
+					difference =  $('#barangqty_difference').val();
+                    let total = 0;
+
+					$('#barangtotal').val(total);
+
                     if(difference == 0)
                     {
-                        total = cost * 1;
-                        $('#barangtotal').val(total);
+                        total = cost * adjusted;
                     } else {
-                        $('#barangtotal').val(total);
+						total = cost * difference;
+            
                     }
-
+					$('#barangtotal').val(total);
 				}
 
 			})";

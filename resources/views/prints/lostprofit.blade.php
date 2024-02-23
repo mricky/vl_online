@@ -47,12 +47,15 @@
                 <div class="col-12">
                     <table class="table table-borderless table-sm">
                         <thead>
+                            <th class="text-center"> <hr> </th>
                             <th class="text-center">Description <hr> </th>
                             <th class="text-center">Balance <hr></th>
                         </thead>
                         <tbody>
                             @foreach ($neraca as $item)
+                                
                                 <tr>
+                                    <td>{{$item->code}}</td>
                                     <td style="padding-left: {{ $item->padding_left }};" class="{{ ($item->padding_left  == '25px' || $item->padding_left  == NULL)? 'font-weight-bold':'' }}">{{ $item->account_label }}</td>
                                     <td class="{{ ($item->padding_left  == '25px' || $item->padding_left  == NULL)? 'font-weight-bold text-right':'text-right' }}" style="{{ ($item->padding_left  == '25px' || $item->padding_left  == NULL)? 'text-decoration: underline':'' }}">{{ number_format($item->ending_balance,2, ',', '.') }}</td>
                                 </tr>
@@ -76,9 +79,9 @@
             </div>
         </div>
     </footer>
-    <script>
+    <!-- <script>
         window.print();
         window.onafterprint = window.close;
-    </script>
+    </script> -->
 </body>
 </html>

@@ -50,10 +50,10 @@
                     <tbody>
                             @foreach ($journal as $item)
                              <tr>
-                                 <td>{{$item->Date}}</td>
+                                 <td>{{$item->DATE}}</td>
                                  <td>{{$item->DescriptionOrAccountTitle}}</td>
-                                 <td>{{$item->AmountDebit}}</td>
-                                 <td>{{$item->AmountKredit}}</td>
+                                 <td>{{$item->AccountDebit}}</td>
+                                 <td>{{$item->AccountCredit}}</td>
                                  <td>{{$item->Reference}}</td>
                              </tr>
 

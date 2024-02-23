@@ -60,6 +60,7 @@
                         <tbody>
                           @foreach ($neraca as $item)
                             <tr>
+                                <!-- <td>{{$item->code}}</td> -->
                                 <td width="400" class="{{ ($item->padding_left  == '25px' || $item->padding_left  == NULL)? 'font-weight-bold':'' }}" style="padding-left: {{ $item->padding_left }};">{{ $item->account_label }}</td>
                                 <td class="{{ ($item->padding_left  == '25px' || $item->padding_left  == NULL)? 'font-weight-bold text-right':'text-right' }}" style="{{ ($item->padding_left  == '25px' || $item->padding_left  == NULL)? 'text-decoration: underline':'' }}">{{ number_format($item->debit,2, ',', '.') }}</td>
                             </tr>
@@ -76,6 +77,7 @@
                         <tbody>
                             @foreach ($neraca_right as $item)
                                 <tr>
+                                    <!-- <td>{{$item->code}}</td> -->
                                     <td width="400" class="{{ ($item->padding_left  == '25px' || $item->padding_left  == NULL)? 'font-weight-bold':'' }}" class="font-weight-bold" style="padding-left: {{ $item->padding_left }};">{{ $item->account_label }}</td>
                                     <td class="{{ ($item->padding_left  == '25px' || $item->padding_left  == NULL)? 'font-weight-bold text-right':'text-right' }}" style="{{ ($item->padding_left  == '25px' || $item->padding_left  == NULL)? 'text-decoration: underline':'' }}">{{ number_format($item->debit,2, ',', '.') }}</td>
                                 </tr>

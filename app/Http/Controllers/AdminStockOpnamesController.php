@@ -82,7 +82,7 @@ use Session;
 			$this->form[] = ['label'=>'Barang','name'=>'stock_opname_details','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'stock_opname_details','foreign_key'=>'stock_opname_id'];
             $this->form[] = ['label'=>'Total Origin','name'=>'total_onhand','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5',"readonly"=>true];
 			$this->form[] = ['label'=>'Total Adjust','name'=>'total_actual','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5',"readonly"=>true];
-            $this->form[] = ['label'=>'Total Difference','name'=>'total_difference','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5',"readonly"=>true];
+            $this->form[] = ['label'=>'Total Difference','name'=>'total_difference','type'=>'number','validation'=>'required|integer','width'=>'col-sm-5',"readonly"=>true];
 
             # END FORM DO NOT REMOVE THIS LINE
 
@@ -265,7 +265,7 @@ use Session;
                                     $('#barangqty_actual').val(0);
 									$('#barangqty_difference').val(0);
 									$('#barangtotal').val(0);
-        
+
                                 }
                             }
                         });
@@ -279,7 +279,7 @@ use Session;
                     let origin = document.getElementById('barangqty_onhand').value;
 					let adjusted = document.getElementById('barangqty_actual').value;
 
-                    let difference = origin - adjusted;
+                    let difference = adjusted - origin;
 
                     // if(difference < 0 && origin != 0){
                     //     $('#barangadjust_cost').prop('readonly', true);
@@ -291,7 +291,7 @@ use Session;
                     //     $('#barangadjust_cost').prop('readonly', false);
                     //     $('#barangqty_difference').val(adjusted);
                     // }
-				
+
 					if(origin == 0)
 					{
 						$('#barangadjust_cost').prop('readonly', true);
@@ -321,7 +321,7 @@ use Session;
                         total = cost * adjusted;
                     } else {
 						total = cost * difference;
-            
+
                     }
 					$('#barangtotal').val(total);
 				}

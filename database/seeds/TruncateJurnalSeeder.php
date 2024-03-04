@@ -40,11 +40,31 @@ class TruncateJurnalSeeder extends Seeder
         try {
             $this->command->info("Please Updating Data");
 
+            // sales
+            DB::table('sales_orders')->truncate();
+            DB::table('sales_order_details')->truncate();
+            // purchase
+            DB::table('purchase_orders')->truncate();
+            DB::table('purchase_order_details')->truncate();
+            // receive
+            DB::table('goods_receipt')->truncate();
+            DB::table('goods_receipt_details')->truncate();
+            // opname
             DB::table('stock_opnames')->truncate();
             DB::table('stock_opname_details')->truncate();
+            DB::table('product_locations')->truncate();
+
+            // jurnal
             DB::table('journal_transactions')->truncate();
             DB::table('journal_details')->truncate();
-            DB::table('product_locations')->truncate();
+
+            DB::table('table_neraca')->update(
+                [
+                    'debit' => 0,
+                    'credit' => 0,
+                    'ending_balance' => 0
+                ]
+            );
             DB::commit();
         } catch(\Exception $e){
             throw $e;

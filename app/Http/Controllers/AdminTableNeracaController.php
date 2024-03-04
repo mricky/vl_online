@@ -389,11 +389,11 @@
 		public function postCetaklaba()
 		{
 			$data['tgl_data']=date('d-M-Y',strtotime($_POST['tgl_awal']) )." s/d ". date('d-M-Y',strtotime($_POST['tgl_akhir']));
-		
-			
+
+
 			$this->journalTransaction->generateRugiLaba($_POST,'L');
-		
-	
+
+
 			$data['neraca'] = DB::table('table_neraca as nr')
 				->select('coa.account', 'nr.code','nr.position','nr.account_label','nr.debit', 'nr.credit','nr.ending_balance')
 				->leftJoin('chart_of_accounts as coa','coa.id','nr.account_id')
@@ -401,7 +401,7 @@
 					['nr.report_type','=','L'],
 					['nr.column_position','=','LEFT'],
 				])->orderBy('nr.id','asc')->get();
-			
+
             //dd($data['neraca']);
 			$this->cbView('prints.lostprofit',$data);
 		}

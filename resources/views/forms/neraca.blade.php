@@ -22,7 +22,7 @@
                     <div class="input-group ">
                             <span class="input-group-addon open-datetimepicker"><a><i class='fa fa-calendar '></i></a></span>
                             <input type='text' title="Tgl Perolehan" readonly
-                                   class='form-control notfocus input_date' name="tgl_awal" id="tgl_awal"
+                                   class='form-control notfocus input_date' name="tgl_perolehan" id="tgl_perolehan"
                                    />
                         </div>
                     </div>

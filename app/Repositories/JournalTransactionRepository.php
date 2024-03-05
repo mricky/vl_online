@@ -13,7 +13,7 @@ use function Psy\debug;
 
 interface IJournalTransaction {
     public function generateNeraca($data,$reportType);
-    public function generateRugiLaba($data,$reportType);
+    public function generateRugiLaba($data,$reportType,$tgl_awal,$tgl_akhir,$generateFrom);
 
     // purchase
     public function printJurnal($id,$type);
@@ -846,9 +846,11 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
     }
 
     public function generateNeraca($data,$reportType){
-        $tgl_awal = Carbon::createFromFormat('Y-m-d', $data['tgl_awal'])->format('Y-m-d');
-        $tgl_akhir =  Carbon::now()->format('Y-m-d');
 
+        // tgl i
+   
+        $tgl_akhirNeraca =  Carbon::createFromFormat('Y-m-d', $data['tgl_perolehan'])->format('Y-m-d');
+        
         try {
             DB::beginTransaction();
             $neraca = DB::table('table_neraca')->where('report_type',$reportType)->get();
@@ -860,18 +862,16 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
             ]);
 
             foreach($neraca as $key=>$value){
-
-
+                    // cari dan hitung coa yang nge group dengan neraca_id
                     $amoutPerAccount = DB::table('journal_transactions as trans')
-                    ->select('detail.account_id','coa.neraca_code','coa.saldo_normal')
-                    ->selectRaw('sum(detail.debit) as debit,sum(detail.credit) as credit')
-                    ->join('journal_details as detail','detail.journal_id','trans.id')
-                    ->join('chart_of_accounts as coa','coa.id','detail.account_id')
-                    ->where('coa.neraca_code',$value->id)
-                    ->whereRaw("DATE_FORMAT(trans.transaction_date, '%Y-%m-%d') >= '" . $tgl_awal . "' AND DATE_FORMAT(trans.transaction_date, '%Y-%m-%d') <= '" . $tgl_akhir . "'")
-                    ->groupBy('detail.account_id')
-                    ->get();
-
+                        ->select('detail.account_id','coa.neraca_code','coa.saldo_normal')
+                        ->selectRaw('sum(detail.debit) as debit,sum(detail.credit) as credit')
+                        ->join('journal_details as detail','detail.journal_id','trans.id')
+                        ->join('chart_of_accounts as coa','coa.id','detail.account_id')
+                        ->where('coa.neraca_code',$value->id)
+                        ->whereRaw("DATE_FORMAT(trans.transaction_date, '%Y-%m-%d') <= '" . $tgl_akhirNeraca . "'")
+                        ->groupBy('detail.account_id')
+                        ->get();
                     foreach($amoutPerAccount as $amount)
                     {
                         $saldoNormal = 0;
@@ -881,88 +881,63 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                         } else {
                            $saldoNormal =  $amount->credit - $amount->debit;
                         }
-                        DB::table('table_neraca')
-                        ->where('account_id',$amount->account_id)
-                        ->update([
-                            'debit' => $amount->debit,
-                            'credit' => $amount->credit,
-                            'ending_balance' => $saldoNormal,
-                        ]);
+
+                        DB::transaction(function() use ($amount,$saldoNormal){
+                            DB::table('table_neraca')
+                            ->where('account_id',$amount->account_id)
+                            ->update([
+                                'debit' => $amount->debit,
+                                'credit' => $amount->credit,
+                                'ending_balance' => $saldoNormal,
+                            ]);
+                             DB::commit();
+                        });
+                         
                     }
-
-
-                    /// Sum Total
                     $debit = DB::table('journal_transactions as trans')
                                 ->join('journal_details as detail','detail.journal_id','trans.id')
                                 ->join('chart_of_accounts as coa','coa.id','detail.account_id')
                                 ->where('coa.neraca_code',$value->id)
-                                ->whereRaw("DATE_FORMAT(trans.transaction_date, '%Y-%m-%d') >= '" . $tgl_awal . "' AND DATE_FORMAT(trans.transaction_date, '%Y-%m-%d') <= '" . $tgl_akhir . "'")
+                                ->whereRaw("DATE_FORMAT(trans.transaction_date, '%Y-%m-%d') <= '" . $tgl_akhirNeraca . "'")
                                 ->sum('detail.debit');
                     $credit = DB::table('journal_transactions as trans')
                                 ->join('journal_details as detail','detail.journal_id','trans.id')
                                 ->join('chart_of_accounts as coa','coa.id','detail.account_id')
                                 ->where('coa.neraca_code',$value->id)
-                                ->whereRaw("DATE_FORMAT(trans.transaction_date, '%Y-%m-%d') >= '" . $tgl_awal . "' AND DATE_FORMAT(trans.transaction_date, '%Y-%m-%d') <= '" . $tgl_akhir . "'")
+                                ->whereRaw("DATE_FORMAT(trans.transaction_date, '%Y-%m-%d') <= '" . $tgl_akhirNeraca . "'")
                                 ->sum('detail.credit');
 
-
-
-
-                    // saldo kredit - debit
-                    // Asset Lain => 11,
-                    // Uang Muka Pembelian => 12
-                    // Kewajiban => 13,
-                    // Hutang Dagang => 14
-                    // Uang Muka Penjualan => 15
-                    // Modal => 16
-                    // Saldo Awal => 17
-                    switch($value->id){ // ini mencari account yang neraca id nya berkaitan dengan coa
-                        case 11 :
-                            $pengurang = (int)$credit - (int)$debit;
-                        break;
-                        case 12 :
-                            $pengurang = (int)$credit - (int)$debit;
-                        break;
-                        case 14 :
-                            $pengurang = (int)$credit - (int)$debit;
-                        break;
-                        case 15 :
-                            $pengurang = (int)$credit - (int)$debit;
-                        break;
-                        case 17 :
-                            $pengurang = (int)$credit - (int)$debit;
-                        break;
-                        default :
-                          $pengurang =  (int)$debit - (int)$credit; // fixme:
-                        break;
+                    if($value->column_position === 'RIGH'){
+                        $pengurang = (int)$credit - (int)$debit;
+                    } else {
+                
+                        $pengurang =  (int)$debit - (int)$credit; // fixme:
                     }
-
+                   
+                    DB::transaction(function() use ($value,$debit,$credit,$pengurang){
+                            DB::table('table_neraca')
+                            ->where('id',$value->id)
+                            ->update([
+                                'debit' => $debit,
+                                'credit' => $credit,
+                                'ending_balance' => $pengurang
+                            ]);
+                            DB::commit();
+                    });
+                    //exit;
                     // untuk total sudah benar, tinggal counting per account nya
-                    DB::table('table_neraca')
-                                ->where('id',$value->id)
-                                ->update([
-                                    'debit' => $debit,
-                                    'credit' => $credit,
-                                    'ending_balance' => $pengurang
-                                ]);
-
+                    DB::commit();
+                   
             } // end foreach
 
-
+             
              } catch (\Exception $e) {
                 DB::rollback();
                 throw $e;
             }
-            $data['neraca'] = $neraca;
-
-            return $data;
     }
-    public function generateRugiLaba($data,$reportType)
+    public function generateRugiLaba($data,$reportType,$tgl_awal,$tgl_akhir,$generateFrom) : void
      {
-
-        $tgl_awal = Carbon::createFromFormat('Y-m-d', $data['tgl_awal'])->format('Y-m-d');
-        $tgl_akhir = Carbon::createFromFormat('Y-m-d', $data['tgl_akhir'])->format('Y-m-d');
-
 
         try {
             DB::beginTransaction();
@@ -973,58 +948,49 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                     'begining_balance' => 0,
                     'ending_balance' => 0
             ]);
-
+           
             foreach($neraca as $key=>$value){
+                $amoutPerAccount = [];
+             
+                    // listed per id table neraca
+                    $amoutPerAccount = DB::table('journal_transactions as trans')
+                        ->select('detail.account_id','coa.neraca_code','coa.saldo_normal')
+                        ->selectRaw('sum(detail.debit) as debit,sum(detail.credit) as credit')
+                        ->join('journal_details as detail','detail.journal_id','trans.id')
+                        ->join('chart_of_accounts as coa','coa.id','detail.account_id')
+                        ->where('coa.neraca_code',$value->id)
+                        ->where(function($query) use ($generateFrom,$tgl_awal,$tgl_akhir){
+                            if($generateFrom == 'N'){
+                                $query->whereRaw("DATE_FORMAT(trans.transaction_date, '%Y-%m-%d') <= '" . $tgl_awal . "'");
+                            } else {
+                                $query->whereRaw("DATE_FORMAT(trans.transaction_date, '%Y-%m-%d') >= '" . $tgl_awal . "' AND DATE_FORMAT(trans.transaction_date, '%Y-%m-%d') <= '" . $tgl_akhir . "'");
+                            } 
+                            
+                        })
+                        ->groupBy('detail.account_id');
+                        foreach($amoutPerAccount as $amount)
+                        {
+                            $endingBalanace = ($amount->debit - $amount->credit);
+                           
+                                DB::transaction(function() use ($amount,$endingBalanace){
+                                        DB::table('table_neraca')
+                                            ->where('account_id',$amount->account_id)
+                                            ->update([
+                                                'debit' => $amount->debit,
+                                                'credit' => $amount->credit,
+                                                'ending_balance' => $endingBalanace
+                                            ]);
+                                        DB::commit();
+                                });
+                         
+                            // echo '<pre>'; print('Credit :'.$amount->account_id); echo '<pre>'; 
+                            // echo '<pre>'; print('Credit :'.$amount->credit); echo '<pre>'; 
+                            // echo '<pre>'; print('Hasil :'.$endingBalanace); echo '<pre>'; 
+                            // dd($endingBalanace);
+                        }                
+                }   
 
-                $amoutPerAccount = DB::table('journal_transactions as trans')
-                    ->select('detail.account_id','coa.neraca_code','coa.saldo_normal')
-                    ->selectRaw('sum(detail.debit) as debit,sum(detail.credit) as credit')
-                    ->join('journal_details as detail','detail.journal_id','trans.id')
-                    ->join('chart_of_accounts as coa','coa.id','detail.account_id')
-                    ->where('coa.neraca_code',$value->id)
-                    ->whereRaw("DATE_FORMAT(trans.transaction_date, '%Y-%m-%d') >= '" . $tgl_awal . "' AND DATE_FORMAT(trans.transaction_date, '%Y-%m-%d') <= '" . $tgl_akhir . "'")
-                    ->groupBy('detail.account_id')
-                    ->get();
-
-                foreach($amoutPerAccount as $amount)
-                {
-
-                        DB::table('table_neraca')
-                        ->where('account_id',$amount->account_id)
-                        ->update([
-                            'debit' => $amount->debit,
-                            'credit' => $amount->credit,
-                            'ending_balance' => $amount->credit - $amount->debit,
-                        ]);
-                    }
-                    /// Sum Total
-                    $debit = DB::table('journal_transactions as trans')
-                            ->join('journal_details as detail','detail.journal_id','trans.id')
-                            ->join('chart_of_accounts as coa','coa.id','detail.account_id')
-                            ->where('coa.neraca_code',$value->id)
-                            ->whereRaw("DATE_FORMAT(trans.transaction_date, '%Y-%m-%d') >= '" . $tgl_awal . "' AND DATE_FORMAT(trans.transaction_date, '%Y-%m-%d') <= '" . $tgl_akhir . "'")
-                            ->sum('detail.debit');
-                    $credit = DB::table('journal_transactions as trans')
-                                ->join('journal_details as detail','detail.journal_id','trans.id')
-                                ->join('chart_of_accounts as coa','coa.id','detail.account_id')
-                                ->where('coa.neraca_code',$value->id)
-                                ->whereRaw("DATE_FORMAT(trans.transaction_date, '%Y-%m-%d') >= '" . $tgl_awal . "' AND DATE_FORMAT(trans.transaction_date, '%Y-%m-%d') <= '" . $tgl_akhir . "'")
-                                ->sum('detail.credit');
-
-
-                    // pake switch untuk ending balance
-
-                    DB::table('table_neraca')
-                              ->where('id',$value->id)
-                                ->update([
-                                    'debit' => $debit,
-                                    'credit' => $credit,
-                                    'ending_balance' => (int)$debit - (int)$credit
-                                ]);
-                    // end if
-                }   // end foreach
-
-                DB::commit();
+                    DB::commit();
                 } catch (\Exception $e) {
                     DB::rollback();
                     throw $e;
@@ -1036,44 +1002,40 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                             ->join('chart_of_accounts as coa','coa.id','neraca.account_id')
                             ->where('coa.neraca_code','61')
                             ->sum('neraca.ending_balance');
+                    
+                     DB::table('table_neraca')
+                            ->where('id', 61)
+                            ->update(['ending_balance' => $totalPendapatan]);
 
                     $totalHpp = DB::table('table_neraca as neraca')
                             ->join('chart_of_accounts as coa','coa.id','neraca.account_id')
                             ->where('coa.neraca_code','65')
                             ->sum('neraca.ending_balance');
+                      
+                    DB::table('table_neraca')
+                            ->where('id', 65)
+                            ->update(['ending_balance' => $totalHpp]);
 
                     $totalBiaya = DB::table('table_neraca as neraca')
                                 ->join('chart_of_accounts as coa','coa.id','neraca.account_id')
                                 ->where('coa.neraca_code','69')
                                 ->sum('neraca.ending_balance');
+                   
+                    DB::table('table_neraca')
+                                ->where('id', 69)
+                                ->update(['ending_balance' => $totalBiaya]);
 
                     $labaKotor = (int)$totalPendapatan - (int)$totalHpp;
-
+                    
                     $labaBersih = (int)$labaKotor - (int)$totalBiaya;
+        
+                    // update laba bersih, laba berjalan
                     DB::table('table_neraca')
-                            ->where('id', 61)
-                            ->update(array('ending_balance' => $totalPendapatan));
-
-                    DB::table('table_neraca')
-                            ->where('id', 65)
-                            ->update(array('ending_balance' => $totalHpp));
-
-                    DB::table('table_neraca')
-                            ->where('id', 65)
-                            ->update(array('ending_balance' => $totalBiaya));
-
-                    DB::table('table_neraca')
-                        ->where('id', 68)
-                        ->update(array('ending_balance' => $labaKotor));
-
-                    DB::table('table_neraca')
-                        ->where('id', 68)
+                        ->whereIn('id',[60,76])
                         ->update(array('ending_balance' => $labaBersih));
+
+                    
                     DB::commit();
                 });
-
-                $data['neraca'] = $neraca;
-
-                return $data;
     }
 }

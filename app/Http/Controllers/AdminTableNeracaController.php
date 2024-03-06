@@ -370,7 +370,7 @@
 			// dd($tgl_awal);
 			$this->journalTransaction->generateRugiLaba($_POST,'L',$tgl_perolehan,$tgl_akhir,'N');
 			
-			$this->journalTransaction->generateNeraca($_POST,'N');
+			#$this->journalTransaction->generateNeraca($_POST,'N');
 
 			$data['neraca'] = DB::table('table_neraca as nr')
 			->select('coa.account', 'nr.code','nr.position','nr.account_label','nr.debit', 'nr.credit','nr.ending_balance')

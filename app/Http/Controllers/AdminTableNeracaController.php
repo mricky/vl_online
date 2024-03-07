@@ -369,8 +369,8 @@
 
 			// dd($tgl_awal);
 			$this->journalTransaction->generateRugiLaba($_POST,'L',$tgl_perolehan,$tgl_akhir,'N');
-			
-			#$this->journalTransaction->generateNeraca($_POST,'N');
+
+			$this->journalTransaction->generateNeraca($_POST,'N');
 
 			$data['neraca'] = DB::table('table_neraca as nr')
 			->select('coa.account', 'nr.code','nr.position','nr.account_label','nr.debit', 'nr.credit','nr.ending_balance')
@@ -398,7 +398,7 @@
 
 			$tgl_awal = Carbon::createFromFormat('Y-m-d', $_POST['tgl_awal'])->format('Y-m-d');
 			$tgl_akhir = Carbon::createFromFormat('Y-m-d', $_POST['tgl_akhir'])->format('Y-m-d');
-	
+
 
 			$this->journalTransaction->generateRugiLaba($_POST,'L',$tgl_awal,$tgl_akhir,'R/L');
 

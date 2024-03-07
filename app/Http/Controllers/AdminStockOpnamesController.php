@@ -64,7 +64,7 @@ use Session;
 			#$this->form[] = ['label'=>'Produk','name'=>'product_filters','type'=>'select2multi','width'=>'col-sm-5','datatable'=>'products,name'];
 			$this->form[] = ['label'=>'Dokumen','name'=>'document','type'=>'upload','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
 			$this->form[] = ['label'=>'Alasan','name'=>'opname_type_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'stock_opname_type,name'];
-            $this->form[]  = ['label'=>'Akun Biaya','name'=>'account_cost','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'chart_of_accounts,account','datatable_where'=>'id IN (17,32,33,34)'];
+            #$this->form[]  = ['label'=>'Akun Biaya','name'=>'account_cost','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'chart_of_accounts,account','datatable_where'=>'id IN (17,32,33,34)'];
             $columns = [];
 			#$columns[] = ['label'=>'Produk','name'=>'product_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'products,name'];
 			$columns[] = ['label'=>'Produk','name'=>'product_id','type'=>'select','required'=>true,'width'=>'col-sm-5','datatable'=>'view_product,product_name'];

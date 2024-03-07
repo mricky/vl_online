@@ -43,9 +43,13 @@ class TruncateJurnalSeeder extends Seeder
             // sales
             DB::table('sales_orders')->truncate();
             DB::table('sales_order_details')->truncate();
+            // AR
+            DB::table('account_receivable')->truncate();
             // purchase
             DB::table('purchase_orders')->truncate();
             DB::table('purchase_order_details')->truncate();
+            // AP
+            DB::table('account_payable')->truncate();
             // receive
             DB::table('goods_receipt')->truncate();
             DB::table('goods_receipt_details')->truncate();
@@ -66,6 +70,7 @@ class TruncateJurnalSeeder extends Seeder
                 ]
             );
             DB::commit();
+            $this->command->info("Please Updating Data");
         } catch(\Exception $e){
             throw $e;
         }

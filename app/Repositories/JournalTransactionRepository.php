@@ -873,7 +873,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
 
                             $amoutPerAccount = DB::table('journal_transactions as trans')
                             ->select('detail.account_id','coa.neraca_code','coa.saldo_normal')
-                            ->selectRaw('sum(detail.debit) as debit,sum(detail.credit) as credit')
+                            ->selectRaw('ifnull(sum(detail.debit),0) as debit,ifnull(sum(detail.credit),0) as credit')
                             ->join('journal_details as detail','detail.journal_id','trans.id')
                             ->join('chart_of_accounts as coa','coa.id','detail.account_id')
                             ->where('coa.neraca_code',$value->id)
@@ -968,7 +968,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                     // listed per id table neraca
                     $amoutPerAccount = DB::table('journal_transactions as trans')
                         ->select('detail.account_id','coa.neraca_code','coa.saldo_normal')
-                        ->selectRaw('sum(detail.debit) as debit,sum(detail.credit) as credit')
+                        ->selectRaw('ifnull(sum(detail.debit),0) as debit,ifnull(sum(detail.credit),0) as credit')
                         ->join('journal_details as detail','detail.journal_id','trans.id')
                         ->join('chart_of_accounts as coa','coa.id','detail.account_id')
                         ->where('coa.neraca_code',$value->id)
@@ -985,7 +985,13 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
 
                             foreach($amoutPerAccount as $amount)
                             {
-                                $endingBalanace = $amount->debit == 0 ? $amount->credit :  ($amount->debit - $amount->credit);
+                                $endingBalanace = 0;
+                                //$endingBalanace = $amount->debit == 0 ? $amount->credit :  ($amount->debit - $amount->credit);
+                                    if($amount->debit > $amount->credit){
+                                        $endingBalanace = $amount->debit - $amount->credit;
+                                    } else {
+                                        $endingBalanace = $amount->credit - $amount->debit;
+                                    }
 
                                     DB::transaction(function() use ($amount,$endingBalanace){
                                             DB::table('table_neraca')

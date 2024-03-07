@@ -639,7 +639,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                         'journal_id' => $id,
                         'account_id' => $this->pendapatanDagang->id,
                         'debit'    => 0,
-                        'credit' => $data->total_amount,
+                        'credit' => $data->total_amount, // - ongkir TODO:
                         'is_manual' => $is_manual,
                         'created_at' => now(),
                     ],
@@ -848,12 +848,13 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
     public function generateNeraca($data,$reportType){
 
         // tgl i
-   
+
         $tgl_akhirNeraca =  Carbon::createFromFormat('Y-m-d', $data['tgl_perolehan'])->format('Y-m-d');
-        
+
         try {
             DB::beginTransaction();
             $neraca = DB::table('table_neraca')->where('report_type',$reportType)->get();
+
             DB::table('table_neraca')
                 ->where('report_type','N')
                 ->where('id','!=',60) // laba berjalan
@@ -869,7 +870,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                         echo $value->id. '--';
                         if($value->id != 60) // laba berjalan
                         {
-                           
+
                             $amoutPerAccount = DB::table('journal_transactions as trans')
                             ->select('detail.account_id','coa.neraca_code','coa.saldo_normal')
                             ->selectRaw('sum(detail.debit) as debit,sum(detail.credit) as credit')
@@ -884,11 +885,11 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                             $saldoNormal = 0;
 
                             if($amount->saldo_normal == 'D'){
-                                $saldoNormal = $amount->debit - $amount->credit;
+                                 $saldoNormal = $amount->debit - $amount->credit;
                             } else {
-                            $saldoNormal =  $amount->credit - $amount->debit;
+                                 $saldoNormal =  $amount->credit - $amount->debit;
                             }
-
+                            // TODO:
                             DB::transaction(function() use ($amount,$saldoNormal){
                                 DB::table('table_neraca')
                                 ->where('account_id',$amount->account_id)
@@ -899,7 +900,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                                 ]);
                                 DB::commit();
                             });
-                            
+
                         }
                         $debit = DB::table('journal_transactions as trans')
                                     ->join('journal_details as detail','detail.journal_id','trans.id')
@@ -917,10 +918,10 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                         if($value->column_position === 'RIGH'){
                             $pengurang = (int)$credit - (int)$debit;
                         } else {
-                    
+
                             $pengurang =  (int)$debit - (int)$credit; // fixme:
                         }
-                    
+
                         DB::transaction(function() use ($value,$debit,$credit,$pengurang){
                                 DB::table('table_neraca')
                                 ->where('id',$value->id)
@@ -933,13 +934,13 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                         });
                         //exit;
                         // untuk total sudah benar, tinggal counting per account nya
-                        DB::commit(); 
+                        DB::commit();
                         }
-                        
-                    
+
+
                 } // end foreach
 
-             
+
              } catch (\Exception $e) {
                 DB::rollback();
                 throw $e;
@@ -960,10 +961,10 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                     'begining_balance' => 0,
                     'ending_balance' => 0
             ]);
-            
+
             foreach($neraca as $key=>$value){
                 $amoutPerAccount = [];
-             
+
                     // listed per id table neraca
                     $amoutPerAccount = DB::table('journal_transactions as trans')
                         ->select('detail.account_id','coa.neraca_code','coa.saldo_normal')
@@ -976,16 +977,16 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                                 $query->whereRaw("DATE_FORMAT(trans.transaction_date, '%Y-%m-%d') <= '" . $tgl_awal . "'");
                             } else {
                                 $query->whereRaw("DATE_FORMAT(trans.transaction_date, '%Y-%m-%d') >= '" . $tgl_awal . "' AND DATE_FORMAT(trans.transaction_date, '%Y-%m-%d') <= '" . $tgl_akhir . "'");
-                            } 
-                            
+                            }
+
                         })
                         ->groupBy('detail.account_id')->get();
-                        
-                      
+
+
                             foreach($amoutPerAccount as $amount)
                             {
-                                $endingBalanace = ($amount->debit - $amount->credit);
-                               
+                                $endingBalanace = $amount->debit == 0 ? $amount->credit :  ($amount->debit - $amount->credit);
+
                                     DB::transaction(function() use ($amount,$endingBalanace){
                                             DB::table('table_neraca')
                                                 ->where('account_id',$amount->account_id)
@@ -996,15 +997,15 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                                                 ]);
                                             DB::commit();
                                     });
-                             
-                                // echo '<pre>'; print('Credit :'.$amount->account_id); echo '<pre>'; 
-                                // echo '<pre>'; print('Credit :'.$amount->credit); echo '<pre>'; 
-                                // echo '<pre>'; print('Hasil :'.$endingBalanace); echo '<pre>'; 
+
+                                // echo '<pre>'; print('Credit :'.$amount->account_id); echo '<pre>';
+                                // echo '<pre>'; print('Credit :'.$amount->credit); echo '<pre>';
+                                // echo '<pre>'; print('Hasil :'.$endingBalanace); echo '<pre>';
                                 // dd($endingBalanace);
-                            }    
-                        
-                                   
-                }   
+                            }
+
+
+                }
 
                     DB::commit();
                 } catch (\Exception $e) {
@@ -1018,7 +1019,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                             ->join('chart_of_accounts as coa','coa.id','neraca.account_id')
                             ->where('coa.neraca_code','61')
                             ->sum('neraca.ending_balance');
-                    
+
                      DB::table('table_neraca')
                             ->where('id', 61)
                             ->update(['ending_balance' => $totalPendapatan]);
@@ -1027,7 +1028,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                             ->join('chart_of_accounts as coa','coa.id','neraca.account_id')
                             ->where('coa.neraca_code','65')
                             ->sum('neraca.ending_balance');
-                      
+
                     DB::table('table_neraca')
                             ->where('id', 65)
                             ->update(['ending_balance' => $totalHpp]);
@@ -1036,21 +1037,21 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                                 ->join('chart_of_accounts as coa','coa.id','neraca.account_id')
                                 ->where('coa.neraca_code','69')
                                 ->sum('neraca.ending_balance');
-                   
+
                     DB::table('table_neraca')
                                 ->where('id', 69)
                                 ->update(['ending_balance' => $totalBiaya]);
 
                     $labaKotor = (int)$totalPendapatan - (int)$totalHpp;
-                    
+
                     $labaBersih = (int)$labaKotor - (int)$totalBiaya;
-        
+
                     // update laba bersih, laba berjalan
                     DB::table('table_neraca')
                         ->whereIn('id',[60,76])
                         ->update(array('ending_balance' => $labaBersih));
 
-                    
+
                     DB::commit();
                 });
     }

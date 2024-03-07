@@ -413,6 +413,7 @@ use Session;
 			$sales = DB::table('sales_orders')->where('id',$id)->first();
 
 			$total = ((int)$sales->subtotal + (int)$sales->expedition_cost) - (int)$sales->discount;
+            // TODO: khusu jurnal dengan expedisi
 			// hitung modal
 			// $sales_detail = DB::table('sales_order_detail')
 			// 				->join('productsx`')

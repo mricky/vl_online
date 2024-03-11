@@ -4,23 +4,23 @@
 	use Request;
 	use DB;
 	use CRUDBooster;
-    use App\Repositories\{
-        JournalTransactionRepository
-    };
-	class AdminAccountPayableController extends \crocodicstudio\crudbooster\controllers\CBController {
+    use App\Repositories\JournalTransactionRepository
+	;
+	class AdminTableNeraca54Controller extends \crocodicstudio\crudbooster\controllers\CBController {
 
-        private $journalTransaction;
-        public function __construct(JournalTransactionRepository $journalTransaction)
+		private $journalTransaction;
+
+		public function __construct(JournalTransactionRepository $journalTransaction)
         {
-			 $this->journalTransaction = $journalTransaction;
+       		 $this->journalTransaction = $journalTransaction;
+		}
 
-        }
 	    public function cbInit() {
 
 			# START CONFIGURATION DO NOT REMOVE THIS LINE
 			$this->title_field = "id";
-			$this->limit = "20";
-			$this->orderby = "id,desc";
+			$this->limit = "50";
+			$this->orderby = "id,asc";
 			$this->global_privilege = false;
 			$this->button_table_action = true;
 			$this->button_bulk_action = true;
@@ -33,38 +33,42 @@
 			$this->button_filter = true;
 			$this->button_import = false;
 			$this->button_export = false;
-			$this->table = "account_payable";
+			$this->table = "table_neraca";
 			# END CONFIGURATION DO NOT REMOVE THIS LINE
 
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
-			$this->col[] = ["label"=>"Pembelian","name"=>"purchase_id","join"=>"purchase_orders,order_number"];
-			$this->col[] = ["label"=>"Transaksi","name"=>"transaction_date"];
-           //$this->col[] = ["label"=>"Sisa","name"=>"amount_due"];
-			$this->col[] = ["label"=>"Nominal","name"=>"amount"];
-            $this->col[] = ["label"=>"Dibuat Oleh","name"=>"created_by","join"=>"cms_users,name"];
+			$this->col[] = ["label"=>"Kode","name"=>"code"];
+			$this->col[] = ["label"=>"Laporan","name"=>"report_type"];
+			$this->col[] = ["label"=>"Kolom","name"=>"column_position"];
+			$this->col[] = ["label"=>"Posisi","name"=>"position"];
+			$this->col[] = ["label"=>"Akun","name"=>"account_id","join"=>"chart_of_accounts,account"];
+			$this->col[] = ["label"=>"Akun Label","name"=>"account_label"];
 			# END COLUMNS DO NOT REMOVE THIS LINE
 
 			# START FORM DO NOT REMOVE THIS LINE
 			$this->form = [];
-			//$this->form[] = ['label'=>'Pembelian','name'=>'purchase_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'purchase_orders,order_number'];
-            $this->form[] = ['label'=>'Order ID','name'=>'purchase_id','width'=>'col-sm-9','readonly'=>'true'];
-			$this->form[] = ['label'=>'Transaksi','name'=>'transaction_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-10'];
-			// $this->form[] = ['label'=>'Akun Debet','name'=>'account_debet','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'chart_of_accounts,account'];
-			// $this->form[] = ['label'=>'Akun Credit','name'=>'account_credit','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'chart_of_accounts,account'];
-			$this->form[] = ['label'=>'Nominal','name'=>'amount','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
-			$this->form[] = ['label'=>'Keterangan','name'=>'description','type'=>'multitext','validation'=>'nullable','width'=>'col-sm-9'];
+			$this->form[] = ['label'=>'Kode','name'=>'code','type'=>'number','validation'=>'min:1|max:255','width'=>'col-sm-5'];
+			$this->form[] = ['label'=>'Akun','name'=>'account_id','type'=>'select','validation'=>'nullable|integer|min:0','width'=>'col-sm-5','datatable'=>'chart_of_accounts,account,id','datatable_format' => 'report_type,\' - \',code,\' - \',account'];
+			$this->form[] = ['label'=>'Laporan','name'=>'report_type','type'=>'radio','validation'=>'required|min:1|max:255','width'=>'col-sm-5','dataenum'=>'N|Neraca;L|Laba Rugi'];
+			$this->form[] = ['label'=>'Account Label','name'=>'account_label','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-5'];
+			$this->form[] = ['label'=>'Posisi Kolom','name'=>'column_position','type'=>'radio','validation'=>'required|min:1|max:255','width'=>'col-sm-5','dataenum'=>'LEFT|LEFT;RIGH| RIGHT'];
+			$this->form[] = ['label'=>'Posisi','name'=>'position','type'=>'number','validation'=>'required|min:1|max:255','width'=>'col-sm-5'];
+
+
 			# END FORM DO NOT REMOVE THIS LINE
 
 			# OLD START FORM
 			//$this->form = [];
-			//$this->form[] = ["label"=>"Purchase Id","name"=>"purchase_id","type"=>"select2","required"=>TRUE,"validation"=>"required|integer|min:0","datatable"=>"purchase,id"];
-			//$this->form[] = ["label"=>"Transaction Date","name"=>"transaction_date","type"=>"date","required"=>TRUE,"validation"=>"required|date"];
-			//$this->form[] = ["label"=>"Account Debet","name"=>"account_debet","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
-			//$this->form[] = ["label"=>"Account Credit","name"=>"account_credit","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
-			//$this->form[] = ["label"=>"Amount","name"=>"amount","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
-			//$this->form[] = ["label"=>"Created By","name"=>"created_by","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
-			//$this->form[] = ["label"=>"Updated By","name"=>"updated_by","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
+			//$this->form[] = ["label"=>"Report Type","name"=>"report_type","type"=>"text","required"=>TRUE,"validation"=>"required|min:1|max:255"];
+			//$this->form[] = ["label"=>"Position","name"=>"position","type"=>"text","required"=>TRUE,"validation"=>"required|min:1|max:255"];
+			//$this->form[] = ["label"=>"Account Id","name"=>"account_id","type"=>"select2","required"=>TRUE,"validation"=>"required|integer|min:0","datatable"=>"account,id"];
+			//$this->form[] = ["label"=>"Account Label","name"=>"account_label","type"=>"text","required"=>TRUE,"validation"=>"required|min:1|max:255"];
+			//$this->form[] = ["label"=>"Begining Balance","name"=>"begining_balance","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
+			//$this->form[] = ["label"=>"Debit","name"=>"debit","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
+			//$this->form[] = ["label"=>"Credit","name"=>"credit","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
+			//$this->form[] = ["label"=>"Ending Balance","name"=>"ending_balance","type"=>"number","required"=>TRUE,"validation"=>"required|integer|min:0"];
+			//$this->form[] = ["label"=>"Created By","name"=>"created_by","type"=>"text","required"=>TRUE,"validation"=>"required|min:1|max:255"];
 			# OLD END FORM
 
 			/*
@@ -164,16 +168,7 @@
 	        | $this->script_js = "function() { ... }";
 	        |
 	        */
-	        $this->script_js = "
-            $(function(){
-                let date = new Date();
-                let currentMonth = (date.getMonth() + 1);
-                currentMonth = ('0' + currentMonth).slice(-2);
-
-                var lastDayWithDash =  date.getFullYear() + '-' + currentMonth + '-' +date.getDate();
-                $('#transaction_date').val(lastDayWithDash);
-            });
-            ";
+	        $this->script_js = NULL;
 
 
             /*
@@ -261,7 +256,7 @@
 	    */
 	    public function hook_query_index(&$query) {
 	        //Your code here
-
+			$query->where('table_neraca.report_type','L');
 	    }
 
 	    /*
@@ -283,9 +278,7 @@
 	    */
 	    public function hook_before_add(&$postdata) {
 	        //Your code here
-            $postdata['account_debet'] = 14; // Hutang Dagang
-            $postdata['account_credit'] = 1; // Kas
-            $postdata['created_by'] = CRUDBooster::myId();
+
 	    }
 
 	    /*
@@ -297,16 +290,7 @@
 	    */
 	    public function hook_after_add($id) {
 	        //Your code here
-            $payment = DB::table('account_payable')->where('id',$id)->first();
-            $purchase = DB::table('purchase_orders')->where('id',$payment->purchase_id)->first();
-            $this->journalTransaction->paidPurchase($purchase,$payment);
 
-            // update total
-            $payload = [
-                'total_amount' => (int)$purchase->total_amount + (int)$payment->amount
-            ];
-
-            DB::table('purchase_orders')->where('id',$payment->purchase_id)->update($payload);
 	    }
 
 	    /*
@@ -319,7 +303,7 @@
 	    */
 	    public function hook_before_edit(&$postdata,$id) {
 	        //Your code here
-            $postdata['created_by'] = CRUDBooster::myId();
+
 	    }
 
 	    /*
@@ -331,17 +315,7 @@
 	    */
 	    public function hook_after_edit($id) {
 	        //Your code here
-            $payment = DB::table('account_payable')->where('id',$id)->first();
 
-            // sum
-            $allTotalPaid = DB::table('account_payable')->where('id',$id)->sum('amount');
-            $payload = [
-                'total_amount' => $allTotalPaid
-            ];
-
-            DB::table('purchase_orders')->where('id',$payment->purchase_id)->update($payload);
-
-            // TODO: Pelunasan
 	    }
 
 	    /*
@@ -352,16 +326,8 @@
 	    |
 	    */
 	    public function hook_before_delete($id) {
-	         //Your code here
-             $payment = DB::table('account_payable')->where('id',$id)->first();
+	        //Your code here
 
-             // sum
-             $allTotalPaid = DB::table('account_payable')->where('id',$id)->sum('amount');
-             $payload = [
-                 'total_amount' => $allTotalPaid
-             ];
-
-             DB::table('purchase_orders')->where('id',$payment->purchase_id)->update($payload);
 	    }
 
 	    /*
@@ -376,9 +342,58 @@
 
 	    }
 
+		public function getFormNeraca(){
+			if(!CRUDBooster::isView()) CRUDBooster::redirect(CRUDBooster::adminPath(),trans('crudbooster.denied_access'));
+			//Create your own query
+			$data = [];
+			$data['Neraca'] ='Laporan Neraca';
+			$this->cbView('forms.neraca',$data);
+		}
+
+		public function getFormProfitLost(){
+			if(!CRUDBooster::isView()) CRUDBooster::redirect(CRUDBooster::adminPath(),trans('crudbooster.denied_access'));
+			//Create your own query
+			$data = [];
+			$data['Neraca'] ='Laporan Laba Rugi';
+
+			$this->cbView('forms.lostprofit',$data);
+		}
+
+		public function postCetakneraca(){
+			if(!CRUDBooster::isRead() && $this->global_privilege==FALSE || $this->button_add==FALSE) {
+				CRUDBooster::redirect(CRUDBooster::adminPath(),trans("crudbooster.denied_access"));
+			}
+
+			$data['tgl_data']=date('d-M-Y',strtotime($_POST['tgl_awal']) )." s/d ". date('d-M-Y',strtotime($_POST['tgl_akhir']));
+
+			$data['neraca'] = DB::table('table_neraca')->where([
+				['report_type','=','N'],
+				['column_position','=','LEFT'],
+			])->orderBy('id','asc')->get();
+
+			$data['neraca_right'] = DB::table('table_neraca')->where([
+				['report_type','=','N'],
+				['column_position','=','RIGH'],
+			])->orderBy('id','asc')->get();
 
 
-	    //By the way, you can still create your own method in here... :)
+			$this->journalTransaction->generateNeracaRugiLaba($_POST,'N');
 
+			$this->cbView('prints.neraca',$data);
+		}
+
+		public function postCetaklaba()
+		{
+			$data['tgl_data']=date('d-M-Y',strtotime($_POST['tgl_awal']) )." s/d ". date('d-M-Y',strtotime($_POST['tgl_akhir']));
+			$data['neraca'] = DB::table('table_neraca')->where([
+				['report_type','=','L'],
+				['column_position','=','LEFT'],
+			])->orderBy('id','asc')->get();
+
+            $this->journalTransaction->generateNeracaRugiLaba($_POST,'L');
+
+            #dd($data['neraca']);
+			$this->cbView('prints.lostprofit',$data);
+		}
 
 	}

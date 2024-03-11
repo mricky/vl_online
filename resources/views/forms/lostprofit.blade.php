@@ -1,6 +1,6 @@
 @extends('crudbooster::admin_template')
 @section('content')
-<script src="{{ asset ('vendor/crudbooster/assets/adminlte/plugins/jQuery/jquery-2.2.3.min.js') }}"></script> 
+<script src="{{ asset ('vendor/crudbooster/assets/adminlte/plugins/jQuery/jquery-2.2.3.min.js') }}"></script>
     <!-- Bootstrap 3.3.2 JS -->
     <script src="{{ asset ('vendor/crudbooster/assets/adminlte/bootstrap/js/bootstrap.min.js') }}" type="text/javascript"></script>
 <!-- Your html goes here -->
@@ -9,10 +9,10 @@
 <div class="panel panel-default">
     <div class="panel-heading">
         <strong><i class="fa fa-gears"></i> Laporan Laba Rugi</strong>
-    </div> 
+    </div>
     <div class="panel-body" style="padding:10px 0px 0px 0px">
         <form class="form-horizontal" method="post" id="form" enctype="multipart/form-data" action="{{CRUDBooster::mainpath('cetaklaba')}}" target="_blank">
-            <input name="_token" value=" {{ csrf_token() }}" type="hidden">    
+            <input name="_token" value=" {{ csrf_token() }}" type="hidden">
                 <div class='form-group header-group-0 ' id='form-group-equipment_no' style="">
                     <label class='control-label col-sm-2'>
                        Tanggal Awal
@@ -52,7 +52,7 @@
                         <a href='{{CRUDBooster::mainpath()}}' class='btn btn-default'><i
                                 class='fa fa-chevron-circle-left'></i> Back</a>
                         <input type="submit" name="action" value='Cetak' class='btn btn-success'>
-                       
+
                     </div>
                 </div>
             </div>
@@ -61,26 +61,38 @@
 </div>
 <script type="text/javascript">
         var lang = 'en';
+
+        let date = new Date();
+        let firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+        let lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+
+        let currentMonth = (lastDay.getMonth() + 1);
+        currentMonth = ('0' + currentMonth).slice(-2);
+
+        var lastDayWithDash =  lastDay.getFullYear() + '-' + currentMonth + '-' +lastDay.getDate();
         $(function () {
             $('.input_date').datepicker({
                 format: 'yyyy-mm-dd',
-                                language: lang
-            });
+                language: lang
+            }).datepicker("setDate", firstDay);
 
             $('.open-datetimepicker').click(function () {
                 $(this).next('.input_date').datepicker('show');
             });
 
+            $('#tgl_akhir').val(lastDayWithDash);
+
         });
-        
+
         $(function () {
             $('.year_date').datepicker({
                 format: 'yyyy',
-                               viewMode    :   "years", 
+                               viewMode    :   "years",
                                minViewMode: "years"
-            });
+            }).datepicker("setDate", lastDay);
 
-            
+
+
         });
 
     </script>

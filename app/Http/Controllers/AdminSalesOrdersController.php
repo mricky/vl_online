@@ -70,12 +70,14 @@ use Session;
 			$this->form[] = ['label'=>'Penerima','name'=>'notes','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
 			$columns = [];
 			$columns[] = ['label'=>'Produk','name'=>'product_id','type'=>'select','required'=>true,'width'=>'col-sm-5','datatable'=>'view_product,product_name'];
-			$columns[] = ['label'=>'Lokasi Produk','name'=>'product_location_id','type'=>'select','required'=>true,'width'=>'col-sm-5','datatable'=>'view_product_location,product_location','parent_select'=>'product_id'];
+			$columns[] = ['label'=>'Lokasi Produk (Lot)','name'=>'product_location_id','type'=>'select','required'=>true,'width'=>'col-sm-5','datatable'=>'view_product_location,product_location','parent_select'=>'product_id'];
 			// sample more than 1
 			//$columns[] = ['label'=>'Product','name'=>'product_id','type'=>'select2','datatable'=>'products,name','datatable_format'=>"id,' - ',name"];
 			//$columns[] = ['label'=>'Product Lot','name'=>'product_item_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'product_items,lot_number','parent_select'=>'product_id','datatable_where'=>'lot_number is not null'];
-			$columns[] = ["label"=>"Harga","name"=>"price",'type'=>'number','required'=>true];
-			$columns[] = ["label"=>"Qty","name"=>"qty",'type'=>'number','required'=>true];
+            $columns[] = ["label"=>"Qty","name"=>"qty",'type'=>'number','required'=>true];
+            $columns[] = ["label"=>"HPP","name"=>"cost",'type'=>'number','required'=>true];
+            $columns[] = ["label"=>"Harga Jual","name"=>"price",'type'=>'number','required'=>true];
+            $columns[] = ["label"=>"Total HPP","name"=>"total_hpp",'type'=>'number','readonly'=>true,"callback_php"=>'number_format($row->total_hpp)','formula'=>"parseInt([qty]) * parseInt([cost])"];
 			$columns[] = ["label"=>"Total","name"=>"total",'type'=>'number','readonly'=>true,"callback_php"=>'number_format($row->total)','formula'=>"parseInt([qty]) * parseInt([price])"];
 			$columns[] = ["label"=>"Lot Number","name"=>"lot_number",'type'=>'text','readonly'=>true];
 			$this->form[] = ['label'=>'Orders Detail','name'=>'sales_order_details','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'sales_order_details','foreign_key'=>'sales_order_id'];
@@ -83,6 +85,7 @@ use Session;
 			$this->form[] = ['label'=>'Discount (-)','name'=>'discount','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
 			$this->form[] = ['label'=>'Expedition Cost (+)','name'=>'expedition_cost','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
 			$this->form[] = ['label'=>'Total','name'=>'total','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5','readonly'=>true];
+            $this->form[] = ['label'=>'Total HPP','name'=>'total_hpp','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5','readonly'=>true];
 			$this->form[] = ['label'=>'Total Bayar','name'=>'total_amount','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5','value'=>0];
 			$this->form[] = ['label'=>'Sisa','name'=>'amount_due','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-5','readonly'=>true];
 	    	$this->form[] = ['label'=>'Pelanggan Terima Barang','name'=>'customer_receive_date','type'=>'date','validation'=>'nullable|date','width'=>'col-sm-5'];
@@ -225,12 +228,25 @@ use Session;
 	        */
 	        $this->script_js = "
 				$(function(){
+                    let date = new Date();
+                    let currentMonth = (date.getMonth() + 1);
+                    currentMonth = ('0' + currentMonth).slice(-2);
+
+                    var lastDayWithDash =  date.getFullYear() + '-' + currentMonth + '-' +date.getDate();
+                    $('#order_date').val(lastDayWithDash);
 					setInterval(function(){
 							console.log('expedition cost');
 							var subTotal = 0;
+                            var totalHpp = 0;
 							$('#table-ordersdetail tbody .total').each(function(){
 								var sub = parseInt($(this).text());
 								subTotal += sub;
+
+							});
+
+                            $('#table-ordersdetail tbody .total_hpp').each(function(){
+								var hpp = parseInt($(this).text());
+								totalHpp += hpp;
 
 							});
 
@@ -244,6 +260,7 @@ use Session;
 							let amountDue = (parseInt(total) - parseInt(total_amount));
 
 							$('#total').val(total);
+                            $('#total_hpp').val(totalHpp);
 
 							$('#amount_due').val(amountDue);
 
@@ -401,7 +418,8 @@ use Session;
 	        //Your code here
 			$sales = DB::table('sales_orders')->where('id',$id)->first();
 
-			$total = ((int)$sales->subtotal + (int)$sales->expedition_cost);
+			$total = ((int)$sales->subtotal + (int)$sales->expedition_cost) - (int)$sales->discount;
+            // TODO: khusu jurnal dengan expedisi
 			// hitung modal
 			// $sales_detail = DB::table('sales_order_detail')
 			// 				->join('productsx`')
@@ -411,16 +429,17 @@ use Session;
 				'order_number' => $sales->order_number,
 				'order_date' => $sales->order_date,
 				'total_amount' => $total,
+                'total_hpp' => $sales->total_hpp,
 				'module' => 'sales',
 				'modal' => 0,
-				'expedisi' => 0,
-				'diskon' => 0,
+				'expedisi' => (int)$sales->expedition_cost,
+				'diskon' => (int)$sales->discount,
 				'amount_due' => 0,
 			];
 
 			$mode = null;
 			if($sales->total == $sales->total_amount && $sales->total_amount != 0){
-				$mode = 'paid'; // paid
+				$mode = 'paid'; // paid / Lunas
 			} else if ($sales->total >= $sales->total_amount && $sales->total_amount != 0) {
 				// bayar setengah
 				$mode = 'downpayment'; // paid
@@ -769,7 +788,7 @@ use Session;
 
         public function getJurnal($id){
 
-            $journal = $this->journalTransaction->printJurnal($id,1);
+            $journal = $this->journalTransaction->printJurnal($id,2);
 
             $data = [];
 

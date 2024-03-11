@@ -31,7 +31,7 @@
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
 			$this->col[] = ["label"=>"Tgl Transaksi","name"=>"transaction_date"];
-            $this->col[] = ["label"=>"Jenis","name"=>"transaction_type","join"=>"transaction_types,name"];
+            #$this->col[] = ["label"=>"Jenis","name"=>"transaction_type","join"=>"transaction_types,name"];
 			$this->col[] = ["label"=>"No Transaksi","name"=>"transaction_number"];
 			$this->col[] = ["label"=>"Ref No","name"=>"ref_no"];
 			$this->col[] = ["label"=>"Debit","name"=>"total_debit"];
@@ -178,6 +178,13 @@
 	        */
 	        $this->script_js =  "
 			$(function(){
+                let date = new Date();
+                let currentMonth = (date.getMonth() + 1);
+                currentMonth = ('0' + currentMonth).slice(-2);
+
+                var lastDayWithDash =  date.getFullYear() + '-' + currentMonth + '-' +date.getDate();
+                $('#transaction_date').val(lastDayWithDash);
+
 				setInterval(function(){
 						var totalDebit = 0;
 						var totalKredit = 0;
@@ -286,8 +293,8 @@
 	    */
 	    public function hook_query_index(&$query) {
 	        //Your code here
-			//$query->where('is_manual', 1);
-            //$query->groupBy('ref_no');
+			$query->where('transaction_type', 7);
+            #$query->groupBy('transaction_type');
 	    }
 
 	    /*
@@ -326,6 +333,7 @@
 			$postdata['transaction_number'] = 'GL-'.$year.$month.'-'.$no;
 			$postdata['memo'] = 'Jurnal Manual';
             $postdata['is_manual'] = 1;
+            $postdata['transaction_type'] = 7;
 			$postdata['created_by'] = CRUDBooster::myId();
 	    }
 

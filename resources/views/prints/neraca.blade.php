@@ -52,7 +52,7 @@
                     <hr>
                 </div>
             </div>
-            
+
             <div class="row no-gutters">
                 <!-- <div class="col-12"><hr></div> -->
                 <div class="col-5">
@@ -60,10 +60,18 @@
                         <tbody>
                           @foreach ($neraca as $item)
                             <tr>
-                                <td width="400" class="{{ ($item->padding_left  == '25px' || $item->padding_left  == NULL)? 'font-weight-bold':'' }}" style="padding-left: {{ $item->padding_left }};">{{ $item->account_label }}</td>
-                                <td class="{{ ($item->padding_left  == '25px' || $item->padding_left  == NULL)? 'font-weight-bold text-right':'text-right' }}" style="{{ ($item->padding_left  == '25px' || $item->padding_left  == NULL)? 'text-decoration: underline':'' }}">{{ number_format($item->debit,2, ',', '.') }}</td>
+                                <!-- <td>{{$item->code}}</td> -->
+                                @php
+                                    $endingBalance = $endingBalance = number_format($item->ending_balance,2, ',', '.');
+
+                                    if($item->account_label == 'ASSET'){
+                                         $endingBalance = '';
+                                    }
+                                @endphp
+                                <td width="400" class="{{ ($item->is_bold == 1)? 'font-weight-bold':'' }}" style="padding-left: {{ $item->padding_left }};">{{ $item->account_label }}</td>
+                                <td class="{{ ($item->is_bold  == 1)? 'font-weight-bold text-right':'text-right' }}" style="{{ ($item->padding_left  == '25px' || $item->padding_left  == NULL)? 'text-decoration: underline':'' }}">{{ $endingBalance}}</td>
                             </tr>
-                          @endforeach  
+                          @endforeach
                         </tbody>
                     </table>
                 </div>
@@ -76,8 +84,16 @@
                         <tbody>
                             @foreach ($neraca_right as $item)
                                 <tr>
-                                    <td width="400" class="{{ ($item->padding_left  == '25px' || $item->padding_left  == NULL)? 'font-weight-bold':'' }}" class="font-weight-bold" style="padding-left: {{ $item->padding_left }};">{{ $item->account_label }}</td>
-                                    <td class="{{ ($item->padding_left  == '25px' || $item->padding_left  == NULL)? 'font-weight-bold text-right':'text-right' }}" style="{{ ($item->padding_left  == '25px' || $item->padding_left  == NULL)? 'text-decoration: underline':'' }}">{{ number_format($item->debit,2, ',', '.') }}</td>
+                                @php
+                                    $endingBalance = $endingBalance = number_format($item->ending_balance,2, ',', '.');
+
+                                    if($item->account_label == 'LIABILITY & EQUITY'){
+                                         $endingBalance = '';
+                                    }
+                                    @endphp
+                                    <!-- <td>{{$item->code}}</td> -->
+                                    <td width="400" class="{{ ($item->is_bold  == 1)? 'font-weight-bold':'' }}" class="font-weight-bold" style="padding-left: {{ $item->padding_left }};">{{ $item->account_label }}</td>
+                                    <td class="{{ ($item->is_bold == 1)? 'font-weight-bold text-right':'text-right' }}" style="{{ ($item->padding_left  == '25px' || $item->padding_left  == NULL)? 'text-decoration: underline':'' }}">{{ $endingBalance }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

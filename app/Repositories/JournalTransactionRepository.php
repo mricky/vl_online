@@ -2,11 +2,18 @@
 namespace App\Repositories;
 
 use App\Models\PurchaseOrder;
+use App\Models\StockOpname;
+use App\Models\StockOpnameDetail;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use crocodicstudio\crudbooster\helpers\CRUDBooster;
 use Exception;
+
+use function Psy\debug;
+
 interface IJournalTransaction {
-    public function generateNeracaRugiLaba($data,$reportType);
+    public function generateNeraca($data,$reportType);
+    public function generateRugiLaba($data,$reportType,$tgl_awal,$tgl_akhir,$generateFrom);
 
     // purchase
     public function printJurnal($id,$type);
@@ -33,8 +40,15 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
     // NEw
     private $accKas;
     private $accHutang;
+    private $saldoAwal;
+    private $biayaSelisih;
     private $accPersediaanExternal;
     private $accPersediaanInternal;
+
+    // Expedisi and Diskon
+    private $accDiskon;
+    private $accExpedisi;
+
 
     function __construct()
     {
@@ -45,48 +59,167 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
          $this->HPP =  DB::table('chart_of_accounts')->where('code','501-1001')->first(); // HPP
          $this->accKas = DB::table('chart_of_accounts')->where('code','101-1000')->first(); // KAS
          $this->accHutang = DB::table('chart_of_accounts')->where('code','201-1001')->first(); // Hutang
+
+
+         $this->saldoAwal =  DB::table('chart_of_accounts')->where('code','301-1001')->first();
+         $this->biayaSelisih =  DB::table('chart_of_accounts')->where('code','601-1006')->first();
          $this->accPersediaanExternal = DB::table('chart_of_accounts')->where('code','103-1002')->first(); // 103-1002
          $this->accPersediaanInternal = DB::table('chart_of_accounts')->where('account','Persediaan Internal')->first(); // 103-1003
 
+         $this->accDiskon =  DB::table('chart_of_accounts')->where('code','501-2001')->first();
+         $this->accExpedisi = DB::table('chart_of_accounts')->where('code','401-2001')->first();
+         // 501-2001
     }
 
+    public function stockOpname($opname){
+        $number = $this->generateJournalNumber();
+
+        try {
+
+            DB::beginTransaction();
+
+            $transactionType =  DB::table('transaction_types')->where('code','08')->first();
+
+            $payload = [
+                'transaction_date' =>now(),
+                'transaction_number' => $number,
+                'transaction_type' => $transactionType->id,
+                'entry_no'  => 0,
+                'ref_id' => $opname->id,
+                'ref_no' => $opname->opname_number,
+                'memo' => $transactionType->name,
+                'total_debit' => 0,
+                'is_manual' => 0,
+                'total_credit' =>0
+            ];
+
+            $id = DB::table('journal_transactions')->insertGetId($payload);
+
+            $detail = StockOpnameDetail::where('stock_opname_id',$id)->get();
+
+            // INSERT to Product Location
+            foreach($detail as $item){
+                 // Update Product location tobe 0, and only from stock opname have
+
+                DB::table('product_locations')->where('id',$item->product_location_id)
+                                                ->update([
+                                                        'qty_onhand' => $item->qty_actual
+                                                ]);
+                }
+
+            foreach($detail as $item) {
+                $dataTransaction = [];
+
+                if($item->qty_onhand == 0 && $item->qty_difference == 0){
+                    // Saldo Awal
+
+                    $dataTransaction = [
+                        [
+                            'journal_id' => $id,
+                            'account_id' => $this->accPersediaanInternal->id,
+                            'debit'    => $item->total,
+                            'credit' =>  0,
+                            'is_manual' => 0,
+                            'created_at' => now(),
+                        ],
+                        [
+                            'journal_id' => $id,
+                            'account_id' => $this->saldoAwal->id,
+                            'debit'    => 0,
+                            'credit' => $item->total,
+                            'is_manual' => 0,
+                            'created_at' => now(),
+                        ]
+                    ];
+                } else if($item->qty_onhand != 0 && $item->qty_difference > 0){
+                    // jika +
+                    $dataTransaction = [
+                        [
+                            'journal_id' => $id,
+                            'account_id' => $this->accPersediaanInternal->id,
+                            'debit'    => $item->total,
+                            'credit' =>  0,
+                            'is_manual' => 0,
+                            'created_at' => now(),
+                        ],
+                        [
+                            'journal_id' => $id,
+                            'account_id' => $this->biayaSelisih->id, // atau biaya selisih stock
+                            'debit'    => 0,
+                            'credit' => $item->total,
+                            'is_manual' => 0,
+                            'created_at' => now(),
+                        ]
+                    ];
+                } else {
+                    // minus
+
+                    $dataTransaction = [
+                        [
+                            'journal_id' => $id,
+                            'account_id' => $this->biayaSelisih->id,
+                            'debit'    => $item->total,
+                            'credit' =>  0,
+                            'is_manual' => 0,
+                            'created_at' => now(),
+                        ],
+                        [
+                            'journal_id' => $id,
+                            'account_id' => $this->accPersediaanInternal->id, // atau biaya selisih stock
+                            'debit'    => 0,
+                            'credit' => $item->total,
+                            'is_manual' => 0,
+                            'created_at' => now(),
+                        ]
+                    ];
+                }
+
+                DB::table('journal_details')->insert($dataTransaction);
+            }
+
+            DB::commit();
+
+            } catch(\Exception $e){
+                throw $e;
+                DB::rollback();
+                throw $e;
+            }
+    }
     public function printJurnal($id,$type){
 
        $noRef = DB::table('purchase_orders')->where('id',$id)->first()->order_number;
 
-       $header = DB::table('journal_transactions as t')
-                ->select('t.id')
-                ->addSelect('t.transaction_date as Date','t.memo as DescriptionOrAccountTitle')
-                ->addSelect(DB::raw("null as AmountDebit"))
-                ->addSelect(DB::raw("null as AmountKredit"))
-                ->addSelect("t.ref_no AS Reference")
-                ->addSelect(DB::raw("null as IsLine"))
-                ->join('transaction_types as type','t.transaction_type','type.id')
-                ->where(function ($query) use ($id,$type){
-                    $query->where('t.ref_id', $id);
-                    $query->where('type.scope', $type);
-                 });
+    //    $header = DB::table('journal_transactions as t')
+    //             ->select('t.id')
+    //             ->addSelect('t.transaction_date as Date','t.memo as DescriptionOrAccountTitle')
+    //             ->addSelect(DB::raw("null as AmountDebit"))
+    //             ->addSelect(DB::raw("null as AmountKredit"))
+    //             ->addSelect("t.ref_no AS Reference")
+    //             ->addSelect(DB::raw("null as IsLine"))
+    //             ->join('transaction_types as type','t.transaction_type','type.id')
+    //             ->where(function ($query) use ($id,$type){
+    //                 $query->where('t.ref_id', $id);
+    //                 $query->where('type.scope', $type);
+    //              });
 
 
-        $detail = DB::table('journal_transactions as t')
-                ->select('t.id')
-                ->addSelect(DB::raw("null as Date"))
-                ->addSelect('coa.account as DescriptionOrAccountTitle','detail.debit as AmountDebit','detail.credit as AmountKredit')
-                ->addSelect("t.ref_no AS Reference")
-                ->addSelect(DB::raw("null as IsLine"))
-                ->join('journal_details as detail','detail.journal_id','t.id')
-                ->join("chart_of_accounts as coa",'coa.id','detail.account_id')
-                ->join('transaction_types as type','t.transaction_type','type.id')
-                ->where(function ($query) use ($id,$type){
-                    $query->where('t.ref_id', $id);
-                    $query->where('type.scope', $type);
-                 });
+    //     $detail = DB::table('journal_transactions as t')
+    //             ->select('t.id')
+    //             ->addSelect(DB::raw("null as Date"))
+    //             ->addSelect('coa.account as DescriptionOrAccountTitle','detail.debit as AmountDebit','detail.credit as AmountKredit')
+    //             ->addSelect("t.ref_no AS Reference")
+    //             ->addSelect(DB::raw("null as IsLine"))
+    //             ->join('journal_details as detail','detail.journal_id','t.id')
+    //             ->join("chart_of_accounts as coa",'coa.id','detail.account_id')
+    //             ->join('transaction_types as type','t.transaction_type','type.id')
+    //             ->where(function ($query) use ($id,$type){
+    //                 $query->where('t.ref_id', $id);
+    //                 $query->where('type.scope', $type);
+    //              });
 
+      //    $data = DB::query()->fromSub($query, 'union_join')->get();
 
-       $unionWithJoin  = $header->unionAll($detail);
-
-       $data = DB::query()->fromSub($unionWithJoin, 'union_join')->get();
-
+      $data = DB::select('call sp_jurnal(?,?)',[$id,$type]);
 
       return $data;
     }
@@ -119,7 +252,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                 'entry_no'  => 0,
                 'ref_id' => $sales->id,
                 'ref_no' => $sales->order_number,
-                'memo' => 'Pembayaran Piutang',
+                'memo' => $transactionType->name,
                 'total_debit' => $payment->total_amount,
                 'is_manual' => 0,
                 'total_credit' => $payment->total_amount
@@ -483,8 +616,9 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                     'transaction_number' => 'GL-'.$year.$month.'-'.$no,
                     'transaction_type' => $transactionType->id,
                     'ref_no' => $data->order_number,
+                    'ref_id' => $data->id,
                     'entry_no' => 0,
-                    'memo' => 'Order Penjualan',
+                    'memo' => $transactionType->name,
                     'total_debit' => $data->total_amount,
                     'is_manual' => $is_manual,
                     'total_credit' => $data->total_amount
@@ -492,53 +626,81 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
 
                 $id = DB::table('journal_transactions')->insertGetId($payload);
                 //$dataTransaction = [];
+                $dataTransaction = [
+                    [
+                        'journal_id' => $id,
+                        'account_id' => $this->piutangDagang->id,
+                        'debit'    => $data->total_amount,
+                        'credit' => 0,
+                        'is_manual' => $is_manual,
+                        'created_at' => now(),
+                    ],
+                    [
+                        'journal_id' => $id,
+                        'account_id' => $this->pendapatanDagang->id,
+                        'debit'    => 0,
+                        'credit' => $data->total_amount - $data->expedisi, // - ongkir TODO:
+                        'is_manual' => $is_manual,
+                        'created_at' => now(),
+                    ],
+                    [
+                        'journal_id' => $id,
+                        'account_id' => $this->HPP->id,
+                        'debit'    => $data->total_hpp,
+                        'credit' => 0,
+                        'is_manual' => $is_manual,
+                        'created_at' => now(),
+                    ],
+                    [
+                        'journal_id' => $id,
+                        'account_id' => $this->accPersediaanInternal->id, // TODO:
+                        'debit'    => 0,
+                        'credit' => $data->total_hpp,
+                        'is_manual' => $is_manual,
+                        'created_at' => now(),
+                    ],
+
+                 ];
+
+                ## Jika ada diskon dan expedisi
+                if($data->expedisi != 0){
+                    $dataExpedisi = [
+                        [
+                            'journal_id' => $id,
+                            'account_id' => $this->accExpedisi->id,
+                            'debit'    => 0,
+                            'credit' => $data->expedisi,
+                            'is_manual' => $is_manual,
+                            'created_at' => now(),
+                        ]
+                    ];
+
+                    $dataTransaction = array_merge($dataTransaction,$dataExpedisi);
+
+
+                }
+                if($data->diskon != 0){
+                    $dataDiskon =[
+                        [
+                            'journal_id' => $id,
+                            'account_id' => $this->accDiskon->id,
+                            'debit'    => $data->diskon,
+                            'credit' => 0,
+                            'is_manual' => $is_manual,
+                            'created_at' => now(),
+                        ]
+                    ];
+
+                    $dataTransaction = array_merge($dataTransaction,$dataDiskon);
+                };
+
+                DB::table('journal_details')->insert($dataTransaction);
+
                 if($mode == 'paid'){
-                    // Journal Order Penjualan
-                    $dataTransaction = [
-                        [
-                            'journal_id' => $id,
-                            'account_id' => $this->piutangDagang->id,
-                            'debit'    => $data->total_amount,
-                            'credit' => 0,
-                            'is_manual' => $is_manual,
-                            'created_at' => now(),
-                        ],
-                        [
-                            'journal_id' => $id,
-                            'account_id' => $this->pendapatanDagang->id,
-                            'debit'    => 0,
-                            'credit' => $data->total_amount,
-                            'is_manual' => $is_manual,
-                            'created_at' => now(),
-                        ],
-                        [
-                            'journal_id' => $id,
-                            'account_id' => $this->HPP->id,
-                            'debit'    => $data->total_amount,
-                            'credit' => 0,
-                            'is_manual' => $is_manual,
-                            'created_at' => now(),
-                        ],
-                        [
-                            'journal_id' => $id,
-                            'account_id' => $this->accPersediaanInternal->id,
-                            'debit'    => 0,
-                            'credit' => $data->total_amount,
-                            'is_manual' => $is_manual,
-                            'created_at' => now(),
-                        ],
-
-                     ];
-
-                     // TODO: Include Pembayaran Piutang
-                     // Journal Pembayaran Piutang
-
                      $this->paidSales((object)$data,(object)$data);
                 } else {
                     // TODO:
                 }
-
-                DB::table('journal_details')->insert($dataTransaction);
 
                 DB::commit();
             } catch(\Exception $e){
@@ -683,42 +845,248 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
 
     }
 
-    public function generateNeracaRugiLaba($data,$reportType)
-     {
+    public function generateNeraca($data,$reportType){
 
-        $tgl_awal = Carbon::createFromFormat('Y-m-d', $data['tgl_awal'])->format('Y-m-d');
-        $tgl_akhir = Carbon::createFromFormat('Y-m-d', $data['tgl_akhir'])->format('Y-m-d');
+        // tgl i
+
+        $tgl_akhirNeraca =  Carbon::createFromFormat('Y-m-d', $data['tgl_perolehan'])->format('Y-m-d');
+
         try {
             DB::beginTransaction();
             $neraca = DB::table('table_neraca')->where('report_type',$reportType)->get();
-            DB::table('table_neraca')->update([
+
+            DB::table('table_neraca')
+                ->where('report_type','N')
+                ->where('id','!=',60) // laba berjalan
+                ->update([
                     'debit' => 0,
-                    'credit' => 0
+                    'credit' => 0,
+                    'begining_balance' => 0,
+                    'ending_balance' => 0
             ]);
 
-            foreach($neraca as $key=>$value){
-                if($value->account_id != 0){
-                    $trans = DB::table('journal_transactions')
-                                ->where('account_id',$value->account_id)
-                                ->where('d_k','D')
-                                // ->whereBetween('transaction_date',[$tgl_awal,$tgl_akhir])
-                                ->sum('total');
+                foreach($neraca as $key=>$value){
+                        // cari dan hitung coa yang nge group dengan neraca_id
+                        // echo $value->id. '--';
+                        if($value->id != 60) // laba berjalan
+                        {
 
-                    $neraca = DB::table('table_neraca')
-                                ->where('account_id',$value->account_id)
+                            $amoutPerAccount = DB::table('journal_transactions as trans')
+                            ->select('detail.account_id','coa.neraca_code','coa.saldo_normal')
+                            ->selectRaw('ifnull(sum(detail.debit),0) as debit,ifnull(sum(detail.credit),0) as credit')
+                            ->join('journal_details as detail','detail.journal_id','trans.id')
+                            ->join('chart_of_accounts as coa','coa.id','detail.account_id')
+                            ->where('coa.neraca_code',$value->id)
+                            ->whereRaw("DATE_FORMAT(trans.transaction_date, '%Y-%m-%d') <= '" . $tgl_akhirNeraca . "'")
+                            ->groupBy('detail.account_id')
+                            ->get();
+                        foreach($amoutPerAccount as $amount)
+                        {
+                            $saldoNormal = 0;
+
+                            if($amount->saldo_normal == 'D'){
+                                 $saldoNormal = $amount->debit - $amount->credit;
+                            } else {
+                                 $saldoNormal =  $amount->credit - $amount->debit;
+                            }
+                            // TODO:
+                            DB::transaction(function() use ($amount,$saldoNormal){
+                                DB::table('table_neraca')
+                                ->where('account_id',$amount->account_id)
                                 ->update([
-                                    'debit' => $trans
+                                    'debit' => $amount->debit,
+                                    'credit' => $amount->credit,
+                                    'ending_balance' => $saldoNormal,
                                 ]);
-                } // end if
-            } // end foreach
-                DB::commit();
-            } catch (\Exception $e) {
+                                DB::commit();
+                            });
+
+                        }
+                        $debit = DB::table('journal_transactions as trans')
+                                    ->join('journal_details as detail','detail.journal_id','trans.id')
+                                    ->join('chart_of_accounts as coa','coa.id','detail.account_id')
+                                    ->where('coa.neraca_code',$value->id)
+                                    ->whereRaw("DATE_FORMAT(trans.transaction_date, '%Y-%m-%d') <= '" . $tgl_akhirNeraca . "'")
+                                    ->sum('detail.debit');
+                        $credit = DB::table('journal_transactions as trans')
+                                    ->join('journal_details as detail','detail.journal_id','trans.id')
+                                    ->join('chart_of_accounts as coa','coa.id','detail.account_id')
+                                    ->where('coa.neraca_code',$value->id)
+                                    ->whereRaw("DATE_FORMAT(trans.transaction_date, '%Y-%m-%d') <= '" . $tgl_akhirNeraca . "'")
+                                    ->sum('detail.credit');
+
+                        if($value->column_position === 'RIGH'){
+                            $pengurang = (int)$credit - (int)$debit;
+                        } else {
+
+                            $pengurang =  (int)$debit - (int)$credit; // fixme:
+                        }
+
+                        DB::transaction(function() use ($value,$debit,$credit,$pengurang){
+                                DB::table('table_neraca')
+                                ->where('id',$value->id)
+                                ->update([
+                                    'debit' => $debit,
+                                    'credit' => $credit,
+                                    'ending_balance' => $pengurang
+                                ]);
+                                DB::commit();
+                        });
+                        //exit;
+
+                        // untuk total sudah benar, tinggal counting per account nya
+                        $totalAsset = DB::table('table_neraca')->whereIn('id',[5,8,11,14])
+                            ->sum('ending_balance');
+                        $totalLiability = DB::table('table_neraca')->whereIn('id',[53,54,55,56,57,58,59,60])
+                            ->sum('ending_balance');
+
+                        DB::transaction(function() use ($totalAsset,$totalLiability){
+                                DB::table('table_neraca')
+                                ->where('id',18)
+                                ->update([
+                                    'debit' => 0,
+                                    'credit' => 0,
+                                    'ending_balance' => $totalAsset
+                                ]);
+
+                                DB::table('table_neraca')
+                                ->where('id',78)
+                                ->update([
+                                    'debit' => 0,
+                                    'credit' => 0,
+                                    'ending_balance' => $totalLiability
+                                ]);
+                                DB::commit();
+                        });
+
+                        DB::commit();
+                        }
+
+
+                } // end foreach
+
+
+             } catch (\Exception $e) {
                 DB::rollback();
                 throw $e;
             }
+    }
+    public function generateRugiLaba($data,$reportType,$tgl_awal,$tgl_akhir,$generateFrom) : void
+     {
 
-            $data['neraca'] = $neraca;
+        try {
+            DB::beginTransaction();
+            $neraca = DB::table('table_neraca')->where('report_type',$reportType)->get();
+            DB::table('table_neraca')
+                ->where('report_type','L')
+                ->where('id',60) // laba berjalan
+                ->update([
+                    'debit' => 0,
+                    'credit' => 0,
+                    'begining_balance' => 0,
+                    'ending_balance' => 0
+            ]);
 
-            return $data;
+            foreach($neraca as $key=>$value){
+                $amoutPerAccount = [];
+
+                    // listed per id table neraca
+                    $amoutPerAccount = DB::table('journal_transactions as trans')
+                        ->select('detail.account_id','coa.neraca_code','coa.saldo_normal')
+                        ->selectRaw('ifnull(sum(detail.debit),0) as debit,ifnull(sum(detail.credit),0) as credit')
+                        ->join('journal_details as detail','detail.journal_id','trans.id')
+                        ->join('chart_of_accounts as coa','coa.id','detail.account_id')
+                        ->where('coa.neraca_code',$value->id)
+                        ->where(function($query) use ($generateFrom,$tgl_awal,$tgl_akhir){
+                            if($generateFrom == 'N'){
+                                $query->whereRaw("DATE_FORMAT(trans.transaction_date, '%Y-%m-%d') <= '" . $tgl_awal . "'");
+                            } else {
+                                $query->whereRaw("DATE_FORMAT(trans.transaction_date, '%Y-%m-%d') >= '" . $tgl_awal . "' AND DATE_FORMAT(trans.transaction_date, '%Y-%m-%d') <= '" . $tgl_akhir . "'");
+                            }
+
+                        })
+                        ->groupBy('detail.account_id')->get();
+
+
+                            foreach($amoutPerAccount as $amount)
+                            {
+                                $endingBalanace = 0;
+                                //$endingBalanace = $amount->debit == 0 ? $amount->credit :  ($amount->debit - $amount->credit);
+                                    if($amount->debit > $amount->credit){
+                                        $endingBalanace = $amount->debit - $amount->credit;
+                                    } else {
+                                        $endingBalanace = $amount->credit - $amount->debit;
+                                    }
+
+                                    DB::transaction(function() use ($amount,$endingBalanace){
+                                            DB::table('table_neraca')
+                                                ->where('account_id',$amount->account_id)
+                                                ->update([
+                                                    'debit' => $amount->debit,
+                                                    'credit' => $amount->credit,
+                                                    'ending_balance' => $endingBalanace
+                                                ]);
+                                            DB::commit();
+                                    });
+
+                                // echo '<pre>'; print('Credit :'.$amount->account_id); echo '<pre>';
+                                // echo '<pre>'; print('Credit :'.$amount->credit); echo '<pre>';
+                                // echo '<pre>'; print('Hasil :'.$endingBalanace); echo '<pre>';
+                                // dd($endingBalanace);
+                            }
+
+
+                }
+
+                    DB::commit();
+                } catch (\Exception $e) {
+                    DB::rollback();
+                    throw $e;
+                }
+
+                DB::transaction(function(){
+
+                    $totalPendapatan =  DB::table('table_neraca as neraca')
+                            ->join('chart_of_accounts as coa','coa.id','neraca.account_id')
+                            ->where('coa.neraca_code','61')
+                            ->sum('neraca.ending_balance');
+
+                     DB::table('table_neraca')
+                            ->where('id', 61)
+                            ->update(['ending_balance' => $totalPendapatan]);
+
+                    $totalHpp = DB::table('table_neraca as neraca')
+                            ->join('chart_of_accounts as coa','coa.id','neraca.account_id')
+                            ->where('coa.neraca_code','65')
+                            ->sum('neraca.ending_balance');
+
+                    DB::table('table_neraca')
+                            ->where('id', 65)
+                            ->update(['ending_balance' => $totalHpp]);
+
+                    $totalBiaya = DB::table('table_neraca as neraca')
+                                ->join('chart_of_accounts as coa','coa.id','neraca.account_id')
+                                ->where('coa.neraca_code','69')
+                                ->sum('neraca.ending_balance');
+
+                    DB::table('table_neraca')
+                                ->where('id', 69)
+                                ->update(['ending_balance' => $totalBiaya]);
+
+                    $labaKotor = (int)$totalPendapatan - (int)$totalHpp;
+                    DB::table('table_neraca')
+                            ->where('id', 68)
+                            ->update(array('ending_balance' => $labaKotor));
+
+                    $labaBersih = (int)$labaKotor - (int)$totalBiaya;
+
+                    // update laba bersih, laba berjalan
+                    DB::table('table_neraca')
+                        ->whereIn('id',[60,76])
+                        ->update(array('ending_balance' => $labaBersih));
+
+
+                    DB::commit();
+                });
     }
 }

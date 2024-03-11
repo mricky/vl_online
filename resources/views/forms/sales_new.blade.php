@@ -7,11 +7,11 @@
 <div class="panel panel-default">
     <div class="panel-heading">
         <strong><i class="fa fa-gears"></i> Laporan Penjualan</strong>
-    </div> 
+    </div>
     <div class="panel-body" style="padding:10px 0px 0px 0px">
         <form class="form-horizontal" method="post" id="form" enctype="multipart/form-data" action="{{CRUDBooster::mainpath('cetakpenjualan')}}" target="_blank">
-             <input name="_token" value=" {{ csrf_token() }}" type="hidden">  
-            
+             <input name="_token" value=" {{ csrf_token() }}" type="hidden">
+
              <div class='form-group header-group-0 ' id='form-group-equipment_no' style="">
                     <label class='control-label col-sm-2'>
                        Tanggal Awal
@@ -38,21 +38,21 @@
                         </div>
                     </div>
             </div>
-             <div class='form-group header-group-0 ' id='form-group-equipment_no' style="">   
+             <div class='form-group header-group-0 ' id='form-group-equipment_no' style="">
                    <label class='control-label col-sm-2'>
                      Customer
                     </label>
                     <div class="col-sm-8">
                         <select id="customer_list" name="customer_list[]" class="form-control" multiple></select>
-                    </div>        
+                    </div>
              </div>
-             <div class='form-group header-group-0 ' id='form-group-equipment_no' style="">   
+             <div class='form-group header-group-0 ' id='form-group-equipment_no' style="">
                    <label class='control-label col-sm-2'>
                      Kategori
                     </label>
                     <div class="col-sm-8">
                         <select id="category_list" name="category_list[]" class="form-control" multiple></select>
-                    </div>        
+                    </div>
              </div>
             <div class='form-group header-group-0 ' id='form-group-equipment_no' style="">
                     <label class='control-label col-sm-2'>
@@ -60,7 +60,7 @@
                     </label>
                     <div class="col-sm-8">
                         <select id="brand_list" name="brand_list[]" class="form-control" multiple></select>
-                    </div> 
+                    </div>
             </div>
             <div class='form-group header-group-0 ' id='form-group-equipment_no' style="">
                     <label class='control-label col-sm-2'>
@@ -68,7 +68,7 @@
                     </label>
                     <div class="col-sm-8">
                         <select id="item_list" name="item_list[]" class="form-control" multiple></select>
-                    </div> 
+                    </div>
             </div>
              <div class="box-footer" style="background: #F5F5F5">
                 <div class="form-group">
@@ -77,12 +77,12 @@
                         <a href='{{CRUDBooster::mainpath()}}' class='btn btn-default'><i
                                 class='fa fa-chevron-circle-left'></i> Back</a>
                         <input type="submit" name="action" value='Cetak XLS' class='btn btn-success'>
-                       
+
                     </div>
                 </div>
             </div>
       </form>
-    </div> 
+    </div>
 </div>
 </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
@@ -90,18 +90,26 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js"></script>
     <script>
          var lang = 'en';
+         let date = new Date();
+            let firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+            let lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+
+            let currentMonth = (lastDay.getMonth() + 1);
+            currentMonth = ('0' + currentMonth).slice(-2);
+
+            var lastDayWithDash =  lastDay.getFullYear() + '-' + currentMonth + '-' +lastDay.getDate();
          $(function () {
             $('.input_date').datepicker({
                 format: 'yyyy-mm-dd',
                                 language: lang
-            });
+            }).datepicker("setDate", firstDay);
 
             $('.open-datetimepicker').click(function () {
                 $(this).next('.input_date').datepicker('show');
             });
-
+            $('#end_date').val(lastDayWithDash);
         });
-      
+
         $('#customer_list').select2({
             placeholder: "Pilih Customer...",
             minimumInputLength: 2,

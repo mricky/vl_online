@@ -47,14 +47,17 @@
                 <div class="col-12">
                     <table class="table table-borderless table-sm">
                         <thead>
+                            <th class="text-center"> <hr> </th>
                             <th class="text-center">Description <hr> </th>
                             <th class="text-center">Balance <hr></th>
                         </thead>
                         <tbody>
                             @foreach ($neraca as $item)
+
                                 <tr>
-                                    <td style="padding-left: {{ $item->padding_left }};" class="{{ ($item->padding_left  == '25px' || $item->padding_left  == NULL)? 'font-weight-bold':'' }}">{{ $item->account_label }}</td>
-                                    <td class="{{ ($item->padding_left  == '25px' || $item->padding_left  == NULL)? 'font-weight-bold text-right':'text-right' }}" style="{{ ($item->padding_left  == '25px' || $item->padding_left  == NULL)? 'text-decoration: underline':'' }}">{{ number_format($item->debit,2, ',', '.') }}</td>
+                                    <td>&nbsp;</td>
+                                    <td style="padding-left: {{ $item->padding_left }};" class="{{ ($item->is_bold  == 1)? 'font-weight-bold':'' }}">{{ $item->account_label }}</td>
+                                    <td class="{{ ($item->is_bold  == 1)? 'font-weight-bold text-right':'text-right' }}" style="{{ ($item->padding_left  == '25px' || $item->padding_left  == NULL)? 'text-decoration: underline':'' }}">{{ number_format($item->ending_balance,2, ',', '.') }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -69,16 +72,16 @@
         <div class="row">
             <div class="col-md-6 text-left">
                 {{ date('d F Y H:i:s') }} <br>
-                Printed by: Administrator                        
+                Printed by: Administrator
             </div>
             <div class="col-md-6 text-right">
-               Page 1 of 1                   
+               Page 1 of 1
             </div>
         </div>
     </footer>
-    <script>
+    <!-- <script>
         window.print();
         window.onafterprint = window.close;
-    </script>
+    </script> -->
 </body>
 </html>

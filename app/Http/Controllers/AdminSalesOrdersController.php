@@ -74,9 +74,9 @@ use Session;
 			// sample more than 1
 			//$columns[] = ['label'=>'Product','name'=>'product_id','type'=>'select2','datatable'=>'products,name','datatable_format'=>"id,' - ',name"];
 			//$columns[] = ['label'=>'Product Lot','name'=>'product_item_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'product_items,lot_number','parent_select'=>'product_id','datatable_where'=>'lot_number is not null'];
-			$columns[] = ["label"=>"HPP","name"=>"cost",'type'=>'number','required'=>true];
-            $columns[] = ["label"=>"Harga","name"=>"price",'type'=>'number','required'=>true];
-			$columns[] = ["label"=>"Qty","name"=>"qty",'type'=>'number','required'=>true];
+            $columns[] = ["label"=>"Qty","name"=>"qty",'type'=>'number','required'=>true];
+            $columns[] = ["label"=>"HPP","name"=>"cost",'type'=>'number','required'=>true];
+            $columns[] = ["label"=>"Harga Jual","name"=>"price",'type'=>'number','required'=>true];
             $columns[] = ["label"=>"Total HPP","name"=>"total_hpp",'type'=>'number','readonly'=>true,"callback_php"=>'number_format($row->total_hpp)','formula'=>"parseInt([qty]) * parseInt([cost])"];
 			$columns[] = ["label"=>"Total","name"=>"total",'type'=>'number','readonly'=>true,"callback_php"=>'number_format($row->total)','formula'=>"parseInt([qty]) * parseInt([price])"];
 			$columns[] = ["label"=>"Lot Number","name"=>"lot_number",'type'=>'text','readonly'=>true];
@@ -228,6 +228,12 @@ use Session;
 	        */
 	        $this->script_js = "
 				$(function(){
+                    let date = new Date();
+                    let currentMonth = (date.getMonth() + 1);
+                    currentMonth = ('0' + currentMonth).slice(-2);
+
+                    var lastDayWithDash =  date.getFullYear() + '-' + currentMonth + '-' +date.getDate();
+                    $('#order_date').val(lastDayWithDash);
 					setInterval(function(){
 							console.log('expedition cost');
 							var subTotal = 0;

@@ -164,7 +164,16 @@
 	        | $this->script_js = "function() { ... }";
 	        |
 	        */
-	        $this->script_js = NULL;
+	        $this->script_js = "
+            $(function(){
+                let date = new Date();
+                let currentMonth = (date.getMonth() + 1);
+                currentMonth = ('0' + currentMonth).slice(-2);
+
+                var lastDayWithDash =  date.getFullYear() + '-' + currentMonth + '-' +date.getDate();
+                $('#transaction_date').val(lastDayWithDash);
+            });
+            ";
 
 
             /*

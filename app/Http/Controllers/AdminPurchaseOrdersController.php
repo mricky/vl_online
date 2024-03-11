@@ -68,7 +68,7 @@ use Maatwebsite\Excel\Facades\Excel;
 			$this->col[] = ["label"=>"Discount","name"=>"discount","callback_php"=>'number_format($row->discount)'];
 			//$this->col[] = ["label"=>"Total","name"=>"total","callback_php"=>'number_format($row->total)'];
 			$this->col[] = ["label"=>"Total Bayar","name"=>"total_amount","callback_php"=>'number_format($row->total_amount)'];
-			$this->col[] = ["label"=>"Total Hutang","name"=>"amount_due","callback_php"=>'number_format($row->amount_due)'];
+			$this->col[] = ["label"=>"Total Hutang","name"=>"amount_due","callback_php"=>'number_format($row->subtotal - $row->total_amount)'];
 			# END COLUMNS DO NOT REMOVE THIS LINE
 
 			# START FORM DO NOT REMOVE THIS LINE
@@ -221,6 +221,7 @@ use Maatwebsite\Excel\Facades\Excel;
 	        | $this->script_js = "function() { ... }";
 	        |
 	        */
+
 			//$this->script_js;
 	        // $this->script_js = "
 			// 	let qty = $('#ordersdetailqty');
@@ -250,6 +251,14 @@ use Maatwebsite\Excel\Facades\Excel;
 			// ";
 			$this->script_js = "
 				$(function(){
+                    let date = new Date();
+                    let currentMonth = (date.getMonth() + 1);
+                    currentMonth = ('0' + currentMonth).slice(-2);
+
+                    var lastDayWithDash =  date.getFullYear() + '-' + currentMonth + '-' +date.getDate();
+                    $('#estimated_date').val(lastDayWithDash);
+                    $('#order_date').val(lastDayWithDash);
+
 					setInterval(function(){
 							var subTotal = 0;
 							var total = 0;

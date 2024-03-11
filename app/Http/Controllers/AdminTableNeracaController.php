@@ -366,14 +366,14 @@
 
 			$tgl_perolehan = Carbon::createFromFormat('Y-m-d', $_POST['tgl_perolehan'])->format('Y-m-d');
 			$tgl_akhir =  Carbon::now()->format('Y-m-d');
-
+            $data['tgl_data'] = $tgl_perolehan;
 			// dd($tgl_awal);
 			$this->journalTransaction->generateRugiLaba($_POST,'L',$tgl_perolehan,$tgl_akhir,'N');
 
 			$this->journalTransaction->generateNeraca($_POST,'N');
 
 			$data['neraca'] = DB::table('table_neraca as nr')
-			->select('coa.account', 'nr.code','nr.position','nr.account_label','nr.debit', 'nr.credit','nr.ending_balance')
+			->select('coa.account', 'nr.is_bold', 'nr.code','nr.position','nr.account_label','nr.debit', 'nr.credit','nr.ending_balance')
 			->leftJoin('chart_of_accounts as coa','coa.id','nr.account_id')
 			->where([
 				['nr.report_type','=','N'],
@@ -381,12 +381,12 @@
 			])->orderBy('nr.id','asc')->get();
 
 			$data['neraca_right'] = DB::table('table_neraca as nr')
-			->select('coa.account', 'nr.code','nr.position','nr.account_label','nr.debit', 'nr.credit','nr.ending_balance')
+			->select('coa.account', 'nr.is_bold','nr.code','nr.position','nr.account_label','nr.debit', 'nr.credit','nr.ending_balance')
 			->leftJoin('chart_of_accounts as coa','coa.id','nr.account_id')
 			->where([
 				['nr.report_type','=','N'],
 				['nr.column_position','=','RIGH'],
-			])->orderBy('nr.id','asc')->get();
+			])->orderBy('nr.position','asc')->get();
 
 
 			$this->cbView('prints.neraca',$data);
@@ -404,7 +404,7 @@
 
 
 			$data['neraca'] = DB::table('table_neraca as nr')
-				->select('coa.account', 'nr.code','nr.position','nr.account_label','nr.debit', 'nr.credit','nr.ending_balance')
+				->select('coa.account','nr.is_bold','nr.code','nr.position','nr.account_label','nr.debit', 'nr.credit','nr.ending_balance')
 				->leftJoin('chart_of_accounts as coa','coa.id','nr.account_id')
 				->where([
 					['nr.report_type','=','L'],

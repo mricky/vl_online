@@ -53,11 +53,11 @@
                         </thead>
                         <tbody>
                             @foreach ($neraca as $item)
-                                
+
                                 <tr>
-                                    <td>{{$item->code}}</td>
-                                    <td style="padding-left: {{ $item->padding_left }};" class="{{ ($item->padding_left  == '25px' || $item->padding_left  == NULL)? 'font-weight-bold':'' }}">{{ $item->account_label }}</td>
-                                    <td class="{{ ($item->padding_left  == '25px' || $item->padding_left  == NULL)? 'font-weight-bold text-right':'text-right' }}" style="{{ ($item->padding_left  == '25px' || $item->padding_left  == NULL)? 'text-decoration: underline':'' }}">{{ number_format($item->ending_balance,2, ',', '.') }}</td>
+                                    <td>&nbsp;</td>
+                                    <td style="padding-left: {{ $item->padding_left }};" class="{{ ($item->is_bold  == 1)? 'font-weight-bold':'' }}">{{ $item->account_label }}</td>
+                                    <td class="{{ ($item->is_bold  == 1)? 'font-weight-bold text-right':'text-right' }}" style="{{ ($item->padding_left  == '25px' || $item->padding_left  == NULL)? 'text-decoration: underline':'' }}">{{ number_format($item->ending_balance,2, ',', '.') }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

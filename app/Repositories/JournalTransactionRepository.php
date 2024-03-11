@@ -639,7 +639,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                         'journal_id' => $id,
                         'account_id' => $this->pendapatanDagang->id,
                         'debit'    => 0,
-                        'credit' => $data->total_amount, // - ongkir TODO:
+                        'credit' => $data->total_amount - $data->expedisi, // - ongkir TODO:
                         'is_manual' => $is_manual,
                         'created_at' => now(),
                     ],
@@ -867,7 +867,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
 
                 foreach($neraca as $key=>$value){
                         // cari dan hitung coa yang nge group dengan neraca_id
-                        echo $value->id. '--';
+                        // echo $value->id. '--';
                         if($value->id != 60) // laba berjalan
                         {
 
@@ -933,7 +933,32 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                                 DB::commit();
                         });
                         //exit;
+
                         // untuk total sudah benar, tinggal counting per account nya
+                        $totalAsset = DB::table('table_neraca')->whereIn('id',[5,8,11,14])
+                            ->sum('ending_balance');
+                        $totalLiability = DB::table('table_neraca')->whereIn('id',[53,54,55,56,57,58,59,60])
+                            ->sum('ending_balance');
+
+                        DB::transaction(function() use ($totalAsset,$totalLiability){
+                                DB::table('table_neraca')
+                                ->where('id',18)
+                                ->update([
+                                    'debit' => 0,
+                                    'credit' => 0,
+                                    'ending_balance' => $totalAsset
+                                ]);
+
+                                DB::table('table_neraca')
+                                ->where('id',78)
+                                ->update([
+                                    'debit' => 0,
+                                    'credit' => 0,
+                                    'ending_balance' => $totalLiability
+                                ]);
+                                DB::commit();
+                        });
+
                         DB::commit();
                         }
 
@@ -1049,6 +1074,9 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                                 ->update(['ending_balance' => $totalBiaya]);
 
                     $labaKotor = (int)$totalPendapatan - (int)$totalHpp;
+                    DB::table('table_neraca')
+                            ->where('id', 68)
+                            ->update(array('ending_balance' => $labaKotor));
 
                     $labaBersih = (int)$labaKotor - (int)$totalBiaya;
 

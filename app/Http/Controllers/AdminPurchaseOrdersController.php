@@ -88,9 +88,9 @@ use Maatwebsite\Excel\Facades\Excel;
 			$columns[] = ["label"=>"Qty","name"=>"qty",'type'=>'number'];
 			$columns[] = ["label"=>"Harga","name"=>"price",'type'=>'number'];
 			$columns[] = ["label"=>"Subtotal","name"=>"subtotal",'type'=>'number',"readonly"=>true,'formula'=>"[qty] * [price]"];
-			$columns[] = ["label"=>"DP","name"=>"downpayment",'type'=>'number'];
-			$columns[] = ["label"=>"Pelunasan","name"=>"paid_off",'type'=>'number'];
-			$columns[] = ["label"=>"Sisa","name"=>"total",'type'=>'number',"readonly"=>true,'formula'=>"[qty] * [price] - [downpayment] - [paid_off]"];
+			#$columns[] = ["label"=>"DP","name"=>"downpayment",'type'=>'number'];
+			$columns[] = ["label"=>"Pembayaran","name"=>"paid_off",'type'=>'number'];
+			$columns[] = ["label"=>"Sisa","name"=>"total",'type'=>'number',"readonly"=>true,'formula'=>"[qty] * [price] - [paid_off]"];
 			//$this->form[] = ['label'=>'Orders Detail','name'=>'tr_order_detail','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'tr_order_detail','foreign_key'=>'order_id'];
 			//$this->form[] = ['label'=>'Orders Detail','name'=>'purchase_order_details','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'or','foreign_key'=>'purchase_order_id'];
 			$this->form[] = ['label'=>'Orders Detail','name'=>'purchase_order_details','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'purchase_order_details','foreign_key'=>'purchase_order_id'];
@@ -263,7 +263,7 @@ use Maatwebsite\Excel\Facades\Excel;
 					setInterval(function(){
 							var subTotal = 0;
 							var total = 0;
-							var dp = 0;
+						
 							var paid_off = 0;
 							var discount = 0;
 							var totalAmount = 0;
@@ -274,11 +274,6 @@ use Maatwebsite\Excel\Facades\Excel;
 
 							});
 
-							$('#table-ordersdetail tbody .downpayment').each(function(){
-								var sub = parseInt($(this).text());
-								dp += sub;
-
-							});
 
 							$('#table-ordersdetail tbody .paid_off').each(function(){
 								var sub = parseInt($(this).text());
@@ -292,7 +287,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 							});
 
-							totalAmount = parseInt(dp) + parseInt(paid_off);
+							totalAmount = parseInt(paid_off);
 							//alert(totalAmount);
 							//console.log('test test');
 
@@ -447,6 +442,7 @@ use Maatwebsite\Excel\Facades\Excel;
             $this->purchaseOrder->entryPayable($id,$purchase->account_cost);
 
 			event(new OrderEntryEvent($purchase));
+			//TODO: diakui stok vendor
 	    }
 
 	    /*

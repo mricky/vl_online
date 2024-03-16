@@ -390,7 +390,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                 ],
                 [
                     'journal_id' => $id,
-                    'account_id' => $this->accKas->id,
+                    'account_id' => $payment->account_credit,
                     'debit'    => 0,
                     'credit' => $payment->amount,
                     'is_manual' => 0,
@@ -445,7 +445,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                     'journal_id' => $id,
                     'account_id' => $this->accHutang->id,
                     'debit'    => 0,
-                    'credit' => $purchase->total_amount,
+                    'credit' => (int)$purchase->total - (int)$purchase->total_amount,
                     'is_manual' => 0,
                     'created_at' => now(),
                 ],
@@ -880,6 +880,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                             ->whereRaw("DATE_FORMAT(trans.transaction_date, '%Y-%m-%d') <= '" . $tgl_akhirNeraca . "'")
                             ->groupBy('detail.account_id')
                             ->get();
+
                         foreach($amoutPerAccount as $amount)
                         {
                             $saldoNormal = 0;

@@ -79,6 +79,7 @@ use Maatwebsite\Excel\Facades\Excel;
 			$this->form[] = ['label'=>'Tgl Estimasi','name'=>'estimated_date','type'=>'date','validation'=>'nullable|date','width'=>'col-sm-5'];
 			//$this->form[] = ['label'=>'Tgl Kirim','name'=>'delivery_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-10'];
 			#$this->form[] = ['label'=>'Mata Uang','name'=>'currency_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'currencies,currency'];
+			$this->form[]  = ['label'=>'Akun Biaya','name'=>'account_cost','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'chart_of_accounts,account','datatable_where'=>'id IN (2,3,4,5)'];
 			$this->form[] = ['label'=>'Keterangan','name'=>'description','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
 
 			$columns = [];

@@ -18,7 +18,8 @@
 Route::get('/sync-purchase-order/','AdminPurchaseOrderDetails49Controller@syncPurchaseItemInfo');
 Route::get('/sync-sales-order/{id}','AdminSalesOrdersController@syncSalesDelivery');
 
-#
+# SALES
+Route::get('/find-pro','AdminMstOrdersController@LoadJobNumberCustomer');
 
 #POINT OF SALES
 Route::post('/doPrint','AdminSalesOrders47Controller@doPrint');
@@ -34,6 +35,7 @@ Route::get('/searchItemLinePO/{po_id}','AdminGoodsReceiptController@searchItemLi
 Route::get('/syncInternalStock','AdminProductsController@syncInternalStock');
 
 # Products
+Route::get('/find-product-location/{id}','AdminProductsController@findProductLocationByID');
 Route::get('/find-product-location-item-purchase/{purchaseId}','AdminProductsController@findProductItemPurchase');
 Route::get('/find-product-location-item','AdminProductsController@findProductLocationItem');
 Route::get('/find-product-item','AdminProductsController@findProductItem');

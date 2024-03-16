@@ -263,7 +263,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
             $dataTransaction = [
                 [
                     'journal_id' => $id,
-                    'account_id' => $this->accKas->id,
+                    'account_id' => $sales->account_cost,
                     'debit'    => $payment->total_amount,
                     'credit' =>  0,
                     'is_manual' => 0,

@@ -2,6 +2,16 @@
 namespace App\Repositories;
 use DB;
 use App\Repositories\JournalTransactionRepository;
+use App\Models\{
+    Product,
+    GoodReceiptDetail,
+    ProductBrand,
+    ProductCategory,
+    ProductLocation,
+    SalesOrderDetail,
+    WhLocation
+};
+use CRUDBooster;
 interface IPurchaseOrder {
     public function getTotalOrder();
     public function getTotalOrderRp();
@@ -71,6 +81,19 @@ class PurchaseOrderRepository implements IPurchaseOrder {
                 'order_date' => $purchase->order_date,
                 'vendor_name' => $purchase->vendor_name,
             ]);
+        // TODO: 
+
+        $details = DB::table('purchase_order_details')->where('purchase_order_id',$id)->get();
+        
+        foreach($details as $key=>$item){
+            ProductLocation::create([
+                'product_id' => $item->product_id,
+                'wh_location_id' => 2,
+                'qty_onhand' => $item->qty,
+                'product_price' => $item->subtotal,
+                'created_by' => CRUDBooster::myId() ?? 1
+            ]);
+        }
         return $detail;
     }
 

@@ -410,6 +410,12 @@ class AdminProductsController extends \crocodicstudio\crudbooster\controllers\CB
 
 			return response()->json($data);
 		}
+
+		public function findProductLocationByID($id){
+
+			$data = ProductLocation::where('id',$id)->first();
+			return response()->json($data);
+		}
 		public function findProductLocationItem(Request $request){
 			$ids = Request::get('q');
 			$whLocationId = Request::get('whLocationId');

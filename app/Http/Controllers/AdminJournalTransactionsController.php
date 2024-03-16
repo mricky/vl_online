@@ -184,7 +184,8 @@
 
                 var lastDayWithDash =  date.getFullYear() + '-' + currentMonth + '-' +date.getDate();
                 $('#transaction_date').val(lastDayWithDash);
-
+				$('#detailjurnaldebit').val(0);
+				$('#detailjurnalcredit').val(0);
 				setInterval(function(){
 						var totalDebit = 0;
 						var totalKredit = 0;

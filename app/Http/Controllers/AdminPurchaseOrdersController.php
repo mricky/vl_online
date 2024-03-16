@@ -444,7 +444,7 @@ use Maatwebsite\Excel\Facades\Excel;
 			$purchase = DB::table('purchase_orders')->where('id',$id)->first();
 
             #TODO Insert to table Payable
-            $this->purchaseOrder->entryPayable($id);
+            $this->purchaseOrder->entryPayable($id,$purchase->account_cost);
 
 			event(new OrderEntryEvent($purchase));
 	    }

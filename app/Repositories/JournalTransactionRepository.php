@@ -451,7 +451,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                 ],
                 [
                     'journal_id' => $id,
-                    'account_id' => $this->accKas->id,
+                    'account_id' => $purchase->account_cost,
                     'debit'    => 0,
                     'credit' => $purchase->total_amount,
                     'is_manual' => 0,

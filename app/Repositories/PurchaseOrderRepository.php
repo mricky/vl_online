@@ -11,7 +11,7 @@ interface IPurchaseOrder {
     public function getPurchaseOrderReturn($id);
     public function getDetailPurchaseOrderReturn($id);
     public function updateDetailPurchaseOrder($id);
-    public function entryPayable($id);
+    public function entryPayable($id,$accBiaya);
 
 
 }
@@ -24,17 +24,16 @@ class PurchaseOrderRepository implements IPurchaseOrder {
     {
         $this->journalTransaction = $journalTransactionRepository;
     }
-    public function entryPayable($id)
+    public function entryPayable($id,$accBiaya)
     {
         $purchase = $this->getPurchaseOrder($id);
 
-        $accKas = DB::table('chart_of_accounts')->where('code','101-1000')->first(); // KAS
         $accHutang = DB::table('chart_of_accounts')->where('code','201-1001')->first(); // Hutang
 
         $data = [
             'purchase_id' => $id,
             'transaction_date' => $purchase->order_date,
-            'account_debet' =>$accKas->id,
+            'account_debet' =>$accBiaya,
             'account_credit' => $accHutang->id,
             'amount' => $purchase->total_amount,
             'created_by' => $purchase->created_by

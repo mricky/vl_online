@@ -79,6 +79,7 @@ use Maatwebsite\Excel\Facades\Excel;
 			$this->form[] = ['label'=>'Tgl Estimasi','name'=>'estimated_date','type'=>'date','validation'=>'nullable|date','width'=>'col-sm-5'];
 			//$this->form[] = ['label'=>'Tgl Kirim','name'=>'delivery_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-10'];
 			#$this->form[] = ['label'=>'Mata Uang','name'=>'currency_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'currencies,currency'];
+			$this->form[]  = ['label'=>'Bayar Dari','name'=>'account_cost','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'chart_of_accounts,account','datatable_where'=>'id IN (2,3,4,5)'];
 			$this->form[] = ['label'=>'Keterangan','name'=>'description','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
 
 			$columns = [];
@@ -87,9 +88,9 @@ use Maatwebsite\Excel\Facades\Excel;
 			$columns[] = ["label"=>"Qty","name"=>"qty",'type'=>'number'];
 			$columns[] = ["label"=>"Harga","name"=>"price",'type'=>'number'];
 			$columns[] = ["label"=>"Subtotal","name"=>"subtotal",'type'=>'number',"readonly"=>true,'formula'=>"[qty] * [price]"];
-			$columns[] = ["label"=>"DP","name"=>"downpayment",'type'=>'number'];
-			$columns[] = ["label"=>"Pelunasan","name"=>"paid_off",'type'=>'number'];
-			$columns[] = ["label"=>"Sisa","name"=>"total",'type'=>'number',"readonly"=>true,'formula'=>"[qty] * [price] - [downpayment] - [paid_off]"];
+			#$columns[] = ["label"=>"DP","name"=>"downpayment",'type'=>'number'];
+			$columns[] = ["label"=>"Pembayaran","name"=>"paid_off",'type'=>'number'];
+			$columns[] = ["label"=>"Sisa","name"=>"total",'type'=>'number',"readonly"=>true,'formula'=>"[qty] * [price] - [paid_off]"];
 			//$this->form[] = ['label'=>'Orders Detail','name'=>'tr_order_detail','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'tr_order_detail','foreign_key'=>'order_id'];
 			//$this->form[] = ['label'=>'Orders Detail','name'=>'purchase_order_details','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'or','foreign_key'=>'purchase_order_id'];
 			$this->form[] = ['label'=>'Orders Detail','name'=>'purchase_order_details','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'purchase_order_details','foreign_key'=>'purchase_order_id'];
@@ -262,7 +263,7 @@ use Maatwebsite\Excel\Facades\Excel;
 					setInterval(function(){
 							var subTotal = 0;
 							var total = 0;
-							var dp = 0;
+						
 							var paid_off = 0;
 							var discount = 0;
 							var totalAmount = 0;
@@ -273,11 +274,6 @@ use Maatwebsite\Excel\Facades\Excel;
 
 							});
 
-							$('#table-ordersdetail tbody .downpayment').each(function(){
-								var sub = parseInt($(this).text());
-								dp += sub;
-
-							});
 
 							$('#table-ordersdetail tbody .paid_off').each(function(){
 								var sub = parseInt($(this).text());
@@ -291,7 +287,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 							});
 
-							totalAmount = parseInt(dp) + parseInt(paid_off);
+							totalAmount = parseInt(paid_off);
 							//alert(totalAmount);
 							//console.log('test test');
 
@@ -443,9 +439,10 @@ use Maatwebsite\Excel\Facades\Excel;
 			$purchase = DB::table('purchase_orders')->where('id',$id)->first();
 
             #TODO Insert to table Payable
-            $this->purchaseOrder->entryPayable($id);
+            $this->purchaseOrder->entryPayable($id,$purchase->account_cost);
 
 			event(new OrderEntryEvent($purchase));
+			//TODO: diakui stok vendor
 	    }
 
 	    /*

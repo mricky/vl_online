@@ -244,11 +244,28 @@ class ProductRepository implements IProduct {
                 ProductLocation::create([
                     'good_receipt_id' => $id,
                     'product_id' => $item['product_id'],
-                    'wh_location_id' => $item['wh_location_id'],
+                    'wh_location_id' => 1,
                     'qty_onhand' => $item['qty_in'],
                     'product_price' => $item['price'],
                     'created_by' => CRUDBooster::myId() ?? 1
                 ]);
+
+                // Kurangin Stok Vendor
+                // ProductLocation::create([
+                //     'good_receipt_id' => $id,
+                //     'product_id' => $item['product_id'],
+                //     'wh_location_id' => 1,
+                //     'qty_onhand' => $item['qty_in'],
+                //     'product_price' => $item['price'],
+                //     'created_by' => CRUDBooster::myId() ?? 1
+                // ]);
+                $latestProdLocation = ProductLocation::where('wh_location_id',2)
+                                ->whereNull('good_receipt_id')->first();
+               
+                ProductLocation::where('wh_location_id',2)
+                                ->whereNull('good_receipt_id')->update([
+                                    'qty_onhand' => $latestProdLocation->qty_onhand - $item['qty_in']
+                                ]);
               
             }
             $lastQtyOnhand = $product->qty_onhand;

@@ -52,6 +52,7 @@
 			$this->form[] = ['label'=>'Transaksi','name'=>'transaction_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-10'];
 			// $this->form[] = ['label'=>'Akun Debet','name'=>'account_debet','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'chart_of_accounts,account'];
 			// $this->form[] = ['label'=>'Akun Credit','name'=>'account_credit','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'chart_of_accounts,account'];
+			$this->form[]  = ['label'=>'Akun Biaya','name'=>'account_credit','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'chart_of_accounts,account','datatable_where'=>'id IN (2,3,4,5)'];
 			$this->form[] = ['label'=>'Nominal','name'=>'amount','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Keterangan','name'=>'description','type'=>'multitext','validation'=>'nullable','width'=>'col-sm-9'];
 			# END FORM DO NOT REMOVE THIS LINE
@@ -284,7 +285,7 @@
 	    public function hook_before_add(&$postdata) {
 	        //Your code here
             $postdata['account_debet'] = 14; // Hutang Dagang
-            $postdata['account_credit'] = 1; // Kas
+            #$postdata['account_credit'] = 1; // Kas
             $postdata['created_by'] = CRUDBooster::myId();
 	    }
 

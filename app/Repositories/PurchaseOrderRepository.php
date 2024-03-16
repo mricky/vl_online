@@ -2,6 +2,16 @@
 namespace App\Repositories;
 use DB;
 use App\Repositories\JournalTransactionRepository;
+use App\Models\{
+    Product,
+    GoodReceiptDetail,
+    ProductBrand,
+    ProductCategory,
+    ProductLocation,
+    SalesOrderDetail,
+    WhLocation
+};
+use CRUDBooster;
 interface IPurchaseOrder {
     public function getTotalOrder();
     public function getTotalOrderRp();
@@ -11,7 +21,7 @@ interface IPurchaseOrder {
     public function getPurchaseOrderReturn($id);
     public function getDetailPurchaseOrderReturn($id);
     public function updateDetailPurchaseOrder($id);
-    public function entryPayable($id);
+    public function entryPayable($id,$accBiaya);
 
 
 }
@@ -24,17 +34,16 @@ class PurchaseOrderRepository implements IPurchaseOrder {
     {
         $this->journalTransaction = $journalTransactionRepository;
     }
-    public function entryPayable($id)
+    public function entryPayable($id,$accBiaya)
     {
         $purchase = $this->getPurchaseOrder($id);
 
-        $accKas = DB::table('chart_of_accounts')->where('code','101-1000')->first(); // KAS
         $accHutang = DB::table('chart_of_accounts')->where('code','201-1001')->first(); // Hutang
 
         $data = [
             'purchase_id' => $id,
             'transaction_date' => $purchase->order_date,
-            'account_debet' =>$accKas->id,
+            'account_debet' =>$accBiaya,
             'account_credit' => $accHutang->id,
             'amount' => $purchase->total_amount,
             'created_by' => $purchase->created_by
@@ -72,6 +81,19 @@ class PurchaseOrderRepository implements IPurchaseOrder {
                 'order_date' => $purchase->order_date,
                 'vendor_name' => $purchase->vendor_name,
             ]);
+        // TODO: 
+
+        $details = DB::table('purchase_order_details')->where('purchase_order_id',$id)->get();
+        
+        foreach($details as $key=>$item){
+            ProductLocation::create([
+                'product_id' => $item->product_id,
+                'wh_location_id' => 2,
+                'qty_onhand' => $item->qty,
+                'product_price' => $item->subtotal,
+                'created_by' => CRUDBooster::myId() ?? 1
+            ]);
+        }
         return $detail;
     }
 

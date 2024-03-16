@@ -66,16 +66,17 @@ use Session;
 			$this->form[] = ['label'=>'Pelanggan','name'=>'customer_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'customers,name'];
 			$this->form[] = ['label'=>'Tgl Order','name'=>'order_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-5'];
 			$this->form[] = ['label'=>'Expedisi','name'=>'expedition_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'expeditions,name'];
+			$this->form[]  = ['label'=>'Bayar Ke','name'=>'account_cost','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'chart_of_accounts,account','datatable_where'=>'id IN (2,3,4,5)'];
 			$this->form[] = ['label'=>'Keterangan','name'=>'description','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
 			$this->form[] = ['label'=>'Penerima','name'=>'notes','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
 			$columns = [];
-			$columns[] = ['label'=>'Produk','name'=>'product_id','type'=>'select','required'=>true,'width'=>'col-sm-5','datatable'=>'view_product,product_name'];
-			$columns[] = ['label'=>'Lokasi Produk (Lot)','name'=>'product_location_id','type'=>'select','required'=>true,'width'=>'col-sm-5','datatable'=>'view_product_location,product_location','parent_select'=>'product_id'];
+			$columns[] = ['label'=>'Produk','name'=>'product_id','type'=>'select','required'=>true,'width'=>'col-sm-10','datatable'=>'view_product,product_name'];
+			$columns[] = ['label'=>'Lokasi Produk (Lot)','name'=>'product_location_id','type'=>'select','required'=>true,'width'=>'col-sm-10','datatable'=>'view_product_location,product_location', 'parent_select'=>'product_id'];
 			// sample more than 1
 			//$columns[] = ['label'=>'Product','name'=>'product_id','type'=>'select2','datatable'=>'products,name','datatable_format'=>"id,' - ',name"];
 			//$columns[] = ['label'=>'Product Lot','name'=>'product_item_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'product_items,lot_number','parent_select'=>'product_id','datatable_where'=>'lot_number is not null'];
             $columns[] = ["label"=>"Qty","name"=>"qty",'type'=>'number','required'=>true];
-            $columns[] = ["label"=>"HPP","name"=>"cost",'type'=>'number','required'=>true];
+            $columns[] = ["label"=>"HPP","name"=>"cost",'type'=>'number','required'=>true,'readonly'=>true];
             $columns[] = ["label"=>"Harga Jual","name"=>"price",'type'=>'number','required'=>true];
             $columns[] = ["label"=>"Total HPP","name"=>"total_hpp",'type'=>'number','readonly'=>true,"callback_php"=>'number_format($row->total_hpp)','formula'=>"parseInt([qty]) * parseInt([cost])"];
 			$columns[] = ["label"=>"Total","name"=>"total",'type'=>'number','readonly'=>true,"callback_php"=>'number_format($row->total)','formula'=>"parseInt([qty]) * parseInt([price])"];
@@ -233,7 +234,32 @@ use Session;
                     currentMonth = ('0' + currentMonth).slice(-2);
 
                     var lastDayWithDash =  date.getFullYear() + '-' + currentMonth + '-' +date.getDate();
-                    $('#order_date').val(lastDayWithDash);
+					$('#discount').val(0);
+					$('#expedition_cost').val(0)
+					$('#total').val(0);
+					$('#total_hpp').val(0);
+
+
+					$('#order_date').val(lastDayWithDash);
+
+					$(document).on('input','#ordersdetailqty', function (event) {
+						let qty=$('#ordersdetailqty').val();
+						let productLocation = $('#ordersdetailproduct_location_id').val();
+						$.ajax({
+							type: 'GET',
+							url: '/find-product-location/'+productLocation,
+							success: (data)=> {
+								console.log(data);
+								if(qty >data.qty_onhand)
+								{
+									$('#ordersdetailcost').val(0);
+									alert('Permintaan Melebihi stok yang tersedia');
+								} else {
+									$('#ordersdetailcost').val(data.product_price);
+								}
+							 }
+						});
+					});
 					setInterval(function(){
 							console.log('expedition cost');
 							var subTotal = 0;
@@ -426,6 +452,7 @@ use Session;
 
 			$data = (object)[
 				'id' => $sales->id,
+				'account_cost' => $sales->account_cost,
 				'order_number' => $sales->order_number,
 				'order_date' => $sales->order_date,
 				'total_amount' => $total,

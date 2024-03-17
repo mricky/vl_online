@@ -54,9 +54,9 @@
                             <td class="font-weight-bold" style="border-bottom: 1px solid black">Item Code</td>
                             <td class="font-weight-bold" style="border-bottom: 1px solid black">Item Name</td>
                             <td class="font-weight-bold text-center" style="border-bottom: 1px solid black">Stok</td>
-                            <td class="font-weight-bold text-center" style="border-bottom: 1px solid black">Alokasi Pesanan</td>
+                            <!-- <td class="font-weight-bold text-center" style="border-bottom: 1px solid black">Alokasi Pesanan</td>
                             <td class="font-weight-bold text-center" style="border-bottom: 1px solid black">Jumlah Barang Terima</td>
-                            <td class="font-weight-bold text-center" style="border-bottom: 1px solid black">Jumlah Barang Kirim</td>
+                            <td class="font-weight-bold text-center" style="border-bottom: 1px solid black">Jumlah Barang Kirim</td> -->
                             <td class="font-weight-bold text-center" style="border-bottom: 1px solid black">Gudang Internal</td>
                             <td class="font-weight-bold text-center" style="border-bottom: 1px solid black">Gudang Vendor</td>
                         </tr>
@@ -65,21 +65,25 @@
                             $total_allocated = 0;
                             $total_received = 0;
                             $total_shipped = 0;
+                            $total_internal = 0;
+                            $total_vendor = 0;
                         @endphp
                         @foreach ($products as $item)
                         @php
-                           $total_stok += $item->qty_onhand; 
+                           $total_stok += $item->qty_internal + $item->qty_vendor; 
                            $total_allocated += $item->qty_allocated; 
                            $total_received += $item->qty_received; 
                            $total_shipped += $item->qty_shipped; 
+                           $total_internal += $item->qty_internal;
+                           $total_vendor += $item->qty_vendor;
                         @endphp
                             <tr>
                                 <td>{{ $item->code }}</td>
                                 <td>{{ $item->name }}</td>
-                                <td class="text-center">{{ $item->qty_onhand }}</td>
-                                <td class="text-center">{{ $item->qty_allocated }}</td>
+                                <td class="text-center">{{ $item->qty_internal + $item->qty_vendor }}</td>
+                                <!-- <td class="text-center">{{ $item->qty_allocated }}</td>
                                 <td class="text-center">{{ $item->qty_received }}</td>
-                                <td class="text-center">{{ $item->qty_shipped}}</td>
+                                <td class="text-center">{{ $item->qty_shipped}}</td> -->
                                 <td class="text-center">{{ $item->qty_internal}}</td>
                                 <td class="text-center">{{ $item->qty_vendor}}</td>
                             </tr>
@@ -87,9 +91,9 @@
                         <tr>
                             <td class="font-weight-bold" colspan="2">Total:</td>
                             <td class="font-weight-bold text-center" style="border-top: 1px solid black">{{ $total_stok}}</td>
-                            <td class="font-weight-bold text-center" style="border-top: 1px solid black">{{ $total_allocated}}</td>
-                            <td class="font-weight-bold text-center" style="border-top: 1px solid black">{{ $total_received}}</td>
-                            <td class="font-weight-bold text-center" style="border-top: 1px solid black">{{ $total_shipped}}</td>
+                            <td class="font-weight-bold text-center" style="border-top: 1px solid black">{{ $total_internal}}</td>
+                            <td class="font-weight-bold text-center" style="border-top: 1px solid black">{{ $total_vendor}}</td>
+                            <!-- <td class="font-weight-bold text-center" style="border-top: 1px solid black">{{ $total_shipped}}</td> -->
                         </tr>
                     </tbody>
                 </table>
@@ -113,9 +117,9 @@
             </div>
         </div>
     </footer>
-    <script>
+    <!-- <script>
         window.print();
         window.onafterprint = window.close;
-    </script>
+    </script> -->
 </body>
 </html>

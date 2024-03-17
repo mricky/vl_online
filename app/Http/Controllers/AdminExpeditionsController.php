@@ -18,7 +18,7 @@
 			$this->button_table_action = TRUE;   
 			$this->button_action_style = "button_icon";     
 			$this->button_add          = TRUE;
-			$this->button_delete       = TRUE;
+			$this->button_delete       = FALSE;
 			$this->button_edit         = TRUE;
 			$this->button_detail       = TRUE;
 			$this->button_show         = TRUE;

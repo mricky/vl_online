@@ -109,9 +109,9 @@
             </div>
         </div>
     </footer>
-    <script>
+    <!-- <script>
         window.print();
         window.onafterprint = window.close;
-    </script>
+    </script> -->
 </body>
 </html>

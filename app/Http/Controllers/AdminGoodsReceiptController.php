@@ -558,19 +558,12 @@ use Session;
 
 		public function postCetakstok()
 		{
-
-			$data['products'] = Product::select('products.*',DB::raw("sum(internal.qty_onhand) as qty_internal"),DB::raw("sum(vendor.qty_onhand) as qty_vendor"))
-									->join('product_locations as internal', function($join){
-										$join->on('products.id','=','internal.product_id');
-										$join->where('internal.wh_location_id',1);
-									})
-									->join('product_locations as vendor', function($join){
-										$join->on('products.id','=','internal.product_id');
-										$join->where('vendor.wh_location_id','!=',1);
-									})
-									->groupBy('products.id')
-									->get();
-
+			$data['products'] = DB::table('product_locations')
+								->select('products.code','products.name')
+								->addSelect(DB::raw('CASE WHEN product_locations.wh_location_id = 1 THEN COALESCE(SUM(product_locations.qty_onhand),0) ELSE 0 END as qty_internal'),DB::raw('CASE WHEN product_locations.wh_location_id = 2 THEN COALESCE(SUM(product_locations.qty_onhand),0) ELSE 0 END as qty_vendor'))
+								->join('products','products.id','product_locations.product_id')
+								->groupBy('product_locations.product_id','product_locations.wh_location_id')
+								->get();
 			$this->cbView('prints.stok',$data);
 		}
 

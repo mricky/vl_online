@@ -878,7 +878,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                             ->join('chart_of_accounts as coa','coa.id','detail.account_id')
                             ->where('coa.neraca_code',$value->id)
                             ->whereRaw("DATE_FORMAT(trans.transaction_date, '%Y-%m-%d') <= '" . $tgl_akhirNeraca . "'")
-                            ->groupBy('detail.account_id')
+                            ->groupBy('detail.account_id','coa.neraca_code','coa.saldo_normal')
                             ->get();
 
                         foreach($amoutPerAccount as $amount)

@@ -229,18 +229,46 @@ use Session;
 	        */
 	        $this->script_js = "
 				$(function(){
+
+					$('#ordersdetailqty').val(0);
+					$('#ordersdetailprice').val(0);
+					$('#ordersdetailcost').val(0);
+					$('#ordersdetailtotal_hpp').val(0);
+					$('#ordersdetailtotal').val(0);
+
                     let date = new Date();
                     let currentMonth = (date.getMonth() + 1);
                     currentMonth = ('0' + currentMonth).slice(-2);
 
                     var lastDayWithDash =  date.getFullYear() + '-' + currentMonth + '-' +date.getDate();
+
 					$('#discount').val(0);
 					$('#expedition_cost').val(0)
 					$('#total').val(0);
 					$('#total_hpp').val(0);
-
-
 					$('#order_date').val(lastDayWithDash);
+
+					$('#ordersdetailqty').on('blur', function () {
+						if ($(this).val().trim().length == 0) {
+							$(this).val(0);
+						}
+					});
+					
+					$('#ordersdetailprice').on('blur', function () {
+						if ($(this).val().trim().length == 0) {
+							$(this).val(0);
+						}
+					});
+
+					$('#ordersdetailpaid_off').on('blur', function () {
+						if ($(this).val().trim().length == 0) {
+							$(this).val(0);
+						}
+					});
+					
+					$('#ordersdetailqty').trigger('blur');
+					$('#ordersdetailprice').trigger('blur');
+					$('#ordersdetailpaid_off').trigger('blur');
 
 					$(document).on('input','#ordersdetailqty', function (event) {
 						let qty=$('#ordersdetailqty').val();
@@ -416,6 +444,10 @@ use Session;
 				CRUDBooster::redirect(CRUDBooster::mainpath("add"),"Silahkan Isi Tanggal Order","info");
 			}
 
+			if (Request::get('total_amount') <= 0){
+				CRUDBooster::redirect(CRUDBooster::mainpath("add"),"Nominal Pembayaran Harus diisi","info");
+			}
+			
 			$code = 'SO-';
 			$customer = DB::table('customers')->where('id',$postdata['customer_id'])->first()->code;
 		    $sq = DB::table('sales_orders')->max('id');

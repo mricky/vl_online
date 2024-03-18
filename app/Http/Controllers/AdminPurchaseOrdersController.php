@@ -259,11 +259,25 @@ use Maatwebsite\Excel\Facades\Excel;
                     var lastDayWithDash =  date.getFullYear() + '-' + currentMonth + '-' +date.getDate();
                     $('#estimated_date').val(lastDayWithDash);
                     $('#order_date').val(lastDayWithDash);
+					
+					$('#ordersdetailqty').on('blur', function () {
+						if ($(this).val().trim().length == 0) {
+							$(this).val(0);
+						}
+					});
+					
+					$('#ordersdetailprice').on('blur', function () {
+						if ($(this).val().trim().length == 0) {
+							$(this).val(0);
+						}
+					});
 
+					$('#ordersdetailqty').trigger('blur');
+					$('#ordersdetailprice').trigger('blur');
+					
 					setInterval(function(){
 							var subTotal = 0;
 							var total = 0;
-						
 							var paid_off = 0;
 							var discount = 0;
 							var totalAmount = 0;
@@ -273,8 +287,6 @@ use Maatwebsite\Excel\Facades\Excel;
 								subTotal += sub;
 
 							});
-
-
 							$('#table-ordersdetail tbody .paid_off').each(function(){
 								var sub = parseInt($(this).text());
 								paid_off += sub;
@@ -288,9 +300,7 @@ use Maatwebsite\Excel\Facades\Excel;
 							});
 
 							totalAmount = parseInt(paid_off);
-							//alert(totalAmount);
-							//console.log('test test');
-
+			
 							$('#total_amount').val(totalAmount);
 							$('#subtotal').val(subTotal);
 							$('#total').val(subTotal);
@@ -298,11 +308,6 @@ use Maatwebsite\Excel\Facades\Excel;
 
 					},500);
 			    });
-
-				// $('#discount').change(function(){
-				// 	//$('#total').val( parseInt($('#subtotal').val()) - parseInt($(this).val()));
-				// 	console.log('test');
-				// });
 			";
 
             /*
@@ -413,6 +418,10 @@ use Maatwebsite\Excel\Facades\Excel;
 	    public function hook_before_add(&$postdata) {
 			if (!Request::get('order_date')){
 				CRUDBooster::redirect(CRUDBooster::mainpath("add"),"Silahkan Isi Tanggal Order","info");
+			}
+
+			if (Request::get('total_amount') <= 0){
+				CRUDBooster::redirect(CRUDBooster::mainpath("add"),"Nominal Pembayaran Harus diisi","info");
 			}
 
 	        //Your code here

@@ -8,11 +8,13 @@ class ProductLocation extends Model
 {
     
     protected $fillable = [
+        'purchase_order_id',
         'product_id',
         'good_receipt_id',
         'wh_location_id',
         'qty_onhand',
         'product_price',
+        'total',
         'created_by'
 
     ];

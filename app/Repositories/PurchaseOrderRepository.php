@@ -38,6 +38,19 @@ class PurchaseOrderRepository implements IPurchaseOrder {
     {
         $purchase = $this->getPurchaseOrder($id);
 
+        $journalId = DB::table('journal_transactions')->where('ref_no',$purchase->order_number)->first()->id;
+       
+        if($journalId){
+            DB::table('journal_details')->where('journal_id',$journalId)->delete();
+            DB::table('journal_transactions')->where('id',$journalId)->delete();
+        }
+
+        $existPayment = DB::table('account_payable')->where('purchase_id',$id)->first()->id;
+       
+        if($existPayment){
+            DB::table('account_payable')->where('purchase_id',$id)->delete();
+        }
+
         $accHutang = DB::table('chart_of_accounts')->where('code','201-1001')->first(); // Hutang
 
         $data = [
@@ -86,11 +99,14 @@ class PurchaseOrderRepository implements IPurchaseOrder {
         $details = DB::table('purchase_order_details')->where('purchase_order_id',$id)->get();
         
         foreach($details as $key=>$item){
+            ProductLocation::where('purchase_order_id',$item->purchase_order_id)->delete();
             ProductLocation::create([
                 'product_id' => $item->product_id,
+                'purchase_order_id' => $item->purchase_order_id,
                 'wh_location_id' => 2,
                 'qty_onhand' => $item->qty,
                 'product_price' => $item->subtotal,
+                'total' => (int)$item->qty * (int)$item->subtotal,
                 'created_by' => CRUDBooster::myId() ?? 1
             ]);
         }

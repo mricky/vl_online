@@ -272,9 +272,16 @@ use Maatwebsite\Excel\Facades\Excel;
 						}
 					});
 
+						
+					$('#ordersdetailpaid_off').on('blur', function () {
+						if ($(this).val().trim().length == 0) {
+							$(this).val(0);
+						}
+					});
+
 					$('#ordersdetailqty').trigger('blur');
 					$('#ordersdetailprice').trigger('blur');
-					
+					$('#ordersdetailpaid_off').trigger('blur');
 					setInterval(function(){
 							var subTotal = 0;
 							var total = 0;
@@ -419,7 +426,7 @@ use Maatwebsite\Excel\Facades\Excel;
 			if (!Request::get('order_date')){
 				CRUDBooster::redirect(CRUDBooster::mainpath("add"),"Silahkan Isi Tanggal Order","info");
 			}
-
+			
 			if (Request::get('total_amount') <= 0){
 				CRUDBooster::redirect(CRUDBooster::mainpath("add"),"Nominal Pembayaran Harus diisi","info");
 			}

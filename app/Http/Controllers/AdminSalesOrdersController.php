@@ -260,7 +260,17 @@ use Session;
 						}
 					});
 
-					$('#ordersdetailpaid_off').on('blur', function () {
+					$('#discount').on('blur', function () {
+						if ($(this).val().trim().length == 0) {
+							$(this).val(0);
+						}
+					});
+					$('#expedition_cost').on('blur', function () {
+						if ($(this).val().trim().length == 0) {
+							$(this).val(0);
+						}
+					});
+					$('#total_amount').on('blur', function () {
 						if ($(this).val().trim().length == 0) {
 							$(this).val(0);
 						}
@@ -268,8 +278,9 @@ use Session;
 					
 					$('#ordersdetailqty').trigger('blur');
 					$('#ordersdetailprice').trigger('blur');
-					$('#ordersdetailpaid_off').trigger('blur');
-
+					$('#discount').trigger('blur');
+					$('#expedition_cost').trigger('blur');
+					$('#total_amount').trigger('blur');
 					$(document).on('input','#ordersdetailqty', function (event) {
 						let qty=$('#ordersdetailqty').val();
 						let productLocation = $('#ordersdetailproduct_location_id').val();

@@ -471,16 +471,7 @@ use Maatwebsite\Excel\Facades\Excel;
 	    */
 	    public function hook_before_edit(&$postdata,$id) {
 	        //Your code here
-			$purchase = DB::table('purchase_orders')->where('id',$id)->first();
-
-			$data = [
-				'id' => $purchase->id,
-				'order_number' => $purchase->order_number,
-				'total_amount' => $postdata['total_amount'],
-				'module' => 'purchase',
-			];
-
-			//$this->journalTransaction->updatePurchaseJournalEntry((object)$data);
+			
 
 		}
 
@@ -494,6 +485,17 @@ use Maatwebsite\Excel\Facades\Excel;
 	    public function hook_after_edit($id) {
 	        //Your code here
 			$this->goodReceipt->syncPurchaseItemQty($id);
+
+			// Update Juga di Product Location
+
+			$this->purchaseOrder->updateDetailPurchaseOrder($id);
+
+			$purchase = DB::table('purchase_orders')->where('id',$id)->first();
+
+
+			 #TODO Insert to table Payable
+			 $this->purchaseOrder->entryPayable($id,$purchase->account_cost);
+			//$this->journalTransaction->updatePurchaseJournalEntry((object)$data);
 	    }
 
 	    /*

@@ -58,8 +58,8 @@
 			$this->form[] = ['label'=>'Detail Jurnal','name'=>'journal_details','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'journal_details','foreign_key'=>'journal_id'];
 
 
-			$this->form[] = ['label'=>'Total Debit','name'=>'total_debit','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
-			$this->form[] = ['label'=>'Total Kredit','name'=>'total_credit','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
+			$this->form[] = ['label'=>'Total Debit','name'=>'total_debit','readonly'=>true,'type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
+			$this->form[] = ['label'=>'Total Kredit','name'=>'total_credit','readonly'=>true,'type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
 
 			$this->form[] = ['label'=>'Memo','name'=>'memo','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
 			# END FORM DO NOT REMOVE THIS LINE
@@ -186,6 +186,21 @@
                 $('#transaction_date').val(lastDayWithDash);
 				$('#detailjurnaldebit').val(0);
 				$('#detailjurnalcredit').val(0);
+
+				$('#detailjurnaldebit').on('blur', function () {
+					if ($(this).val().trim().length == 0) {
+						$(this).val(0);
+					}
+				});
+				$('#detailjurnalcredit').on('blur', function () {
+					if ($(this).val().trim().length == 0) {
+						$(this).val(0);
+					}
+				});
+				
+				$('#detailjurnaldebit').trigger('blur');
+				$('#detailjurnalcredit').trigger('blur');
+
 				setInterval(function(){
 						var totalDebit = 0;
 						var totalKredit = 0;

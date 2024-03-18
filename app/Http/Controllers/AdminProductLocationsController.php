@@ -33,6 +33,7 @@
 			$this->col[] = ["label"=>"Produk","name"=>"product_id","join"=>"products,name"];
 			$this->col[] = ["label"=>"Lokasi","name"=>"wh_location_id","join"=>"wh_locations,wh_location_name"];
 			$this->col[] = ["label"=>"Qty Onhand","name"=>"qty_onhand"];
+			$this->col[] = ["label"=>"Harga","name"=>"product_price"];
 			# END COLUMNS DO NOT REMOVE THIS LINE
 
 			# START FORM DO NOT REMOVE THIS LINE
@@ -42,6 +43,7 @@
 			#$this->form[] = ['label'=>'No Penerimaan','name'=>'good_receipt_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'goods_receipt,code'];
 			$this->form[] = ['label'=>'Lokasi','name'=>'wh_location_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'wh_locations,wh_location_name'];
 			$this->form[] = ['label'=>'Qty Onhand','name'=>'qty_onhand','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10','readonly'=>true];
+			#$this->form[] = ['label'=>'Price','name'=>'product_price','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10','readonly'=>true];
 			# END FORM DO NOT REMOVE THIS LINE
 
 			# OLD START FORM

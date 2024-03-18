@@ -1006,7 +1006,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                             }
 
                         })
-                        ->groupBy('detail.account_id')->get();
+                        ->groupBy('detail.account_id','coa.neraca_code')->get();
 
 
                             foreach($amoutPerAccount as $amount)

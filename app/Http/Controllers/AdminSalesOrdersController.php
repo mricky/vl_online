@@ -281,7 +281,9 @@ use Session;
 					$('#discount').trigger('blur');
 					$('#expedition_cost').trigger('blur');
 					$('#total_amount').trigger('blur');
+
 					$(document).on('input','#ordersdetailqty', function (event) {
+						alert('here');
 						let qty=$('#ordersdetailqty').val();
 						let productLocation = $('#ordersdetailproduct_location_id').val();
 						$.ajax({

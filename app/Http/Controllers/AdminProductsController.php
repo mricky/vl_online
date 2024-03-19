@@ -417,29 +417,34 @@ class AdminProductsController extends \crocodicstudio\crudbooster\controllers\CB
 			return response()->json($data);
 		}
 		public function findProductLocationItem(Request $request){
-			$ids = Request::get('q');
-			$whLocationId = Request::get('whLocationId');
+			$q = $request->input('q');
+			$whLocationId = $request->input('whLocationId');
+			$ids = $q;
+			
 
 			$data = $this->product->findProductLocationItem($ids,$whLocationId);
 
 			return response()->json($data);
 		}
 		public function findProductItem(Request $request){
-			$term = trim(Request::get('q'));
+			$q = $request->input('q');
+			$term = trim($q);
 
 			$brand = $this->product->findProductItem($term);
 			return response()->json($brand);
 		}
 
-		public function findProductCategory(){
-			$term = trim(Request::get('q'));
+		public function findProductCategory(Request $request){
+
+			$q = $request->input('q');
+			$term = trim($q);
 			$category = $this->product->findProductCategory($term);
 
 			return response()->json($category);
 		}
 		public function findProductBrand(Request $request){
-			$term = trim(Request::get('q'));
-
+			$q = $request->input('q');
+			$term = trim($q);
 			$brand = $this->product->findProductBrand($term);
 			return response()->json($brand);
 		}

@@ -46,8 +46,8 @@
 			$this->col[] = ["label"=>"Nama","name"=>"name"];
 			$this->col[] = ["label"=>"Kategori","name"=>"category_id","join"=>"product_categories,name"];
 			$this->col[] = ["label"=>"Brand","name"=>"brand_id","join"=>"product_brands,name"];
-			$this->col[] = ["label"=>"Biaya","name"=>"product_cost","callback_php"=>'number_format($row->product_cost)'];
-			$this->col[] = ["label"=>"Harga","name"=>"product_price","callback_php"=>'number_format($row->product_price)'];
+			#$this->col[] = ["label"=>"Biaya","name"=>"product_cost","callback_php"=>'number_format($row->product_cost)'];
+			#$this->col[] = ["label"=>"Harga","name"=>"product_price","callback_php"=>'number_format($row->product_price)'];
 			$this->col[] = ["label"=>"Total Stok","name"=>"(SELECT COALESCE(SUM(product_locations.qty_onhand),0) FROM product_locations JOIN wh_locations on wh_locations.id = product_locations.wh_location_id  where product_id = products.id and wh_locations.wh_location_name = 'WH/Stock') + (SELECT COALESCE(SUM(product_locations.qty_onhand),0) FROM product_locations JOIN wh_locations on wh_locations.id = product_locations.wh_location_id  where product_id = products.id and wh_locations.wh_location_name = 'Partner Location/Vendor')  as qty_onhand"];
 			$this->col[] = ["label"=>"Stok Vendor","name"=>"(SELECT COALESCE(SUM(product_locations.qty_onhand),0) FROM product_locations JOIN wh_locations on wh_locations.id = product_locations.wh_location_id  where product_id = products.id and wh_locations.wh_location_name = 'Partner Location/Vendor') as qty_vendor"];
 			$this->col[] = ["label"=>"Stok Internal","name"=>"(SELECT COALESCE(SUM(product_locations.qty_onhand),0) FROM product_locations JOIN wh_locations on wh_locations.id = product_locations.wh_location_id  where product_id = products.id and wh_locations.wh_location_name = 'WH/Stock') as qty_internal"];

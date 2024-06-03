@@ -46,8 +46,8 @@
 			$this->col[] = ["label"=>"Nama","name"=>"name"];
 			$this->col[] = ["label"=>"Kategori","name"=>"category_id","join"=>"product_categories,name"];
 			$this->col[] = ["label"=>"Brand","name"=>"brand_id","join"=>"product_brands,name"];
-			$this->col[] = ["label"=>"Biaya","name"=>"product_cost","callback_php"=>'number_format($row->product_cost)'];
-			$this->col[] = ["label"=>"Harga","name"=>"product_price","callback_php"=>'number_format($row->product_price)'];
+			#$this->col[] = ["label"=>"Biaya","name"=>"product_cost","callback_php"=>'number_format($row->product_cost)'];
+			#$this->col[] = ["label"=>"Harga","name"=>"product_price","callback_php"=>'number_format($row->product_price)'];
 			$this->col[] = ["label"=>"Total Stok","name"=>"(SELECT COALESCE(SUM(product_locations.qty_onhand),0) FROM product_locations JOIN wh_locations on wh_locations.id = product_locations.wh_location_id  where product_id = products.id and wh_locations.wh_location_name = 'WH/Stock') + (SELECT COALESCE(SUM(product_locations.qty_onhand),0) FROM product_locations JOIN wh_locations on wh_locations.id = product_locations.wh_location_id  where product_id = products.id and wh_locations.wh_location_name = 'Partner Location/Vendor')  as qty_onhand"];
 			$this->col[] = ["label"=>"Stok Vendor","name"=>"(SELECT COALESCE(SUM(product_locations.qty_onhand),0) FROM product_locations JOIN wh_locations on wh_locations.id = product_locations.wh_location_id  where product_id = products.id and wh_locations.wh_location_name = 'Partner Location/Vendor') as qty_vendor"];
 			$this->col[] = ["label"=>"Stok Internal","name"=>"(SELECT COALESCE(SUM(product_locations.qty_onhand),0) FROM product_locations JOIN wh_locations on wh_locations.id = product_locations.wh_location_id  where product_id = products.id and wh_locations.wh_location_name = 'WH/Stock') as qty_internal"];
@@ -62,9 +62,9 @@
 			$this->form[] = ['label'=>'Nama','name'=>'name','type'=>'text','validation'=>'required|string|min:3|max:70','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Kategori','name'=>'category_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'product_categories,name'];
 			$this->form[] = ['label'=>'Brand','name'=>'brand_id','type'=>'select2','validation'=>'nullable|integer|min:0','width'=>'col-sm-10','datatable'=>'product_brands,name'];
-			$this->form[] = ['label'=>'Biaya','name'=>'product_cost','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
-			$this->form[] = ['label'=>'Harga','name'=>'product_price','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
-			$this->form[] = ['label'=>'Jumlah','name'=>'qty_onhand','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
+			#$this->form[] = ['label'=>'Biaya','readonly'=>'true','name'=>'product_cost','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
+			#$this->form[] = ['label'=>'Harga','readonly'=>'true','name'=>'product_price','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
+			$this->form[] = ['label'=>'Jumlah','readonly'=>'true','name'=>'qty_onhand','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
 			//$this->form[] = ['label'=>'Jumlah Alokasi','name'=>'qty_allocated','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
 			//$this->form[] = ['label'=>'Jumlah Terkirim','name'=>'qty_shipped','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Keterangan','name'=>'description','type'=>'textarea','validation'=>'nullable|string|min:3|max:5000','width'=>'col-sm-10'];

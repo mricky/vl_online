@@ -2,11 +2,13 @@
 namespace App\Repositories;
 
 use App\Models\{
+    GoodReceipt,
     Product,
     GoodReceiptDetail,
     ProductBrand,
     ProductCategory,
     ProductLocation,
+    PurchaseOrder,
     SalesOrderDetail,
     WhLocation
 };
@@ -48,9 +50,9 @@ class ProductRepository implements IProduct {
                             ->update([
                                 'product_id' => $productLocation->product_id,
                                 'created_by' => CRUDBooster::myId() ?? 1]
-                                
+
             );
-           
+
             #echo $productLocation->product_id; exit;
 
 
@@ -66,7 +68,7 @@ class ProductRepository implements IProduct {
     }
     public function findProductLocationItem($ids,$whLocationId){
         $data = [];
-        
+
         $data = ProductLocation::select('product_locations.*')
                         ->addSelect('products.name as product_name','products.product_price','wh_locations.wh_location_name')
                         ->addSelect(DB::raw('IFNULL( vendors.name, 0) as vendor_name'))
@@ -90,36 +92,36 @@ class ProductRepository implements IProduct {
     }
     public function findProductItem($term)
     {
-    
+
         $products = Product::where('name','LIKE',"%{$term}%")->limit(5)->get();
 
         $formated = [];
 
         foreach($products as $item){
-           
+
             $formated[] = ['id'=> $item->id,'text'=> $item->name];
         }
-       
+
         return $formated;
     }
 
     public function findProductCategory($term)
     {
-    
+
         $categories = ProductCategory::where('name','LIKE',"%{$term}%")->limit(5)->get();
 
         $formated = [];
 
         foreach($categories as $item){
-           
+
             $formated[] = ['id'=> $item->id,'text'=> $item->name];
         }
-       
+
         return $formated;
     }
 
     public function findProductBrand($term){
-    
+
         $brands = ProductBrand::where('name',$term)->limit(5)->get();
 
         $formated = [];
@@ -136,7 +138,7 @@ class ProductRepository implements IProduct {
         $countbyAllLocation = ProductLocation::select(
             DB::raw('sum(qty_onhand) as total_qty')
         )->where('product_id',$productId)->first();
-       
+
         $product = Product::findOrFail($productId);
 
         try {
@@ -149,9 +151,9 @@ class ProductRepository implements IProduct {
             DB::rollback();
             dd($e->getMessage());
         }
-      
+
     }
-    
+
     public function syncInternalStock(){
         $wh_location = WhLocation::where('wh_location_name',$this::TOKO_LOCATION)->first();
 
@@ -164,7 +166,7 @@ class ProductRepository implements IProduct {
                     'product_id' => $item['id'],
                     'wh_location_id' => $wh_location->id,
                     'qty_onhand' => $item['qty_onhand']
-            ]); 
+            ]);
         }
 
         DB::commit();
@@ -180,7 +182,7 @@ class ProductRepository implements IProduct {
 
             foreach($salesDetails as $item){
                 $product = Product::find($item['product_id']);
-               
+
                 $productLocation = ProductLocation::find($item['product_location_id']);
 
                 $qtyProduct = $product->qty_onhand ?? 0;
@@ -204,12 +206,12 @@ class ProductRepository implements IProduct {
             DB::rollback();
             dd($e->getMessage());
         }
-        
-        return $salesDetails;   
+
+        return $salesDetails;
 
     }
     public function updateStokByProductEntry($id){
-    
+
         $product = Product::find($id);
         try {
             DB::beginTransaction();
@@ -226,23 +228,25 @@ class ProductRepository implements IProduct {
             DB::rollback();
             throw $e;
         }
-        
-       return $product; 
+
+       return $product;
     }
     public function updateStokLocation($id){
-        
+
         $receives = GoodReceiptDetail::where('good_receipt_id',$id)->get();
         try {
             DB::beginTransaction();
 
             ProductLocation::where('good_receipt_id',$id)->delete();
-            
+
             foreach($receives as $item){
                 $product = Product::find($item['product_id']);
-                
+
+                $purchaseOrder = GoodReceipt::where('id',$item['good_receipt_id'])->first()->purchase_order_id;
 
                 ProductLocation::create([
                     'good_receipt_id' => $id,
+                    'purchase_order_id' => $purchaseOrder->purchase_order_id,
                     'product_id' => $item['product_id'],
                     'wh_location_id' => 1,
                     'qty_onhand' => $item['qty_in'],
@@ -261,12 +265,12 @@ class ProductRepository implements IProduct {
                 // ]);
                 $latestProdLocation = ProductLocation::where('wh_location_id',2)
                                 ->whereNull('good_receipt_id')->first();
-               
+
                 ProductLocation::where('wh_location_id',2)
                                 ->whereNull('good_receipt_id')->update([
                                     'qty_onhand' => $latestProdLocation->qty_onhand - $item['qty_in']
                                 ]);
-              
+
             }
             $lastQtyOnhand = $product->qty_onhand;
             $newStok = ($lastQtyOnhand + $item['qty_in']);
@@ -277,7 +281,7 @@ class ProductRepository implements IProduct {
             DB::rollback();
             throw $e;
         }
-        
+
         return $receives;
     }
     public function getTotalItem(){
@@ -287,14 +291,14 @@ class ProductRepository implements IProduct {
     }
 
     public function getTotalCategory()
-    {   
-        
+    {
+
         $data = DB::table('product_categories')->count('id');
 
         return $data;
     }
     public function getTotalBrand()
-    {   
+    {
         $data = DB::table('product_brands')->count('id');
 
         return $data;
@@ -302,7 +306,7 @@ class ProductRepository implements IProduct {
     public function getProductById($id){
         die($id);
         $sql = 'vendor_id ='.$id;
-      
+
        return $sql;
     }
 

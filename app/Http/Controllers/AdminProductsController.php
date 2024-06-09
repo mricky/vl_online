@@ -47,7 +47,7 @@ class AdminProductsController extends \crocodicstudio\crudbooster\controllers\CB
 			#$this->col[] = ["label"=>"Supplier","name"=>"vendor_id","join"=>"vendors,name"];
 			$this->col[] = ["label"=>"Kategori","name"=>"category_id","join"=>"product_categories,name"];
 			$this->col[] = ["label"=>"Brand","name"=>"brand_id","join"=>"product_brands,name"];
-			$this->col[] = ["label"=>"Biaya","name"=>"product_cost"];
+			#$this->col[] = ["label"=>"Biaya","name"=>"product_cost"];
 			$this->col[] = ["label"=>"Harga","name"=>"product_price","callback_php"=>'number_format($row->product_price)'];
 			$this->col[] = ["label"=>"Ket","name"=>"description"];
 			# END COLUMNS DO NOT REMOVE THIS LINE
@@ -58,8 +58,8 @@ class AdminProductsController extends \crocodicstudio\crudbooster\controllers\CB
 			#$this->form[] = ['label'=>'Supplier','name'=>'vendor_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'vendors,name'];
 			$this->form[] = ['label'=>'Kategori','name'=>'category_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'product_categories,name'];
 			$this->form[] = ['label'=>'Brand','name'=>'brand_id','type'=>'select2','validation'=>'nullable|integer|min:0','width'=>'col-sm-10','datatable'=>'product_brands,name'];
-			$this->form[] = ['label'=>'Biaya','name'=>'product_cost','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
-			$this->form[] = ['label'=>'Harga','name'=>'product_price','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
+			#$this->form[] = ['label'=>'Biaya','name'=>'product_cost','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
+			#$this->form[] = ['label'=>'Harga','name'=>'product_price','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Jumlah','name'=>'qty_onhand','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
 			//$this->form[] = ['label'=>'Jumlah','name'=>'qty_onhand','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
 			//$this->form[] = ['label'=>'Jumlah Alokasi','name'=>'qty_allocated','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
@@ -399,7 +399,7 @@ class AdminProductsController extends \crocodicstudio\crudbooster\controllers\CB
 					'lot' => $product,
                     'totalProduct' => $product->qty_onhand,
                     'cost' => $product->product_price,
-                    
+
 
                 ];
             }
@@ -420,7 +420,7 @@ class AdminProductsController extends \crocodicstudio\crudbooster\controllers\CB
 			$q = $request->input('q');
 			$whLocationId = $request->input('whLocationId');
 			$ids = $q;
-			
+
 
 			$data = $this->product->findProductLocationItem($ids,$whLocationId);
 

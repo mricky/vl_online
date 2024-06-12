@@ -131,7 +131,7 @@ class GoodReceiptRepository implements IGoodReceipt {
         $receive = GoodReceipt::with(['deferences','details'])->find($goodReceiptId);
         $location = WhLocation::where('wh_location_name',$this::WH_LOCATION_DEFAULT)->first();
         $status = OrderStatus::where('name',$this::STATUS_DEFAULT)->first();
-
+       
          try {
             $backOrder = new GoodReceipt();
             $backOrder->vendor_id = $receive->vendor_id;
@@ -153,7 +153,7 @@ class GoodReceiptRepository implements IGoodReceipt {
                 $itemDetail->qty_in = 0;
                 $itemDetail->qty_diferrence = 0;
                 $itemDetail->price = $row['price'];
-                $itemDetail->wh_location_id = $location->id;
+                $itemDetail->wh_location_id = 1; // masukan ke lokasi non vendor 
                 $itemDetail->is_store_vendor_location = $location->id;
                 $itemDetail->created_by =  CRUDBooster::myId() ?? 1;
                 $itemDetail->save();

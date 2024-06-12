@@ -290,31 +290,45 @@ use Maatwebsite\Excel\Facades\Excel;
 							var totalAmount = 0;
 
 							$('#table-ordersdetail tbody .subtotal').each(function(){
-								var sub = parseInt($(this).text());
+								var sub = parseInt(($(this).text().replace(',', '')).replace(',',''));
 								subTotal += sub;
 
 							});
 							$('#table-ordersdetail tbody .paid_off').each(function(){
-								var sub = parseInt($(this).text());
+								var sub = parseInt(($(this).text().replace(',', '')).replace(',',''));
 								paid_off += sub;
 								console.log(paid_off)
 							});
 
 							$('#table-ordersdetail tbody .total').each(function(){
-								var sub = parseInt($(this).text());
+								var sub = parseInt(($(this).text().replace(',', '')).replace(',',''));
 								total += sub;
 
 							});
 
 							totalAmount = parseInt(paid_off);
 			
-							$('#total_amount').val(totalAmount);
-							$('#subtotal').val(subTotal);
-							$('#total').val(subTotal);
-							$('#amount_due').val(total);
+							$('#total_amount').val(addCommas(totalAmount));
+							$('#subtotal').val(addCommas(subTotal));
+							$('#total').val(addCommas(subTotal));
+							$('#amount_due').val(addCommas(total));
 
 					},500);
 			    });
+
+
+				function addCommas(nStr)
+				{
+					nStr += '';
+					x = nStr.split('.');
+					x1 = x[0];
+					x2 = x.length > 1 ? '.' + x[1] : '';
+					var rgx = /(\d+)(\d{3})/;
+					while (rgx.test(x1)) {
+						x1 = x1.replace(rgx, '$1' + ',' + '$2');
+					}
+					return x1 + x2;
+				}
 			";
 
             /*

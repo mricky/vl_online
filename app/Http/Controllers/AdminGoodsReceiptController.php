@@ -455,7 +455,7 @@ use Session;
 	    public function hook_after_edit($id) {
 	        // Update Stok
 			// Update Lokasi Stok
-			#$receipt = DB::table('goods_receipt')->where('id',$id);
+			$receipt = DB::table('goods_receipt')->where('id',$id);
 			$receipt = GoodReceipt::findOrFail($id);
 			$receipt->status_id = 2;
 			$receipt->save();
@@ -465,10 +465,12 @@ use Session;
 			#$test = GoodReceiptDetail::where('good_receipt_id',$id)->get();
 			#echo '<pre>'; print($test); echo '<pre>'; exit;
 			if((int)$goodReceiptDetail > 0){
-				$this->goodReceiptRepository->backorderReceiptEntry($id);
+				$this->goodReceiptRepository->backorderReceiptEntry($id); // OK
 			}
-			#$this->goodReceipt->automaticReceiptEntry($purchase->id);
+
 			$this->productRepository->updateStokLocation($id);
+			
+			
 			#die('po'.(int)$receipt['purchase_order_id']);
 
 			$this->goodReceiptRepository->syncPurchaseItemQty((int)$receipt['purchase_order_id']);

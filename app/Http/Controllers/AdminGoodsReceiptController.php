@@ -474,9 +474,9 @@ use Session;
 			
 			#die('po'.(int)$receipt['purchase_order_id']);
 			// TODO: need check
-			#$this->goodReceiptRepository->syncPurchaseItemQty((int)$receipt['purchase_order_id']);
+			$this->goodReceiptRepository->syncPurchaseItemQty((int)$receipt['purchase_order_id']);
 
-            #$this->journalTransaction->goodReceiveJournalEntry((object)$receipt);
+            $this->journalTransaction->goodReceiveJournalEntry((object)$receipt);
         }
 	    /*
 	    | ----------------------------------------------------------------------

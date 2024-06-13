@@ -134,3 +134,27 @@ use Illuminate\Support\Carbon;
   ## edit
   ## delete
 # Good Receipt
+
+# ISSUE minus di penerimaan di server 
+Purchase
+   $this->goodReceipt->automaticReceiptEntry($event->purchase->id);
+   $this->goodReceipt->syncPurchaseItemQty($event->purchase->id);
+   $this->purchaseOrder->updateDetailPurchaseOrder($event->purchase->id);
+backorderReceiptEntry
+updateStokLocation
+syncPurchaseItemQty
+
+
+# Flow
+Product
+- simpan product dengan qty 0 (updateStokByProductEntry), no purchase_order, n good_receip_id -> ok
+- simpan product dengan qty 1
+- post post condition harus masuk ke product location wh/location (ok)
+
+Purchase
+- Beli Barang qty 20
+-- Otomatis masuk ke vendor 20 -> with purchase_order_id, no good_receive, no product_price
+-- Kondisi Good receive id = null
+-- Terima Barang Request 10, terima 5 kondisi ?
+
+

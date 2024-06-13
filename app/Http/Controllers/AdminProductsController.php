@@ -60,7 +60,7 @@ class AdminProductsController extends \crocodicstudio\crudbooster\controllers\CB
 			$this->form[] = ['label'=>'Brand','name'=>'brand_id','type'=>'select2','validation'=>'nullable|integer|min:0','width'=>'col-sm-10','datatable'=>'product_brands,name'];
 			#$this->form[] = ['label'=>'Biaya','name'=>'product_cost','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
 			#$this->form[] = ['label'=>'Harga','name'=>'product_price','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
-			$this->form[] = ['label'=>'Jumlah','name'=>'qty_onhand','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
+			$this->form[] = ['label'=>'Jumlah','name'=>'qty_onhand','type'=>'number','validation'=>'required|integer|min:1','width'=>'col-sm-10','value'=>1];
 			//$this->form[] = ['label'=>'Jumlah','name'=>'qty_onhand','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
 			//$this->form[] = ['label'=>'Jumlah Alokasi','name'=>'qty_allocated','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
 			//$this->form[] = ['label'=>'Jumlah Terkirim','name'=>'qty_shipped','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
@@ -94,6 +94,7 @@ class AdminProductsController extends \crocodicstudio\crudbooster\controllers\CB
 			| @parent_columns = Sparate with comma, e.g : name,created_at
 	        |
 	        */
+			$this->sub_module[] = ['label'=>'Lokasi','path'=>'product_locations','parent_columns'=>'code,name','foreign_key'=>'product_id','button_color'=>'warning','button_icon'=>'fa fa-database'] ;
 			$this->sub_module[] = ['label'=>'Photo','path'=>'product_photos','parent_columns'=>'code,name','foreign_key'=>'product_id','button_color'=>'success','button_icon'=>'fa fa-image'] ;
 
 
@@ -269,7 +270,7 @@ class AdminProductsController extends \crocodicstudio\crudbooster\controllers\CB
 	    */
 	    public function hook_query_index(&$query) {
 	        //Your code here
-
+			$query->where('is_track_lot_number',1);
 	    }
 
 	    /*

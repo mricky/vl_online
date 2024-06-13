@@ -234,16 +234,21 @@ class ProductRepository implements IProduct {
     public function updateStokLocation($id){
 
         $receives = GoodReceiptDetail::where('good_receipt_id',$id)->get();
+       
+        // TODO : Check here
         try {
             DB::beginTransaction();
 
             ProductLocation::where('good_receipt_id',$id)->delete();
-
+            // Demand misal 10
+            // qty in = 0
             foreach($receives as $item){
                 $product = Product::find($item['product_id']);
-
+              
                 $purchaseOrder = GoodReceipt::where('id',$item['good_receipt_id'])->first()->purchase_order_id;
-
+              
+                // input product location qty baru
+              
                 ProductLocation::create([
                     'good_receipt_id' => $id,
                     'purchase_order_id' => $purchaseOrder->purchase_order_id,
@@ -254,20 +259,15 @@ class ProductRepository implements IProduct {
                     'created_by' => CRUDBooster::myId() ?? 1
                 ]);
 
-                // Kurangin Stok Vendor
-                // ProductLocation::create([
-                //     'good_receipt_id' => $id,
-                //     'product_id' => $item['product_id'],
-                //     'wh_location_id' => 1,
-                //     'qty_onhand' => $item['qty_in'],
-                //     'product_price' => $item['price'],
-                //     'created_by' => CRUDBooster::myId() ?? 1
-                // ]);
-                $latestProdLocation = ProductLocation::where('wh_location_id',2)
-                                ->whereNull('good_receipt_id')->first();
-
-                ProductLocation::where('wh_location_id',2)
-                                ->whereNull('good_receipt_id')->update([
+                // cari product dengan kondisi good_receipt_id = null / berasal dari inputan purchase
+               
+                $latestProdLocation = DB::table('product_locations')->where('wh_location_id',2) // vendor
+                                ->whereNull('good_receipt_id')
+                                ->where('purchase_order_id',$purchaseOrder)
+                                ->first();
+             
+                ProductLocation::where('id',$latestProdLocation->id)
+                                ->update([
                                     'qty_onhand' => $latestProdLocation->qty_onhand - $item['qty_in']
                                 ]);
 

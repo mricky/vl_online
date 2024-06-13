@@ -467,15 +467,16 @@ use Session;
 			if((int)$goodReceiptDetail > 0){
 				$this->goodReceiptRepository->backorderReceiptEntry($id); // OK
 			}
+			// cek juga disini
 
 			$this->productRepository->updateStokLocation($id);
 			
 			
 			#die('po'.(int)$receipt['purchase_order_id']);
+			// TODO: need check
+			#$this->goodReceiptRepository->syncPurchaseItemQty((int)$receipt['purchase_order_id']);
 
-			$this->goodReceiptRepository->syncPurchaseItemQty((int)$receipt['purchase_order_id']);
-
-            $this->journalTransaction->goodReceiveJournalEntry((object)$receipt);
+            #$this->journalTransaction->goodReceiveJournalEntry((object)$receipt);
         }
 	    /*
 	    | ----------------------------------------------------------------------

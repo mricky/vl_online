@@ -105,8 +105,8 @@ class PurchaseOrderRepository implements IPurchaseOrder {
                 'purchase_order_id' => $item->purchase_order_id,
                 'wh_location_id' => 2,
                 'qty_onhand' => $item->qty,
-                'product_price' => $item->subtotal,
-                'total' => (int)$item->qty * (int)$item->subtotal,
+                'product_price' => $item->price,
+                'total' => (int)$item->qty * (int)$item->price,
                 'created_by' => CRUDBooster::myId() ?? 1
             ]);
         }

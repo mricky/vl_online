@@ -87,8 +87,8 @@ use Session;
 			$this->form[] = ['label'=>'Expedition Cost (+)','name'=>'expedition_cost','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
 			$this->form[] = ['label'=>'Total','name'=>'total','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5','readonly'=>true];
             $this->form[] = ['label'=>'Total HPP','name'=>'total_hpp','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5','readonly'=>true];
-			$this->form[] = ['label'=>'Total Bayar','name'=>'total_amount','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5','value'=>0];
-			$this->form[] = ['label'=>'Sisa','name'=>'amount_due','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-5','readonly'=>true];
+			$this->form[] = ['label'=>'Total Bayar','name'=>'total_amount','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-5','readonly'=>true];
+			$this->form[] = ['label'=>'Sisa','name'=>'amount_due','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-5','value'=>0,'readonly'=>true];
 	    	$this->form[] = ['label'=>'Pelanggan Terima Barang','name'=>'customer_receive_date','type'=>'date','validation'=>'nullable|date','width'=>'col-sm-5'];
 			$this->form[] = ['label'=>'Bukti Terima','name'=>'customer_receive_image','type'=>'upload','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
 			# END FORM DO NOT REMOVE THIS LINE
@@ -327,8 +327,8 @@ use Session;
 
 							$('#total').val(total);
                             $('#total_hpp').val(totalHpp);
-
-							$('#amount_due').val(amountDue);
+							$('#total_amount').val(total);
+							$('#amount_due').val(0);
 
 					},500);
 				});

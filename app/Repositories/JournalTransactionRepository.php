@@ -263,20 +263,21 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
             $dataTransaction = [
                 [
                     'journal_id' => $id,
-                    'account_id' => $sales->account_cost,
+                    'account_id' => $sales->account_cost, //bca mandiri
                     'debit'    => $payment->total_amount,
                     'credit' =>  0,
                     'is_manual' => 0,
                     'created_at' => now(),
-                ],
-                [
-                    'journal_id' => $id,
-                    'account_id' => $this->piutangDagang->id,
-                    'debit'    => 0,
-                    'credit' => $payment->total_amount,
-                    'is_manual' => 0,
-                    'created_at' => now(),
                 ]
+                // ,
+                // [
+                //     'journal_id' => $id,
+                //     'account_id' => $this->piutangDagang->id,
+                //     'debit'    => 0,
+                //     'credit' => $payment->total_amount,
+                //     'is_manual' => 0,
+                //     'created_at' => now(),
+                // ]
             ];
 
             DB::table('journal_details')->insert($dataTransaction);
@@ -610,91 +611,95 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                 $year = substr(date("y"),-2);
                 $month = date("m");
                 $no = str_pad($sq+1,4,"0",STR_PAD_LEFT);
-
-                $payload = [
-                    'transaction_date' => $data->order_date,
-                    'transaction_number' => 'GL-'.$year.$month.'-'.$no,
-                    'transaction_type' => $transactionType->id,
-                    'ref_no' => $data->order_number,
-                    'ref_id' => $data->id,
-                    'entry_no' => 0,
-                    'memo' => $transactionType->name,
-                    'total_debit' => $data->total_amount,
-                    'is_manual' => $is_manual,
-                    'total_credit' => $data->total_amount
-                ];
-
-                $id = DB::table('journal_transactions')->insertGetId($payload);
-                //$dataTransaction = [];
-                $dataTransaction = [
-                    [
-                        'journal_id' => $id,
-                        'account_id' => $this->piutangDagang->id,
-                        'debit'    => $data->total_amount,
-                        'credit' => 0,
+              
+              
+                if($mode == 'paid'){
+                    $payload = [
+                        'transaction_date' => $data->order_date,
+                        'transaction_number' => 'GL-'.$year.$month.'-'.$no,
+                        'transaction_type' => $transactionType->id,
+                        'ref_no' => $data->order_number,
+                        'ref_id' => $data->id,
+                        'entry_no' => 0,
+                        'memo' => $transactionType->name,
+                        'total_debit' => $data->total_amount,
                         'is_manual' => $is_manual,
-                        'created_at' => now(),
-                    ],
-                    [
-                        'journal_id' => $id,
-                        'account_id' => $this->pendapatanDagang->id,
-                        'debit'    => 0,
-                        'credit' => $data->total_amount - $data->expedisi, // - ongkir TODO:
-                        'is_manual' => $is_manual,
-                        'created_at' => now(),
-                    ],
-                    [
-                        'journal_id' => $id,
-                        'account_id' => $this->HPP->id,
-                        'debit'    => $data->total_hpp,
-                        'credit' => 0,
-                        'is_manual' => $is_manual,
-                        'created_at' => now(),
-                    ],
-                    [
-                        'journal_id' => $id,
-                        'account_id' => $this->accPersediaanInternal->id, // TODO:
-                        'debit'    => 0,
-                        'credit' => $data->total_hpp,
-                        'is_manual' => $is_manual,
-                        'created_at' => now(),
-                    ],
-
-                 ];
-
-                ## Jika ada diskon dan expedisi
-                if($data->expedisi != 0){
-                    $dataExpedisi = [
+                        'total_credit' => $data->total_amount
+                    ];
+    
+                    $id = DB::table('journal_transactions')->insertGetId($payload);
+                    //$dataTransaction = [];
+                    $dataTransaction = [
+                        // [
+                        //     'journal_id' => $id,
+                        //     'account_id' => $this->piutangDagang->id,
+                        //     'debit'    => $data->total_amount,
+                        //     'credit' => 0,
+                        //     'is_manual' => $is_manual,
+                        //     'created_at' => now(),
+                        // ],
                         [
                             'journal_id' => $id,
-                            'account_id' => $this->accExpedisi->id,
+                            'account_id' => $this->pendapatanDagang->id,
                             'debit'    => 0,
-                            'credit' => $data->expedisi,
+                            'credit' => $data->total_amount, // - ongkir TODO:
                             'is_manual' => $is_manual,
                             'created_at' => now(),
-                        ]
-                    ];
-
-                    $dataTransaction = array_merge($dataTransaction,$dataExpedisi);
-
-
-                }
-                if($data->diskon != 0){
-                    $dataDiskon =[
+                        ],
                         [
                             'journal_id' => $id,
-                            'account_id' => $this->accDiskon->id,
-                            'debit'    => $data->diskon,
+                            'account_id' => $this->HPP->id,
+                            'debit'    => $data->total_hpp,
                             'credit' => 0,
                             'is_manual' => $is_manual,
                             'created_at' => now(),
-                        ]
-                    ];
-
-                    $dataTransaction = array_merge($dataTransaction,$dataDiskon);
-                };
-
-                DB::table('journal_details')->insert($dataTransaction);
+                        ],
+                        [
+                            'journal_id' => $id,
+                            'account_id' => $this->accPersediaanInternal->id, // TODO:
+                            'debit'    => 0,
+                            'credit' => $data->total_hpp,
+                            'is_manual' => $is_manual,
+                            'created_at' => now(),
+                        ],
+    
+                     ];
+    
+                    ## Jika ada diskon dan expedisi
+                    if($data->expedisi != 0){
+                        $dataExpedisi = [
+                            [
+                                'journal_id' => $id,
+                                'account_id' => $this->accExpedisi->id,
+                                'debit'    => 0,
+                                'credit' => $data->expedisi,
+                                'is_manual' => $is_manual,
+                                'created_at' => now(),
+                            ]
+                        ];
+    
+                        $dataTransaction = array_merge($dataTransaction,$dataExpedisi);
+    
+    
+                    }
+                    if($data->diskon != 0){
+                        $dataDiskon =[
+                            [
+                                'journal_id' => $id,
+                                'account_id' => $this->accDiskon->id,
+                                'debit'    => $data->diskon,
+                                'credit' => 0,
+                                'is_manual' => $is_manual,
+                                'created_at' => now(),
+                            ]
+                        ];
+    
+                        $dataTransaction = array_merge($dataTransaction,$dataDiskon);
+                    };
+    
+                    DB::table('journal_details')->insert($dataTransaction);
+                } 
+               
 
                 if($mode == 'paid'){
                      $this->paidSales((object)$data,(object)$data);

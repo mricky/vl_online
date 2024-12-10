@@ -157,5 +157,26 @@ Purchase
 -- Kondisi Good receive id = null
 -- Terima Barang Request 10, terima 5 kondisi ?
 
+Clear data
+truncate purchase_orders;
+truncate purchase_order_details;
 
+truncate goods_receipt;
+truncate goods_receipt_details;
 
+truncate sales_orders;
+truncate sales_order_details;
+
+truncate journal_transactions;
+truncate journal_details;
+
+truncate stock_opnames;
+truncate stock_opname_details;
+
+truncate product_locations;
+
+table_neraca
+update table_neraca set debit=0, credit=0, ending_balance=0
+
+update products set product_price=0, qty_onhand=0
+product_price

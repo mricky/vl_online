@@ -471,7 +471,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
     public function purchaseWithoutDownpaymentJouralEntry($purchase)
     {
         $number = $this->generateJournalNumber();
-
+       
         try {
 
             DB::beginTransaction();
@@ -492,25 +492,50 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
 
             $id = DB::table('journal_transactions')->insertGetId($payload);
 
+            if($purchase->total_amount == $purchase->total){
+                // lunas
 
-            $dataTransaction = [
-                [
-                    'journal_id' => $id,
-                    'account_id' => $this->accPersediaanExternal->id,
-                    'debit'    => $purchase->total,
-                    'credit' => 0,
-                    'is_manual' => 0,
-                    'created_at' => now(),
-                ],
-                [
-                    'journal_id' => $id,
-                    'account_id' => $this->accHutang->id,
-                    'debit'    => 0,
-                    'credit' => $purchase->total_amount,
-                    'is_manual' => 0,
-                    'created_at' => now(),
-                ]
-            ];
+                $dataTransaction = [
+                    [
+                        'journal_id' => $id,
+                        'account_id' => $this->accPersediaanExternal->id,
+                        'debit'    => $purchase->total,
+                        'credit' => 0,
+                        'is_manual' => 0,
+                        'created_at' => now(),
+                    ],
+                    [
+                        'journal_id' => $id,
+                        'account_id' => $purchase->account_cost,
+                        'debit'    => 0,
+                        'credit' => $purchase->total_amount,
+                        'is_manual' => 0,
+                        'created_at' => now(),
+                    ]
+                ];
+            } else {
+                // Hutang atau non dp
+              
+                $dataTransaction = [
+                    [
+                        'journal_id' => $id,
+                        'account_id' => $this->accPersediaanExternal->id,
+                        'debit'    => $purchase->total,
+                        'credit' => 0,
+                        'is_manual' => 0,
+                        'created_at' => now(),
+                    ],
+                    [
+                        'journal_id' => $id,
+                        'account_id' => $this->accHutang->id,
+                        'debit'    => 0,
+                        'credit' => $purchase->total,
+                        'is_manual' => 0,
+                        'created_at' => now(),
+                    ]
+                ];
+            }
+           
             #dd($dataTransaction);
             DB::table('journal_details')->insert($dataTransaction);
             DB::commit();

@@ -175,8 +175,7 @@ truncate stock_opname_details;
 
 truncate product_locations;
 
-table_neraca
-update table_neraca set debit=0, credit=0, ending_balance=0
 
-update products set product_price=0, qty_onhand=0
-product_price
+update table_neraca set debit=0, credit=0, ending_balance=0;
+
+update products set product_price=0, qty_onhand=0;

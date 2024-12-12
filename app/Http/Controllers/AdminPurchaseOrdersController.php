@@ -441,9 +441,9 @@ use Maatwebsite\Excel\Facades\Excel;
 				CRUDBooster::redirect(CRUDBooster::mainpath("add"),"Silahkan Isi Tanggal Order","info");
 			}
 			
-			if (Request::get('total_amount') <= 0){
-				CRUDBooster::redirect(CRUDBooster::mainpath("add"),"Nominal Pembayaran Harus diisi","info");
-			}
+			// if (Request::get('total_amount') <= 0){
+			// 	CRUDBooster::redirect(CRUDBooster::mainpath("add"),"Nominal Pembayaran Harus diisi","info");
+			// }
 
 	        //Your code here
 			$code = 'PO-';

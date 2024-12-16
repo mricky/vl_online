@@ -260,25 +260,31 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
 
             $id = DB::table('journal_transactions')->insertGetId($payload);
 
-            $dataTransaction = [
-                [
-                    'journal_id' => $id,
-                    'account_id' => $sales->account_cost, //bca mandiri
-                    'debit'    => $payment->total_amount,
-                    'credit' =>  0,
-                    'is_manual' => 0,
-                    'created_at' => now(),
-                ]
-                // ,
-                // [
-                //     'journal_id' => $id,
-                //     'account_id' => $this->piutangDagang->id,
-                //     'debit'    => 0,
-                //     'credit' => $payment->total_amount,
-                //     'is_manual' => 0,
-                //     'created_at' => now(),
-                // ]
-            ];
+            if($sales->diskon == 0){
+                $dataTransaction = [
+                    [
+                        'journal_id' => $id,
+                        'account_id' => $sales->account_cost, //bca mandiri
+                        'debit'    => $payment->total_amount,
+                        'credit' =>  0,
+                        'is_manual' => 0,
+                        'created_at' => now(),
+                    ]
+                ];
+
+            } else {
+                $dataTransaction = [
+                    [
+                        'journal_id' => $id,
+                        'account_id' => $sales->account_cost, //bca mandiri
+                        'debit'    => $sales->subtotal + (int)$sales->diskon,
+                        'credit' =>  0,
+                        'is_manual' => 0,
+                        'created_at' => now(),
+                    ]
+                ];
+            }
+          
 
             DB::table('journal_details')->insert($dataTransaction);
 
@@ -655,19 +661,12 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                     $id = DB::table('journal_transactions')->insertGetId($payload);
                     //$dataTransaction = [];
                     $dataTransaction = [
-                        // [
-                        //     'journal_id' => $id,
-                        //     'account_id' => $this->piutangDagang->id,
-                        //     'debit'    => $data->total_amount,
-                        //     'credit' => 0,
-                        //     'is_manual' => $is_manual,
-                        //     'created_at' => now(),
-                        // ],
+                     
                         [
                             'journal_id' => $id,
                             'account_id' => $this->pendapatanDagang->id,
                             'debit'    => 0,
-                            'credit' => $data->total_amount, // - ongkir TODO:
+                            'credit' => $data->subtotal, // - ongkir TODO:
                             'is_manual' => $is_manual,
                             'created_at' => now(),
                         ],

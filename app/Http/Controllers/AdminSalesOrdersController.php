@@ -501,6 +501,7 @@ use Session;
 				'order_date' => $sales->order_date,
 				'total_amount' => $total,
                 'total_hpp' => $sales->total_hpp,
+				'subtotal' => $sales->subtotal,
 				'module' => 'sales',
 				'modal' => 0,
 				'expedisi' => (int)$sales->expedition_cost,

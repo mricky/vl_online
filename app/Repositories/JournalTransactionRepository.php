@@ -257,7 +257,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                 'is_manual' => 0,
                 'total_credit' => $payment->total_amount
             ];
-
+          
             $id = DB::table('journal_transactions')->insertGetId($payload);
 
             if($sales->diskon == 0){
@@ -643,7 +643,13 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                 $month = date("m");
                 $no = str_pad($sq+1,4,"0",STR_PAD_LEFT);
               
-              
+                if($mode == 'paid'){
+
+                    $this->paidSales((object)$data,(object)$data);
+                } else {
+                    // TODO:
+                }
+
                 if($mode == 'paid'){
                     $payload = [
                         'transaction_date' => $data->order_date,
@@ -657,7 +663,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                         'is_manual' => $is_manual,
                         'total_credit' => $data->total_amount
                     ];
-    
+                
                     $id = DB::table('journal_transactions')->insertGetId($payload);
                     //$dataTransaction = [];
                     $dataTransaction = [
@@ -677,18 +683,64 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                             'credit' => 0,
                             'is_manual' => $is_manual,
                             'created_at' => now(),
-                        ],
-                        [
-                            'journal_id' => $id,
-                            'account_id' => $this->accPersediaanInternal->id, // TODO:
-                            'debit'    => 0,
-                            'credit' => $data->total_hpp,
-                            'is_manual' => $is_manual,
-                            'created_at' => now(),
-                        ],
+                        ]
     
                      ];
-    
+                    ## Split Persediaan Internal dan External
+                    $salesDetail = DB::table('sales_order_details')->select('product_locations.wh_location_id','sales_order_details.total_hpp')
+                                ->join('product_locations','product_locations.id','product_location_id')    
+                                ->where('sales_order_id',$data->id)->get();
+                              
+                  
+
+                    
+                    $totalPersediaanInternal = 0;
+                    $totalPersedianExternal = 0;
+                    foreach($salesDetail as $item){
+                        //1 local, 2 gudang vendor
+                        if($item->wh_location_id == 1){
+                            $totalPersediaanInternal =+ $item->total_hpp;
+                           
+                        } else {
+                            $totalPersedianExternal =+ $item->total_hpp;
+                        }
+                       
+                    }
+                 
+                    if($totalPersediaanInternal > 0) {
+                        $data = [
+                            [
+                                'journal_id' => $id,
+                                'account_id' => $this->accPersediaanInternal->id, // TODO:
+                                'debit'    => 0,
+                                'credit' => $data->total_hpp,
+                                'is_manual' => $is_manual,
+                                'created_at' => now(),
+                            ],
+        
+                        ];
+                     
+                        $dataTransaction = array_merge($dataTransaction,$data);
+                       
+                    } 
+                    
+                    if($totalPersedianExternal > 0) {
+                        $data = [
+                            [
+                                'journal_id' => $id,
+                                'account_id' => $this->accPersediaanExternal->id, // TODO:
+                                'debit'    => 0,
+                                'credit' => $data->total_hpp,
+                                'is_manual' => $is_manual,
+                                'created_at' => now(),
+                            ],
+        
+                        ];
+                     
+                        $dataTransaction = array_merge($dataTransaction,$data);
+                    
+                    }
+                  
                     ## Jika ada diskon dan expedisi
                     if($data->expedisi != 0){
                         $dataExpedisi = [
@@ -703,8 +755,6 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                         ];
     
                         $dataTransaction = array_merge($dataTransaction,$dataExpedisi);
-    
-    
                     }
                     if($data->diskon != 0){
                         $dataDiskon =[
@@ -725,12 +775,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                 } 
                
 
-                if($mode == 'paid'){
-                     $this->paidSales((object)$data,(object)$data);
-                } else {
-                    // TODO:
-                }
-
+               
                 DB::commit();
             } catch(\Exception $e){
                 throw $e;

@@ -508,7 +508,7 @@ use Session;
 				'diskon' => (int)$sales->discount,
 				'amount_due' => 0,
 			];
-
+			
 			$mode = null;
 			if($sales->total == $sales->total_amount && $sales->total_amount != 0){
 				$mode = 'paid'; // paid / Lunas

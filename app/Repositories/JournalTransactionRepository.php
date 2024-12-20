@@ -770,7 +770,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
     
                         $dataTransaction = array_merge($dataTransaction,$dataDiskon);
                     };
-    
+                    dd($dataTransaction);
                     DB::table('journal_details')->insert($dataTransaction);
                 } 
                

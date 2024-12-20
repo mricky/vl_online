@@ -713,7 +713,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                                 'journal_id' => $id,
                                 'account_id' => $this->accPersediaanInternal->id, // TODO:
                                 'debit'    => 0,
-                                'credit' => $data->total_hpp,
+                                'credit' => $totalPersediaanInternal,
                                 'is_manual' => $is_manual,
                                 'created_at' => now(),
                             ],
@@ -730,7 +730,7 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
                                 'journal_id' => $id,
                                 'account_id' => $this->accPersediaanExternal->id, // TODO:
                                 'debit'    => 0,
-                                'credit' => $data->total_hpp,
+                                'credit' => $totalPersedianExternal,
                                 'is_manual' => $is_manual,
                                 'created_at' => now(),
                             ],

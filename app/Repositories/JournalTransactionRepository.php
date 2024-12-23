@@ -406,6 +406,13 @@ class JournalTransactionRepository extends ChartOfAccountTransaction implements 
             ];
 
             DB::table('journal_details')->insert($dataTransaction);
+
+            $newAmmountDue = (int)$purchase->amount_due - (int)$payment->amount;
+
+            DB::table('purchase_orders')->where('id',$purchase->id)->update([
+                'amount_due' => $newAmmountDue
+            ]);
+            
             DB::commit();
 
             } catch(\Exception $e){

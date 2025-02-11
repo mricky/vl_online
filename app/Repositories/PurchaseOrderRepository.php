@@ -157,6 +157,18 @@ class PurchaseOrderRepository implements IPurchaseOrder {
 
         return $data;
     }
+    public function getTotalReturOrder(){
+
+        $data = DB::table('return_purchase_order')->count('return_purchase_order.id');
+
+        return $data;
+    }
+    public function getTotalReturOrderRp(){
+        
+        $data = DB::table('return_purchase_order')->sum('return_purchase_order.subtotal');
+
+        return $data;
+    }
     public function getTotalOrder(){
 
         $data = DB::table('purchase_orders')->count('purchase_orders.id');

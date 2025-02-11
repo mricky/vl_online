@@ -48,7 +48,7 @@ use Maatwebsite\Excel\Facades\Excel;
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
 			$this->col[] = ["label"=>"Supplier","name"=>"vendor_id","join"=>"vendors,name"];
-			$this->col[] = ["label"=>"No Order","name"=>"order_number"];
+			$this->col[] = ["label"=>"No Penerimaan","name"=>"order_number"];
 			$this->col[] = ["label"=>"Tgl Retur","name"=>"order_date"];
 			//$this->col[] = ["label"=>"Tg Pengiriman","name"=>"delivery_date"];
 			#$this->col[] = ["label"=>"Barang Pesan","name"=>"(SELECT COALESCE(SUM(purchase_order_details.qty),0) FROM purchase_order_details where purchase_order_details.purchase_order_id = purchase_orders.id) as total_pesan"];
@@ -57,9 +57,9 @@ use Maatwebsite\Excel\Facades\Excel;
 			// 														INNER JOIN goods_receipt on goods_receipt.purchase_order_id = purchase_order_details.purchase_order_id
 			// 														INNER JOIN goods_receipt_details on goods_receipt_details.good_receipt_id = goods_receipt.id
 			// 														WHERE purchase_order_details.purchase_order_id = purchase_orders.id) as total_terima"];
-			$this->col[] = ["label"=>"Total Qty","name"=>"total_qty_request"];
-			$this->col[] = ["label"=>"Qty In","name"=>"total_qty_in"];
-			$this->col[] = ["label"=>"Leave Over","name"=>"total_qty_difference"];
+			// $this->col[] = ["label"=>"Total Qty","name"=>"total_qty_request"];
+			// $this->col[] = ["label"=>"Qty In","name"=>"total_qty_in"];
+			// $this->col[] = ["label"=>"Leave Over","name"=>"total_qty_difference"];
 			# TODO
 			// total pesan
 			// total terima
@@ -69,35 +69,45 @@ use Maatwebsite\Excel\Facades\Excel;
 			$this->col[] = ["label"=>"Discount","name"=>"discount","callback_php"=>'number_format($row->discount)'];
 			//$this->col[] = ["label"=>"Total","name"=>"total","callback_php"=>'number_format($row->total)'];
 			$this->col[] = ["label"=>"Total Bayar","name"=>"total_amount","callback_php"=>'number_format($row->total_amount)'];
-			$this->col[] = ["label"=>"Total Hutang","name"=>"amount_due","callback_php"=>'number_format($row->subtotal - $row->total_amount)'];
+			$this->col[] = ["label"=>"Sisa","name"=>"amount_due","callback_php"=>'number_format($row->subtotal -$row->discount - $row->total_amount)'];
 			# END COLUMNS DO NOT REMOVE THIS LINE
 
 			# START FORM DO NOT REMOVE THIS LINE
 			$this->form = [];
 			#$this->form[] = ['label'=>'Supplier','name'=>'vendor_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'vendors,name'];
-			$this->form[] = ['label'=>'No Order','name'=>'order_number','type'=>'select2','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5','datatable'=>'purchase_orders,order_number'];
-			$this->form[] = ['label'=>'Tgl Retur','name'=>'order_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-5'];
+			$this->form[] = ['label'=>'No Penerimaan','name'=>'good_receipt_id','type'=>'select2','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5','datatable'=>'goods_receipt,code'];
+			$this->form[] = ['label'=>'No Order','name'=>'order_number','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5','readonly'=>true];
+			$this->form[] = ['label'=>'Vendor','name'=>'vendor_name','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5','readonly'=>true];
+			$this->form[] = ['label'=>'Tgl Retur','name'=>'order_date','type'=>'date','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
 			#$this->form[] = ['label'=>'Tgl Estimasi','name'=>'estimated_date','type'=>'date','validation'=>'nullable|date','width'=>'col-sm-5'];
 			//$this->form[] = ['label'=>'Tgl Kirim','name'=>'delivery_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-10'];
 			#$this->form[] = ['label'=>'Mata Uang','name'=>'currency_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'currencies,currency'];
-			$this->form[]  = ['label'=>'Terima Ke','name'=>'account_cost','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'chart_of_accounts,account','datatable_where'=>'id IN (2,3,4,5)'];
+			$this->form[]  = ['label'=>'Bayar Ke','name'=>'account_cost','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'chart_of_accounts,account','datatable_where'=>'id IN (2,3,4,5)'];
 			$this->form[] = ['label'=>'Keterangan','name'=>'description','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5'];
 
 			$columns = [];
 			$columns[] = ['label'=>'Produk','name'=>'product_id','type'=>'select','validation'=>'required|integer|min:0','width'=>'col-sm-5','datatable'=>'products,name','datatable_format'=>"id,' - ',name"];
-
-			$columns[] = ["label"=>"Qty","name"=>"qty",'type'=>'number'];
+			$columns[] = ["label"=>"Qty Retur","name"=>"return_qty",'type'=>'number','style'=>'hidden'];
+			$columns[] = ["label"=>"Qty","name"=>"qty",'type'=>'number',"readonly"=>true];
 			$columns[] = ["label"=>"Harga","name"=>"price",'type'=>'number'];
-			$columns[] = ["label"=>"Subtotal","name"=>"subtotal",'type'=>'number',"readonly"=>true,'formula'=>"[qty] * [price]"];
+			$columns[] = ["label"=>"Subtotal","name"=>"subtotal",'type'=>'number',"readonly"=>true,'formula'=>"[return_qty] * [price]"];
+			// $columns[] = ["label"=>"","name"=>"product_location_id",'type'=>'hidden','style'=>'hidden'];
+			// $columns[] = ["label"=>"","name"=>"good_receipt_id",'type'=>'hidden','style'=>'hidden'];
+			// $columns[] = ["label"=>"","name"=>"good_receipt_detail_id",'type'=>'hidden','style'=>'hidden'];
+
+			$columns[] = ["label"=>"","name"=>"product_location_id",'hidden'=>'text','style'=>'hidden'];
+			$columns[] = ["label"=>"","name"=>"good_receipt_id",'type'=>'hidden','style'=>'hidden'];
+			$columns[] = ["label"=>"","name"=>"good_receipt_detail_id",'type'=>'hidden','style'=>'hidden'];
+
 			#$columns[] = ["label"=>"DP","name"=>"downpayment",'type'=>'number'];
-			$columns[] = ["label"=>"Pembayaran","name"=>"paid_off",'type'=>'number'];
-			$columns[] = ["label"=>"Sisa","name"=>"total",'type'=>'number',"readonly"=>true,'formula'=>"[qty] * [price] - [paid_off]"];
+			#$columns[] = ["label"=>"Pembayaran","name"=>"paid_off",'type'=>'number'];
+			#$columns[] = ["label"=>"Sisa","name"=>"total",'type'=>'number',"readonly"=>true,'formula'=>"[qty] * [price] - [paid_off]"];
 			//$this->form[] = ['label'=>'Orders Detail','name'=>'tr_order_detail','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'tr_order_detail','foreign_key'=>'order_id'];
 			//$this->form[] = ['label'=>'Orders Detail','name'=>'purchase_order_details','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'or','foreign_key'=>'purchase_order_id'];
-			$this->form[] = ['label'=>'Orders Detail','name'=>'return_purchase_order_details','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'purchase_order_details','foreign_key'=>'purchase_order_id'];
+			$this->form[] = ['label'=>'Orders Detail','name'=>'return_purchase_order_details','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'return_purchase_order_details','foreign_key'=>'return_purchase_order_id'];
 			$this->form[] = ['label'=>'Subtotal','name'=>'subtotal','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-5',"readonly"=>true];
-			$this->form[] = ['label'=>'Discount','name'=>'discount','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-5',"readonly"=>true];
-			$this->form[] = ['label'=>'Total Order','name'=>'total','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-5',"readonly"=>true];
+			$this->form[] = ['label'=>'Discount','name'=>'discount','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-5'];
+			$this->form[] = ['label'=>'Total Retur','name'=>'total','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-5',"readonly"=>true];
 			$this->form[] = ['label'=>'Total Bayar','name'=>'total_amount','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-5',"readonly"=>true];
 			$this->form[] = ['label'=>'Total Hutang','name'=>'amount_due','type'=>'money','validation'=>'required|integer|min:0','width'=>'col-sm-5',"readonly"=>true];
 			# END FORM DO NOT REMOVE THIS LINE
@@ -129,7 +139,7 @@ use Maatwebsite\Excel\Facades\Excel;
 	        |
 	        */
 	        $this->sub_module = array();
-                $this->sub_module[] = ['label'=>'Pembayaran','path'=>'account_payable','parent_columns'=>'id,order_date,order_number,total,total_amount,description','parent_columns_alias'=>'ID,Tanggal,Order Number,Total Order,Total Bayar,Keterangan','foreign_key'=>'purchase_id','button_color'=>'warning','button_icon'=>'fa fa-money'];
+                //$this->sub_module[] = ['label'=>'Pembayaran','path'=>'account_payable','parent_columns'=>'id,order_date,order_number,total,total_amount,description','parent_columns_alias'=>'ID,Tanggal,Order Number,Total Order,Total Bayar,Keterangan','foreign_key'=>'purchase_id','button_color'=>'warning','button_icon'=>'fa fa-money'];
                 #$this->sub_module[] = ['label'=>'Jurnal','path'=>'journal_transactions','parent_columns'=>'id,transaction_date,transaction_number,total_debit,total_credit','foreign_key'=>'ref_id','button_color'=>'warning','button_icon'=>'fa fa-money'];
 
 	        /*
@@ -144,8 +154,8 @@ use Maatwebsite\Excel\Facades\Excel;
 	        |
 	        */
             $this->addaction[] = ['label'=>'Jurnal','icon'=>'fa fa-history','color'=>'primary','url'=>CRUDBooster::mainpath('jurnal').'/[id]','title'=>'Jurnal','target'=>'_blank'];
-			$this->addaction[] = ['label'=>'Riwayat','icon'=>'fa fa-history','color'=>'primary','url'=>CRUDBooster::mainpath('history').'/[id]','title'=>'Cetak','target'=>'_blank'];
-	        $this->addaction[] = ['label'=>'Faktur','icon'=>'fa fa-print','color'=>'primary','url'=>CRUDBooster::mainpath('print').'/[id]','title'=>'Cetak','target'=>'_blank'];
+			//$this->addaction[] = ['label'=>'Riwayat','icon'=>'fa fa-history','color'=>'primary','url'=>CRUDBooster::mainpath('history').'/[id]','title'=>'Cetak','target'=>'_blank'];
+	        //$this->addaction[] = ['label'=>'Faktur','icon'=>'fa fa-print','color'=>'primary','url'=>CRUDBooster::mainpath('print').'/[id]','title'=>'Cetak','target'=>'_blank'];
 
 
 
@@ -207,9 +217,9 @@ use Maatwebsite\Excel\Facades\Excel;
 	        */
 
 	        //$this->index_statistic = array();
-			$this->index_statistic[] = ['label'=>'Total Order','count'=>$this->purchaseOrder->getTotalOrder(),'icon'=>'fa fa-file-text','color'=>'warning'];
-			$this->index_statistic[] = ['label'=>'Total Order (Rp)','count'=>number_format($this->purchaseOrder->getTotalOrderRp()),'icon'=>'fa fa-file-text','color'=>'danger'];
-			$this->index_statistic[] = ['label'=>'Total Hutang (Rp)','count'=>number_format($this->purchaseOrder->getTotalHutangRp()),'icon'=>'fa fa-file-text','color'=>'success'];
+			$this->index_statistic[] = ['label'=>'Total Retur','count'=>$this->purchaseOrder->getTotalReturOrder(),'icon'=>'fa fa-file-text','color'=>'warning'];
+			$this->index_statistic[] = ['label'=>'Total Retur (Rp)','count'=>number_format($this->purchaseOrder->getTotalReturOrderRp()),'icon'=>'fa fa-file-text','color'=>'danger'];
+			//$this->index_statistic[] = ['label'=>'Total Hutang (Rp)','count'=>number_format($this->purchaseOrder->getTotalHutangRp()),'icon'=>'fa fa-file-text','color'=>'success'];
 			//$this->index_statistic[] = ['label'=>'POD','count'=>0,'icon'=>'fa fa-check','color'=>'success'];
 
 
@@ -225,64 +235,43 @@ use Maatwebsite\Excel\Facades\Excel;
 	        */
 
 			//$this->script_js;
-	        // $this->script_js = "
-			// 	let qty = $('#ordersdetailqty');
-			// 	let price = $('#ordersdetailprice');
-			// 	let subtotal = $('#ordersdetailsubtotal');
-			// 	let downpayment = $('#ordersdetaildownpayment');
-			// 	let paidOff = $('#ordersdetailpaid_off');
-			// 	let total = $('#ordersdetailtotal');
-
-
-			// 	qty.val(0);
-			// 	price.val(0);
-			// 	subtotal.val(0);
-			// 	downpayment.val(0);
-			// 	paidOff.val(0);
-			// 	total.val(0);
-
-			// 	let sub = 0;
-			// 	price.change(function() {
-
-			// 		sub = parseInt(qty.val()) * parseInt($(this).val());
-			// 		subtotal.val(sub);
-			// 		total.val(sub);
-			// 	});
-
-
-			// ";
-			$this->script_js = "
+	        $this->script_js = "
 				$(function(){
                     let date = new Date();
                     let currentMonth = (date.getMonth() + 1);
                     currentMonth = ('0' + currentMonth).slice(-2);
 
                     var lastDayWithDash =  date.getFullYear() + '-' + currentMonth + '-' +date.getDate();
-                    $('#estimated_date').val(lastDayWithDash);
-                    $('#order_date').val(lastDayWithDash);
-					
-					$('#ordersdetailqty').on('blur', function () {
-						if ($(this).val().trim().length == 0) {
-							$(this).val(0);
-						}
-					});
-					
-					$('#ordersdetailprice').on('blur', function () {
-						if ($(this).val().trim().length == 0) {
-							$(this).val(0);
-						}
-					});
+                   
 
-						
-					$('#ordersdetailpaid_off').on('blur', function () {
-						if ($(this).val().trim().length == 0) {
-							$(this).val(0);
-						}
-					});
-
+					$('#ordersdetailreturn_qty').trigger('blur');
 					$('#ordersdetailqty').trigger('blur');
 					$('#ordersdetailprice').trigger('blur');
-					$('#ordersdetailpaid_off').trigger('blur');
+					
+					
+					$('#discount').on('blur', function () {
+						if ($(this).val().trim().length == 0) {
+							$(this).val(0);
+						}
+					});
+					$('#discount').trigger('blur');
+
+					$('#discount').focusout(function() {
+							var subTotal = 0;
+							var total = 0;
+							var paid_off = 0;
+							var discount = 0;
+							var totalAmount = 0
+
+							subTotal = parseInt(($('#subtotal').val().replace(',', '')).replace(',',''));
+							discount = parseInt(($(this).val().replace(',', '')).replace(',',''));
+							
+							total = subTotal - discount;
+						
+							$('#total').val(addCommas(total));
+							
+					});
+
 					setInterval(function(){
 							var subTotal = 0;
 							var total = 0;
@@ -290,16 +279,12 @@ use Maatwebsite\Excel\Facades\Excel;
 							var discount = 0;
 							var totalAmount = 0;
 
-							$('#table-ordersdetail tbody .subtotal').each(function(){
-								var sub = parseInt(($(this).text().replace(',', '')).replace(',',''));
+							$('#table-ordersdetail tbody .subtotal').each(function(){ 
+								var sub =parseInt(($(this).text().replace(',', '')).replace(',',''));
 								subTotal += sub;
 
 							});
-							$('#table-ordersdetail tbody .paid_off').each(function(){
-								var sub = parseInt(($(this).text().replace(',', '')).replace(',',''));
-								paid_off += sub;
-								console.log(paid_off)
-							});
+						
 
 							$('#table-ordersdetail tbody .total').each(function(){
 								var sub = parseInt(($(this).text().replace(',', '')).replace(',',''));
@@ -307,14 +292,19 @@ use Maatwebsite\Excel\Facades\Excel;
 
 							});
 
+							discount = parseInt(($('#discount').val().replace(',', '')).replace(',',''));
+
 							totalAmount = parseInt(paid_off);
-			
-							$('#total_amount').val(addCommas(totalAmount));
+
+							
 							$('#subtotal').val(addCommas(subTotal));
-							$('#total').val(addCommas(subTotal));
+							$('#total').val(addCommas(subTotal-discount));
+							$('#total_amount').val(addCommas(subTotal-discount));
 							$('#amount_due').val(addCommas(total));
 
 					},500);
+
+					
 			    });
 
 
@@ -364,7 +354,7 @@ use Maatwebsite\Excel\Facades\Excel;
 	        | $this->load_js[] = asset("myfile.js");
 	        |
 	        */
-			$this->load_js[] = asset("js/purchase.js");
+			$this->load_js[] = asset("js/purchase_return.js");
 
 
 
@@ -447,12 +437,15 @@ use Maatwebsite\Excel\Facades\Excel;
 			// }
 
 	        //Your code here
-			$code = 'PO-';
+			$code = 'RET-PO-';
 			$supplier = DB::table('vendors')->where('id',$postdata['vendor_id'])->first()->code;
 		    $sq = DB::table('purchase_orders')->max('id');
 			$year = substr(date("y"),-2);
 			$month = date("m");
 			$no = str_pad($sq+1,4,"0",STR_PAD_LEFT);
+			$vendorID = DB::table('vendors')->where('name',$postdata['vendor_name'])->first()->id;
+			//dd($vendorID);
+			$postdata['vendor_id'] = $vendorID;
 			$postdata['order_number'] = $code.$supplier.$year.$month.$no;
 			$postdata['order_status_id'] = 1;
 			$postdata['created_by'] = CRUDBooster::myId();
@@ -470,9 +463,9 @@ use Maatwebsite\Excel\Facades\Excel;
 			$purchase = DB::table('purchase_orders')->where('id',$id)->first();
 
             #TODO Insert to table Payable
-            $this->purchaseOrder->entryPayable($id,$purchase->account_cost);
-
-			event(new OrderEntryEvent($purchase));
+            //$this->purchaseOrder->entryPayable($id,$purchase->account_cost);
+			//TODO: let jurnal
+			//event(new OrderEntryEvent($purchase));
 			//TODO: diakui stok vendor
 	    }
 

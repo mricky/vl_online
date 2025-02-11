@@ -591,4 +591,11 @@ use Session;
 
 
 		}
+
+		public function findProductItemReceipt($id){
+			
+			$data = $this->productRepository->getItemLineReceipt($id);
+			
+			return response()->json($data);
+		}
 	}

@@ -171,6 +171,7 @@ class GoodReceiptRepository implements IGoodReceipt {
 
         $purchase = PurchaseOrder::with(['details','vendor'])->find($poId);
         $location = WhLocation::where('wh_location_name',$this::WH_LOCATION_DEFAULT)->first();
+    
         $status = OrderStatus::where('name',$this::STATUS_DEFAULT)->first();
 
 

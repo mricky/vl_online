@@ -1,6 +1,8 @@
 <?php namespace App\Http\Controllers;
 
 use App\Events\OrderEntryEvent;
+use App\Models\GoodReceipt;
+use App\Models\PurchaseOrder;
 use App\Repositories\GoodReceiptRepository;
 use Session;
 use Request;
@@ -707,6 +709,20 @@ use Maatwebsite\Excel\Facades\Excel;
 			$data['detail_receipt'] = $this->goodReceipt->getDetailItemReceiptByPO($id);
 
 			$this->cbView('forms/purchase_detail',$data);
+		}
+		public function findOrderNumberByReceiptID($id){
+			$goodReceipt = GoodReceipt::where('id',$id)->first()->purchase_order_id;
+			$data = DB::table('purchase_orders as t1')
+					->select('t1.id','t1.vendor_id','t1.order_number','t2.name as vendor_name')
+					->join('vendors as t2','t2.id','t1.vendor_id')
+					// ->join('vendors', function($join){
+					// 	$join->on('vendors.id','=','purchase_orders.vendor_id');
+					// 	//$join->where('vendor.wh_location_id','!=',1);
+					// })
+					->where('t1.id',$goodReceipt)
+					->first();
+			
+			return response()->json($data);
 		}
 
 	}

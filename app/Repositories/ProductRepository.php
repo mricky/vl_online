@@ -327,4 +327,39 @@ class ProductRepository implements IProduct {
             ->where('t1.purchase_order_id',$poId)->get();
         return $data;
     }
+
+    public function getItemLineReceipt($id)
+    {
+        // product location id
+        // ngurangin product stock
+        // product_locations reference good receipt id
+        /// ->addSelect(DB::raw('CASE WHEN product_locations.wh_location_id = 1 THEN COALESCE(SUM(product_locations.qty_onhand),0) ELSE 0 END as qty_internal'),DB::raw('CASE WHEN product_locations.wh_location_id = 2 THEN COALESCE(SUM(product_locations.qty_onhand),0) ELSE 0 END as qty_vendor'))
+      //  ->select(DB::raw('COALESCE(sum(qty_in),0) as incoming_qty')
+
+        $subQuery = DB::table('product_locations as t1')
+                    ->select('id as product_location_id')
+                    ->where('good_receipt_id',$id)->first();
+
+
+        $data = DB::table('goods_receipt_details as t1')
+           // ->mergeBindings($subQuery ) 
+            ->select('t6.id as product_location_id','t7.wh_location_name','t1.good_receipt_id','t1.id as good_receipt_detail_id','t1.qty_in','t1.price')
+            //->addSelect(DB::raw('select wh_location_id from product_locations WHERE good_receipt_id = 2 as wh_location_id'))
+            ->addSelect('t2.id as product_id','t2.code as product_code','t2.name as product_name','t2.is_track_lot_number')
+            ->addSelect('t3.id as product_category_id','t3.name as product_category_name')
+            ->addSelect('t4.id as product_brand_id','t4.name as product_brand_name')
+            ->addSelect('t5.code as code')
+           // ->addSelect('t6.id as vendor_id','t6.code as vendor_code','t6.name as vendor_name')
+            ->join('products as t2','t1.product_id','t2.id')
+            ->join('product_categories as t3','t2.category_id','t3.id')
+            ->join('product_brands as t4','t2.brand_id','t4.id')
+            ->join('goods_receipt as t5','t1.good_receipt_id','t5.id')
+            ->join('product_locations as t6','t1.product_id','t6.product_id')
+            //->join('vendors as t6','t5.vendor_id','t6.id')
+            ->join('wh_locations as t7','t6.wh_location_id','t7.id')
+            ->where('t6.good_receipt_id',$id)
+            ->where('t1.good_receipt_id',$id)->get();
+
+        return $data;
+    }
 }

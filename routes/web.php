@@ -45,3 +45,7 @@ Route::get('/charts/pembelian','DashboardController@indexPembelian');
 Route::get('/charts/penerimaan','DashboardController@indexPenerimaan');
 Route::get('/chart/fast-moving-items','DashboardController@indexItemFastMoving');
 Route::get('/widget/total-items','DashboardController@totalItems');
+
+# Purchase Order Return
+Route::get('/find-order-number-by-receipt/{id}','AdminPurchaseOrdersController@findOrderNumberByReceiptID');
+Route::get('/find-product-location-item-receive/{receiptId}','AdminGoodsReceiptController@findProductItemReceipt');

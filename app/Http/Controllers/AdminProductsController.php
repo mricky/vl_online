@@ -54,6 +54,7 @@ class AdminProductsController extends \crocodicstudio\crudbooster\controllers\CB
 
 			# START FORM DO NOT REMOVE THIS LINE
 			$this->form = [];
+			$this->form[] = ['label'=>'Kode/SKU','name'=>'code','type'=>'text','validation'=>'nullable|string|min:3|max:70','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Nama','name'=>'name','type'=>'text','validation'=>'required|string|min:3|max:70','width'=>'col-sm-10'];
 			#$this->form[] = ['label'=>'Supplier','name'=>'vendor_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'vendors,name'];
 			$this->form[] = ['label'=>'Kategori','name'=>'category_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'product_categories,name'];
@@ -292,17 +293,23 @@ class AdminProductsController extends \crocodicstudio\crudbooster\controllers\CB
 	    */
 	    public function hook_before_add(&$postdata) {
 	        //Your code here
-			$sq = DB::table('products')->max('id');
 
-			$category = DB::table('product_categories')->where('id',$postdata['category_id'])->first()->name;
-			$brand = DB::table('product_brands')->where('id',$postdata['brand_id'])->first()->name;
+			if($postdata['code'] == null){
+				$postdata['code'] = $postdata['code'];
+			} else {
+				$sq = DB::table('products')->max('id');
 
-			$categoryCode = strtoupper(substr($category,0,3));
-			$brandCode = strtoupper(substr($brand,0,3));
-			$no = $sq+1;
-			$postdata['code'] = $categoryCode.'-'.$brandCode.'-'.$no;
-			$postdata['qty_onhand'] = 0;
-			$postdata['created_by'] = CRUDBooster::myId();
+				$category = DB::table('product_categories')->where('id',$postdata['category_id'])->first()->name;
+				$brand = DB::table('product_brands')->where('id',$postdata['brand_id'])->first()->name;
+
+				$categoryCode = strtoupper(substr($category,0,3));
+				$brandCode = strtoupper(substr($brand,0,3));
+				$no = $sq+1;
+				$postdata['code'] = $categoryCode.'-'.$brandCode.'-'.$no;
+				$postdata['qty_onhand'] = 0;
+				$postdata['created_by'] = CRUDBooster::myId();
+			}
+			
 
 	    }
 

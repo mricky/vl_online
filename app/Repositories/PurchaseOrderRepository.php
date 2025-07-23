@@ -86,16 +86,16 @@ class PurchaseOrderRepository implements IPurchaseOrder {
         }
         //TODO: journal
     }
-    public function updateDetailPurchaseOrder($id){
+    public function updateDetailPurchaseOrder($id,$goodReceiveId = null){
         $purchase = $this->getPurchaseOrder($id);
-
+       
         $detail = DB::table('purchase_order_details')->where('purchase_order_id',$id)
             ->update([
                 'order_date' => $purchase->order_date,
                 'vendor_name' => $purchase->vendor_name,
             ]);
         // TODO: 
-
+           
         $details = DB::table('purchase_order_details')->where('purchase_order_id',$id)->get();
         
         foreach($details as $key=>$item){
@@ -103,11 +103,12 @@ class PurchaseOrderRepository implements IPurchaseOrder {
             ProductLocation::create([
                 'product_id' => $item->product_id,
                 'purchase_order_id' => $item->purchase_order_id,
+                'good_receipt_id' => $goodReceiveId,
                 'wh_location_id' => 2,
                 'qty_onhand' => $item->qty,
                 'product_price' => $item->price,
                 'total' => (int)$item->qty * (int)$item->price,
-                'created_by' => CRUDBooster::myId() ?? 1
+                'created_by' => 'lagi test'//CRUDBooster::myId() ?? 1
             ]);
         }
         return $detail;

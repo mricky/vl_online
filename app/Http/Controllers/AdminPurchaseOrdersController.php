@@ -504,7 +504,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 			// Update Juga di Product Location
 
-			$this->purchaseOrder->updateDetailPurchaseOrder($id);
+			$this->purchaseOrder->updateDetailPurchaseOrder($id);  // move to gr repository
 
 			$purchase = DB::table('purchase_orders')->where('id',$id)->first();
 

@@ -33,8 +33,8 @@ class GoodReceiptListener
      */
     public function handle(OrderEntryEvent $event)
     {
-        $this->goodReceipt->automaticReceiptEntry($event->purchase->id);
-        $this->goodReceipt->syncPurchaseItemQty($event->purchase->id);
-        $this->purchaseOrder->updateDetailPurchaseOrder($event->purchase->id);
+        $receipt = $this->goodReceipt->automaticReceiptEntry($event->purchase->id);
+        $this->goodReceipt->syncPurchaseItemQty($event->purchase->id);        
+        $this->purchaseOrder->updateDetailPurchaseOrder($event->purchase->id,$receipt->id);
     }
 }

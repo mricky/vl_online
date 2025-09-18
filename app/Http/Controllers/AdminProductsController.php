@@ -305,6 +305,7 @@ class AdminProductsController extends \crocodicstudio\crudbooster\controllers\CB
 				$categoryCode = strtoupper(substr($category,0,3));
 				$brandCode = strtoupper(substr($brand,0,3));
 				$no = $sq+1;
+				$postdata['is_track_lot_number'] = 1;
 				$postdata['code'] = $categoryCode.'-'.$brandCode.'-'.$no;
 				$postdata['qty_onhand'] = 0;
 				$postdata['created_by'] = CRUDBooster::myId();

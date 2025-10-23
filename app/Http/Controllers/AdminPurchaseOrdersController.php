@@ -646,7 +646,7 @@ class AdminPurchaseOrdersController extends \crocodicstudio\crudbooster\controll
 
 		$gr = DB::table('goods_receipt')
 			->where('purchase_order_id', $id)
-			->where('status_id', '!=', 2)
+			->where('status_id', '=', 2)
 			->get();
 
 

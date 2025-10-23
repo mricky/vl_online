@@ -390,18 +390,29 @@ class AdminProductsController extends \crocodicstudio\crudbooster\controllers\CB
 
 	public function getEdit($id){
 		
-		$productLocation = DB::table('product_locations')->where('id',$id)->first();
+		// $productLocation = DB::table('product_locations')->where('product_id',$id)->first();
 
-		if ($productLocation) {
-			CRUDBooster::redirect($_SERVER['HTTP_REFERER'], "Product memiliki jumlah stok / transaksi, lakukan perubahan di product location", "info");
-		}
+		// if ($productLocation) {
+		// 	CRUDBooster::redirect($_SERVER['HTTP_REFERER'], "Product memiliki jumlah stok / transaksi, lakukan perubahan di product location", "info");
+		// }
 		return parent::getEdit($id);
 	}
+
 	
 	public function hook_before_delete($id)
 	{
 		//Your code here
+		
+		$productLocation = DB::table('product_locations')->where('product_id',$id)
+			->sum('qty_onhand');
 
+		if ($productLocation != 0) {
+			CRUDBooster::redirect($_SERVER['HTTP_REFERER'], "Product memiliki jumlah stok / transaksi, lakukan perubahan di product location", "info");
+		}
+		
+		DB::table('product_locations')->where('product_id',$id)->delete();
+		
+	
 	}
 
 	/*

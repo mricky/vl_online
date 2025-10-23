@@ -289,7 +289,7 @@ class AdminGoodsReceipt42Controller extends \crocodicstudio\crudbooster\controll
 	{
 		//Your code here
 		$query->where('status_id', 2);
-		$query->where('goods_receipt.description','!=','automatic');
+		//$query->where('goods_receipt.description','!=','automatic');
 	}
 
 	/*
@@ -380,6 +380,13 @@ class AdminGoodsReceipt42Controller extends \crocodicstudio\crudbooster\controll
 	    | 
 	    */
 	public function getEdit($id){
+
+		$receive = DB::table('goods_receipt')->where('id', $id)->first();
+		
+		if ($receive->description = 'automatic') {
+			CRUDBooster::redirect($_SERVER['HTTP_REFERER'], "Anda tidak bisa merubah stok vendor secara langsung, lakukan pembatalan penerimaan yang lain", "info");
+		}
+
 		$receive = GoodReceipt::with(['details'])->find($id);
 
 		$totalItem = $receive->details->count('id');
@@ -416,18 +423,26 @@ class AdminGoodsReceipt42Controller extends \crocodicstudio\crudbooster\controll
 	{
 		$receive = DB::table('goods_receipt')->where('id', $id)->first();
 		
+		//dd($receive);
+		if ($receive->description = 'automatic') {
+			// tendang yang automatic // vendor stok ke proses
+			$productLocation = DB::table('product_locations')
+				->where('good_receipt_id',$id)
+				->where('purchase_order_id', $receive->purchase_order_id)->first();
 		
-		
-		$productLocation = DB::table('product_locations')
-			->where('wh_location_id', 2)
-			->where('purchase_order_id', $receive->purchase_order_id)->get();
-		//dd($productLocation);
-		if ($receive->description = 'automatic' && $productLocation->sum('qty_onhand') == 0) {
-			DB::table('goods_receipt')->where('id', $id)->update(['status_id' => 1]); // kembalikan ke status proses
+			if($productLocation->qty_onhand == $productLocation->qty_request){
+			
+				DB::table('goods_receipt')->where('id', $id)->update(['status_id' => 1]); // kembalikan ke status proses, update qty gr
+			} else{
+				return parent::getDelete($id);
+			}
 			
 			CRUDBooster::redirect($_SERVER['HTTP_REFERER'], "Hanya Penerimaan status selesai dapat di deleted, penerimaan ini akan dibalikan ke status proses!", "info");
 		}
-		return parent::getDelete($id);
+		else {
+			return parent::getDelete($id);
+		}
+		
 	}
 	public function hook_before_delete($id)
 	{

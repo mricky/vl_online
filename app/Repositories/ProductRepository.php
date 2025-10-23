@@ -340,10 +340,11 @@ class ProductRepository implements IProduct
               
             }
 
-            $lastQtyOnhand = $product->qty_onhand;
-            $newStok = ($lastQtyOnhand + $item['qty_in']);
-            $product->qty_onhand = $newStok;
-            $product->save();
+            // ini nanti update stok dari product location 
+            // $lastQtyOnhand = $product->qty_onhand;
+            // $newStok = ($lastQtyOnhand + $item['qty_in']);
+            // $product->qty_onhand = $newStok;
+            // $product->save();
             DB::commit();
         } catch (\Exception $e) {
             DB::rollback();

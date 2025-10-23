@@ -94,7 +94,7 @@ use Session;
 			// ,'datamodal_columns'=>'name,category_name,brand_name,product_price,qty_onhand,lot_number'
 			// ,'datamodal_size'=>'large','datamodal_columns_alias'=>'Name, Kategori, Brand, Harga, Stok, Lot Number'
 			// ,'datamodal_select_to'=>'product_price:price,lot_number:lot_number'];
-			if(CRUDBooster::isCreate()){
+			if(CRUDBooster::getCurrentMethod() == 'getAdd'){
 				$columns[] = ["label"=>"Barang Pesan",'required'=>true,"name"=>"qty_demand",'type'=>'number','readonly'=>false];
 
 			}

@@ -96,19 +96,24 @@ class PurchaseOrderRepository implements IPurchaseOrder {
             ]);
         // TODO: 
            
-        $details = DB::table('purchase_order_details')->where('purchase_order_id',$id)->get();
-        
+        $details = DB::table('purchase_order_details')->where('purchase_order_id',$id)
+        ->where('wh_location_id','!=',2)  // vendor location    
+        ->get();
+      
         foreach($details as $key=>$item){
             ProductLocation::where('purchase_order_id',$item->purchase_order_id)->delete();
+           // dd($purchase->vendor_id);
             ProductLocation::create([
+                'vendor_id' => $purchase->vendor_id,
                 'product_id' => $item->product_id,
                 'purchase_order_id' => $item->purchase_order_id,
                 'good_receipt_id' => $goodReceiveId,
-                'wh_location_id' => 2,
+                'wh_location_id' => 2, // vendor
                 'qty_onhand' => $item->qty,
                 'product_price' => $item->price,
+                'is_automatic' => 1,
                 'total' => (int)$item->qty * (int)$item->price,
-                'created_by' => 'lagi test'//CRUDBooster::myId() ?? 1
+                'created_by' => CRUDBooster::myId() ?? 1
             ]);
         }
         return $detail;
@@ -140,7 +145,7 @@ class PurchaseOrderRepository implements IPurchaseOrder {
     {
         $data = DB::table('purchase_orders as t1')
                  ->select('t1.*')
-                 ->addSelect('t2.code as vendor_code','t2.name as vendor_name','t2.address as vendor_address','t2.phone as vendor_phone')
+                 ->addSelect('t2.id as vendor_id','t2.code as vendor_code','t2.name as vendor_name','t2.address as vendor_address','t2.phone as vendor_phone')
                  ->join('vendors as t2','t1.vendor_id','=','t2.id')
                  ->where('t1.id',$id)
         ->first();

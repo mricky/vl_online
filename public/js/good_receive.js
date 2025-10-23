@@ -8,6 +8,40 @@ $('#purchase_order_id').change(function(){
     } 
 });
 
+ $("#btn-add-table-detailpenerimaan").click(function () {
+        
+        var fired_button = $(this).val();
+     
+        if (fired_button == 'Add To Table') {
+            // check product
+            $("#table-detailpenerimaan tbody .product_id").each(function(){
+                var product_id = $(this).text();
+                if(product_id == ' undefined' || product_id=='' || product_id=='** Silahkan pilih Produk'){
+                    swal('Silahkan pilih product');
+                    removeTable($(this).val())
+                    return false
+                }
+            });
+             $("#table-detailpenerimaan tbody .qty_in").each(function(){
+                var qty = $(this).text();
+                if(qty_in == ' undefined' || qty_in=='' || qty_in==0){
+                    swal('Silahkan quantity product masuk dengan benar, qty masuk tidak boleh 0 atau kosong');
+                    //removeTable($(this).val())
+                    return false
+                }
+            });
+            $("#table-detailpenerimaan tbody .price").each(function(){
+                var price = $(this).text();
+                if(price == ' undefined' || price=='' || price==0){
+                    swal('Silahkan harga product dengan benar, harga tidak boleh 0 atau kosong');
+                    //removeTable($(this).val())
+                    return false
+                }
+            });
+
+        } 
+    });
+
 const getItemLineProductPO = (id) => {
     const containerTable =   $('#table-detailpenerimaan');
     const receiveDate = $('#receipt_date').val();
@@ -40,3 +74,14 @@ const getItemLineProductPO = (id) => {
         }
     });
 }
+
+ function removeTable(value){
+    if(value !=null){      
+         $('#table-ordersdetail tr td').each(function() {
+                if($(this).text().toLowerCase().indexOf(value.toLowerCase()) >= 0) {
+                    $(this).parent().remove();
+                    return false;
+                }
+            });
+        }
+ }

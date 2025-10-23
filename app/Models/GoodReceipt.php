@@ -21,6 +21,7 @@ class GoodReceipt extends Model
         'receipt_date',
         'description',
         'created_by',
+        'amount_of_good',
         'created_at',
         'updated_by',
         'updated_at'

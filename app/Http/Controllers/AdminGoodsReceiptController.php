@@ -41,7 +41,7 @@ use Session;
 			$this->button_table_action = true;
 			$this->button_bulk_action = true;
 			$this->button_action_style = "button_icon";
-			$this->button_add = false;
+			$this->button_add = true;
 			$this->button_edit = true;
 			$this->button_delete = false;
 			$this->button_detail = true;
@@ -72,7 +72,7 @@ use Session;
 			$this->form[] = ['label'=>'Purchase Order','name'=>'po_vendor','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5','readonly'=>true];
 			$this->form[] = ['label'=>'No Penerimaan','name'=>'code','type'=>'text','validation'=>'nullable|min:1|max:255','width'=>'col-sm-5','readonly'=>true];
 			$this->form[] = ['label'=>'Tgl Penerimaan','name'=>'receipt_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-5'];
-			if(!CRUDBooster::isCreate()){
+			if(CRUDBooster::getCurrentMethod() == 'getAdd'){
 			$this->form[] = ['label'=>'PO','name'=>'purchase_order_id','type'=>'datamodal'
 						,'validation'=>'nullable|min:1|max:255'
 						,'width'=>'col-sm-5'
@@ -113,7 +113,7 @@ use Session;
 
 			$this->form[] = ['label'=>'Detail Penerimaan','name'=>'good_receipt_details','type'=>'child','columns'=>$columns,'width'=>'col-sm-1','table'=>'goods_receipt_details','foreign_key'=>'good_receipt_id'];
 
-			$this->form[] = ['label'=>'Description','name'=>'description','type'=>'text','validation'=>'nullable','width'=>'col-sm-10'];
+			//$this->form[] = ['label'=>'Description','name'=>'description','type'=>'text','validation'=>'nullable','width'=>'col-sm-10'];
 			# END FORM DO NOT REMOVE THIS LINE
 
 			# OLD START FORM
@@ -420,9 +420,10 @@ use Session;
 			// 	'total_amount' => $purchase->total_amount,
 			// 	'module' => 'receive',
 			// ];
-
+			
 			 //$this->journalTransaction->purchaseJournalEntry((object)$data,0);
 		   	 $this->goodReceiptRepository->updateDetailGoodReceipt($id);
+			// $this->goodReceiptRepository->inventoryTransactionIn($id);
 
 
 	    }
@@ -440,7 +441,8 @@ use Session;
 
             $receive = DB::table('goods_receipt')->where('id',$id)->first();
 
-            //TODO: JOURNAL
+            //TODO: JOURNAL 
+			// cloing
 
 
 	    }
@@ -457,7 +459,8 @@ use Session;
 			// Update Lokasi Stok
 			$receipt = DB::table('goods_receipt')->where('id',$id);
 			$receipt = GoodReceipt::findOrFail($id);
-			$receipt->status_id = 2;
+			$receipt->status_id = 2; // proses
+			//$receipt->description = 'Transfer Vendor to WH';
 			$receipt->save();
 			// TODO:
 
@@ -465,18 +468,23 @@ use Session;
 			#$test = GoodReceiptDetail::where('good_receipt_id',$id)->get();
 			#echo '<pre>'; print($test); echo '<pre>'; exit;
 			if((int)$goodReceiptDetail > 0){
-				$this->goodReceiptRepository->backorderReceiptEntry($id); // OK
+				$this->goodReceiptRepository->backorderReceiptEntry($id); // OK // menghasilkan back order process
+			} else {
+				// tetap buat receive jika tidak ada sisa
+				$this->goodReceiptRepository->receiptEntry($id); // ini mungkin di delete
+				//$receives = GoodReceiptDetail::where('good_receipt_id', $id)->get();
 			}
 			// cek juga disini
 
-			$this->productRepository->updateStokLocation($id);
+			$this->productRepository->updateStokLocation($id); // coba di pecah
 			
-			
+			// update stok di vendor location
 			#die('po'.(int)$receipt['purchase_order_id']);
 			// TODO: need check
-			$this->goodReceiptRepository->syncPurchaseItemQty((int)$receipt['purchase_order_id']);
-
+			$this->goodReceiptRepository->syncPurchaseItemQty((int)$receipt['purchase_order_id']); // ini sepertinya perlu di pakai di edit receipt controller lain
             $this->journalTransaction->goodReceiveJournalEntry((object)$receipt);
+
+			$this->goodReceiptRepository->inventoryTransactionIn($id);
         }
 	    /*
 	    | ----------------------------------------------------------------------
@@ -495,7 +503,8 @@ use Session;
 				'total_amount' => $purchase->total_amount,
 				'module' => 'receive',
 			];
-
+			// REVERSE STOK
+			
 			$this->journalTransaction->deletePurchaseJournalEntry((object)$data);
 	    }
 
@@ -509,7 +518,9 @@ use Session;
 	    public function hook_after_delete($id) {
 	        //Your code here
 			$receipt = GoodReceipt::findOrFail($id);
-			$this->goodReceiptRepository->syncPurchaseItemQty((int)$receipt['purchase_order_id']);
+
+			//TODO: Need check
+			//$this->goodReceiptRepository->syncPurchaseItemQty((int)$receipt['purchase_order_id']);
 	    }
 
 		public function getDifferenceItem($goodReceiptId)
@@ -530,7 +541,7 @@ use Session;
                 return $item;
             })->toArray();
 
-			dd($detail);
+			
 		}
 
 	    //By the way, you can still create your own method in here... :)

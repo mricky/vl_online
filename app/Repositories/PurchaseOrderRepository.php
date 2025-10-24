@@ -96,13 +96,10 @@ class PurchaseOrderRepository implements IPurchaseOrder {
             ]);
         // TODO: 
            
-        $details = DB::table('purchase_order_details')->where('purchase_order_id',$id)
-        ->where('wh_location_id','!=',2)  // vendor location    
-        ->get();
+        $details = DB::table('purchase_order_details')->where('purchase_order_id',$id)->get();
       
         foreach($details as $key=>$item){
             ProductLocation::where('purchase_order_id',$item->purchase_order_id)->delete();
-           // dd($purchase->vendor_id);
             ProductLocation::create([
                 'vendor_id' => $purchase->vendor_id,
                 'product_id' => $item->product_id,

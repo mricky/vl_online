@@ -280,6 +280,7 @@ class ProductRepository implements IProduct
 
         return $product;
     }
+   
     public function updateStokLocation($id)
     {
         // update ini jika ada pertambahan stok dari good receipt
@@ -304,9 +305,9 @@ class ProductRepository implements IProduct
               
                 DB::table('goods_receipt_details')->where('id', $item['id'])->update(['wh_location_id' => 1]);
                 // kurangi stok di vendor location
-             
 
                 //insert di table product location dengan wh_location_id = 1 (internal)
+                // dd($item);
                 DB::table('product_locations')->insert([
                     'vendor_id' => $gr->vendor_id,
                     'good_receipt_id' => $id,

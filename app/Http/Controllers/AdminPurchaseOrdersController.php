@@ -522,12 +522,12 @@ class AdminPurchaseOrdersController extends \crocodicstudio\crudbooster\controll
                 'created_by' => CRUDBooster::myId() ?? 1
 			  ];
 			  // Update Product, kuncinya di product location
-			  DB::table('products')->where('id',$item->product_id)->update(
-				['qty_onhand' => 0]
-			  );
-			   DB::table('products')->where('id',$item->product_id)->update(
-				['qty_onhand' => $onHand]
-			  );
+			//   DB::table('products')->where('id',$item->product_id)->update(
+			// 	['qty_onhand' => 0]
+			//   );
+			//    DB::table('products')->where('id',$item->product_id)->update(
+			// 	['qty_onhand' => $onHand]
+			//   );
 				    //DB::table('goods_receipt_details')->where('id', $item['id'])->update(['wh_location_id' => 1]);
 			  ProductLocation::create($data);
 		}
@@ -598,13 +598,53 @@ class AdminPurchaseOrdersController extends \crocodicstudio\crudbooster\controll
 	    */
 	public function hook_after_edit($id)
 	{
-		//Your code here
-		$this->goodReceipt->syncPurchaseItemQty($id);
+
+		// harusnya sudah tidak ada receipt di gudang
+		$deleteReceipt = DB::table('goods_receipt')->where('purchase_order_id',$id)->get();
+
+		foreach($deleteReceipt as $item){
+			DB::table('goods_receipt_details')->where('good_receipt_id',$item->id)->delete();
+		}
+
+		DB::table('goods_receipt')->where('purchase_order_id',$id)->delete();
+
+		
+		
+		$receipt = $this->goodReceipt->automaticReceiptEntry($id); 
+		$this->goodReceipt->syncPurchaseItemQty($id); // Product Location exist didelete disini
+
 
 		// Update Juga di Product Location
 
-		$this->purchaseOrder->updateDetailPurchaseOrder($id);  // move to gr repository
+		//$this->purchaseOrder->updateDetailPurchaseOrder($id);  // move to gr repository
+		$purchase = $this->getPurchaseOrder($id);
+       
+        DB::table('purchase_order_details')->where('purchase_order_id',$id)
+            ->update([
+                'order_date' => $purchase->order_date,
+                'vendor_name' => $purchase->vendor_name,
+            ]);
 
+		$details = DB::table('purchase_order_details')->where('purchase_order_id',$id)->get();
+
+		
+
+		ProductLocation::where('purchase_order_id',$id)->delete();
+       
+		foreach($details as $key=>$item){
+            ProductLocation::create([
+                'vendor_id' => $purchase->vendor_id,
+                'product_id' => $item->product_id,
+                'purchase_order_id' => $item->purchase_order_id,
+                'wh_location_id' => 2, // vendor
+                'qty_onhand' => $item->qty,
+                'product_price' => $item->price,
+				'description' => 'Initial Stok dari PO : '.$purchase->order_number,
+                'is_automatic' => 1,
+                'total' => (int)$item->qty * (int)$item->price,
+                'created_by' => CRUDBooster::myId() ?? 1
+            ]);
+        }
 		$purchase = DB::table('purchase_orders')->where('id', $id)->first();
 
 		$automaticReceive = DB::table('goods_receipt')
@@ -681,7 +721,17 @@ class AdminPurchaseOrdersController extends \crocodicstudio\crudbooster\controll
 	    */
 	public function hook_after_delete($id)
 	{
+		// catatan sudah tidak ada gudang di internal
+		$deleteReceipt = DB::table('goods_receipt')->where('purchase_order_id',$id)->get();
+
+		foreach($deleteReceipt as $item){
+			DB::table('goods_receipt_details')->where('good_receipt_id',$item->id)->delete();
+		}
+
+		DB::table('goods_receipt')->where('purchase_order_id',$id)->delete();
+
 		//Your code here
+		DB::table('product_locations')->where('purchase_order_id',$id)->delete();
 
 	}
 
@@ -865,4 +915,15 @@ class AdminPurchaseOrdersController extends \crocodicstudio\crudbooster\controll
 
 		return response()->json($data);
 	}
+	public function getPurchaseOrder($id)
+    {
+        $data = DB::table('purchase_orders as t1')
+                 ->select('t1.*')
+                 ->addSelect('t2.id as vendor_id','t2.code as vendor_code','t2.name as vendor_name','t2.address as vendor_address','t2.phone as vendor_phone')
+                 ->join('vendors as t2','t1.vendor_id','=','t2.id')
+                 ->where('t1.id',$id)
+        ->first();
+
+        return $data;
+    }
 }

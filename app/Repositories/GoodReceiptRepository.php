@@ -140,7 +140,7 @@ class GoodReceiptRepository implements IGoodReceipt
                 'total_qty_in' => $totalQtyIn,
                 'total_qty_difference' => $totalDifference
             ];
-           
+            // bagusnya dasarnya dari Product Location 
             // $purchaseOrder = PurchaseOrder::findOrFail($purchaseId);
             // $purchaseOrder->total_qty_request =  $totalQtyRequest;
             // $purchaseOrder->total_qty_in = $totalQtyIn;
@@ -207,10 +207,7 @@ class GoodReceiptRepository implements IGoodReceipt
     public function receiptEntry($goodReceiptId){
         $receive = GoodReceipt::with(['deferences', 'details'])->find($goodReceiptId);
         $purchase = $this->getPurchaseOrder($receive->purchase_order_id);
-
-
         $status = OrderStatus::where('name', $this::STATUS_DONE)->first();
-
         try {
             $newReceipt = new GoodReceipt();
             $newReceipt->vendor_id = $receive->vendor_id;
@@ -238,26 +235,25 @@ class GoodReceiptRepository implements IGoodReceipt
                 $itemDetail->created_by =  CRUDBooster::myId() ?? 1;
                 $itemDetail->save();
                 
-                // 0 kan receive pertama
-                // DB::table('goods_receipt_details')->where('id',$row->id)->update([
-                //     'qty_in' => $row->qty_demand - $row->qty_in
-                // ]);
             }
-
+            // delete automatic receipt, nanti ini akan di perbaharui dengan saat delete, di kembalikan dari stok vendor
             #GoodReceiptDetail::create($datail);
+            // delete automatic 
+            // $receive->details()->delete();
+            // $receive->delete();
+            
             DB::commit();
+
         } catch (\Exception $e) {
             DB::rollback();
             throw $e;
         }
+        return $newReceipt;
     }
     public function backorderReceiptEntry($goodReceiptId)
     {
-
         $receive = GoodReceipt::with(['deferences', 'details'])->find($goodReceiptId);
         $purchase = $this->getPurchaseOrder($receive->purchase_order_id);
-
-
         $status = OrderStatus::where('name', $this::STATUS_DEFAULT)->first();
 
         try {
@@ -272,14 +268,13 @@ class GoodReceiptRepository implements IGoodReceipt
             $backOrder->description = 'backorder-' . $receive->code;
             $backOrder->created_by = CRUDBooster::myId() ?? 1;
             $backOrder->save();
-
             foreach ($receive->deferences as $row) {
                 $itemDetail = new GoodReceiptDetail();
                 $itemDetail->good_receipt_id =  $backOrder->id;
                 $itemDetail->product_id = $row['product_id'];
                 $itemDetail->lot_number = '-';
-                $itemDetail->qty_demand =  $row['qty_diferrence'];
-                $itemDetail->qty_in = 0;
+                $itemDetail->qty_demand =  $row['qty_diferrence']; // sisa
+                $itemDetail->qty_in = $row['qty_diferrence']; // munculkan di textbox sisa nya
                 $itemDetail->qty_diferrence = 0;
                 $itemDetail->price = $row['price'];
                 $itemDetail->wh_location_id = 1; // masukan ke lokasi non vendor / wh stok
@@ -287,23 +282,19 @@ class GoodReceiptRepository implements IGoodReceipt
                 $itemDetail->created_by =  CRUDBooster::myId() ?? 1;
                 $itemDetail->save();
             }
-
             #GoodReceiptDetail::create($datail);
             DB::commit();
         } catch (\Exception $e) {
             DB::rollback();
             throw $e;
         }
-        return $receive;
+        return $backOrder;
     }
     public function automaticReceiptEntry($poId)
     {
-
         $purchase = PurchaseOrder::with(['details', 'vendor'])->find($poId);
         $location = WhLocation::where('wh_location_name', $this::WH_LOCATION_DEFAULT)->first();
-
         $status = OrderStatus::where('name', $this::STATUS_DEFAULT)->first();
-
 
         try {
             DB::beginTransaction();
@@ -314,12 +305,11 @@ class GoodReceiptRepository implements IGoodReceipt
             $goodReceipt->purchase_order_id = $purchase->id;
             $goodReceipt->po_vendor = $purchase->order_number;
             $goodReceipt->receipt_date = $purchase->estimated_date; // estimate
-            $goodReceipt->status_id = $status->id; // Process
-            //$goodReceipt->description = 'otomatis-manifest-penerimaan-barangs-dari-purchase-order-' . $purchase->order_number;
+            $goodReceipt->status_id = $status->id; // Proces
             $goodReceipt->description = 'automatic';
             $goodReceipt->created_by = CRUDBooster::myId() ?? 1;
             $goodReceipt->save();
-         
+          
             $detail = $purchase->details->transform(function ($item) use ($goodReceipt, $location) {
                 $item['good_receipt_id'] = $goodReceipt->id;
                 $item['product_id'] = $item['product_id'];
@@ -334,9 +324,7 @@ class GoodReceiptRepository implements IGoodReceipt
                 $item['created_by'] = CRUDBooster::myId() ?? 1;
                 return $item;
             })->toArray();
-           
             $goodReceipt->details()->createMany($detail);
-            //dd($detail);
             $this->inventoryTransactionIn($goodReceipt->id, 'IN', 1);
             // Detail Receipt
             DB::commit();
@@ -376,7 +364,7 @@ class GoodReceiptRepository implements IGoodReceipt
         }
     }
 
-      public function getPurchaseOrder($id)
+    public function getPurchaseOrder($id)
     {
         $data = DB::table('purchase_orders as t1')
                  ->select('t1.*')

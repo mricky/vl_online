@@ -412,18 +412,8 @@ use Session;
 	        //Your code here
 			// no journal
 			 $receive = DB::table('goods_receipt')->where('id',$id)->first();
-			// $purchase =  DB::table('purchase_orders')->where('id',$receive->purchase_order_id)->first();
-			// $data = [
-			// 	'id' => $receive->id,
-			// 	'order_number' => $receive->code,
-			// 	'order_date' => $receive->receipt_date,
-			// 	'total_amount' => $purchase->total_amount,
-			// 	'module' => 'receive',
-			// ];
-			
-			 //$this->journalTransaction->purchaseJournalEntry((object)$data,0);
 		   	 $this->goodReceiptRepository->updateDetailGoodReceipt($id);
-			// $this->goodReceiptRepository->inventoryTransactionIn($id);
+			
 
 
 	    }
@@ -455,36 +445,25 @@ use Session;
 	    |
 	    */
 	    public function hook_after_edit($id) {
-	        // Update Stok
-			// Update Lokasi Stok
-			$receipt = DB::table('goods_receipt')->where('id',$id);
 			$receipt = GoodReceipt::findOrFail($id);
 			$receipt->status_id = 2; // proses
-			//$receipt->description = 'Transfer Vendor to WH';
 			$receipt->save();
-			// TODO:
 
 			$goodReceiptDetail = GoodReceiptDetail::where('good_receipt_id',$id)->sum('qty_diferrence');
-			#$test = GoodReceiptDetail::where('good_receipt_id',$id)->get();
-			#echo '<pre>'; print($test); echo '<pre>'; exit;
+			// harus di cek disini
 			if((int)$goodReceiptDetail > 0){
-				$this->goodReceiptRepository->backorderReceiptEntry($id); // OK // menghasilkan back order process
+				$backOrderReceipt = $this->goodReceiptRepository->backorderReceiptEntry($id); // OK // menghasilkan back order process
+				$this->productRepository->updateStokLocation($backOrderReceipt->id);
 			} else {
 				// tetap buat receive jika tidak ada sisa
-				$this->goodReceiptRepository->receiptEntry($id); // ini mungkin di delete
-				//$receives = GoodReceiptDetail::where('good_receipt_id', $id)->get();
+				$newReceipt = $this->goodReceiptRepository->receiptEntry($id); // ini mungkin di delete
+				$this->productRepository->updateStokLocation($newReceipt->id); // coba di pecah
 			}
 			// cek juga disini
-
-			$this->productRepository->updateStokLocation($id); // coba di pecah
-			
-			// update stok di vendor location
-			#die('po'.(int)$receipt['purchase_order_id']);
 			// TODO: need check
-			$this->goodReceiptRepository->syncPurchaseItemQty((int)$receipt['purchase_order_id']); // ini sepertinya perlu di pakai di edit receipt controller lain
-            $this->journalTransaction->goodReceiveJournalEntry((object)$receipt);
-
-			$this->goodReceiptRepository->inventoryTransactionIn($id);
+			//$this->goodReceiptRepository->syncPurchaseItemQty((int)$receipt['purchase_order_id']); // ini sepertinya perlu di pakai di edit receipt controller lain
+            //$this->journalTransaction->goodReceiveJournalEntry((object)$receipt);
+			//$this->goodReceiptRepository->inventoryTransactionIn($id);
         }
 	    /*
 	    | ----------------------------------------------------------------------

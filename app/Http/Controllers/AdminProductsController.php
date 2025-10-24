@@ -404,7 +404,7 @@ class AdminProductsController extends \crocodicstudio\crudbooster\controllers\CB
 		//Your code here
 		
 		$productLocation = DB::table('product_locations')->where('product_id',$id)
-			->sum('qty_onhand');
+			->sum('qty_onhand')->get();;
 
 		if ($productLocation != 0) {
 			CRUDBooster::redirect($_SERVER['HTTP_REFERER'], "Product memiliki jumlah stok / transaksi, lakukan perubahan di product location", "info");
@@ -412,7 +412,7 @@ class AdminProductsController extends \crocodicstudio\crudbooster\controllers\CB
 		
 		DB::table('product_locations')->where('product_id',$id)->delete();
 		
-	
+		
 	}
 
 	/*
